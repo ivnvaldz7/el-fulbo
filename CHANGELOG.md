@@ -2,6 +2,18 @@
 
 Registro de cambios importantes del proyecto. Formato: `[versión] - YYYY-MM-DD`.
 
+## [0.2.0] - 2026-04-26 - Bootstrap tecnico Codex
+
+- Inicializado Next.js 14 App Router + React 18 + TypeScript strict.
+- Configurados Tailwind, ESLint, Prettier, Vitest, Testing Library y Playwright.
+- Agregados providers base y clientes Supabase.
+- Configurada PWA con `next-pwa` y manifest.
+- Ejecutado `supabase init` y creada migration inicial V2.
+- Copiado contrato TS desde `specs/04-contracts/types.ts` a `src/lib/types.ts`.
+- Ajustado contrato TS para incluir `PlayerStatsAggregate`, `ReintegrationRequest` y notification types acumulados.
+- Verificaciones OK: lint, typecheck, test, test:unit, test:integration, build.
+- Pendiente: validar `npx supabase start` cuando Docker Desktop este iniciado.
+
 ## [0.1.2] - 2026-04-26 - Normalizacion para Codex
 
 - Codex queda como Implementer operativo desde `C:\Users\Usuario\Desktop\el-fulbo`.

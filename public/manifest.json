@@ -1,0 +1,10 @@
+{
+  "name": "El Fulbo",
+  "short_name": "El Fulbo",
+  "description": "Organiza partidos, confirmaciones, sorteos y resultados de fulbito.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f3e7",
+  "theme_color": "#1f7a4d",
+  "icons": []
+}

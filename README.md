@@ -56,10 +56,10 @@ Detalle en `specs/00-foundation/architecture-decisions.md`.
 
 ## Estado actual
 
-- Producto en fase de specs cerradas.
+- Producto con specs cerradas y bootstrap tecnico completado.
 - Version activa: **V2**.
 - Features escritas: **15 de 15**.
-- Bootstrap tecnico: **pendiente**.
+- Bootstrap tecnico: **completado**.
 - Implementacion desde ahora: **Codex en esta carpeta**.
 - V1 archivado en `specs/_archive/v1/` como referencia historica.
 - Email de soporte: `ivnvldz7@gmail.com`.

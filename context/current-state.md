@@ -2,11 +2,25 @@
 
 > Vista rapida del estado. Para detalle, leer `handoff.md`.
 
-**Sesion abierta:** normalizacion Codex del 2026-04-26.
+**Sesion abierta:** bootstrap Codex del 2026-04-26.
 **Version activa:** V2.
 **Features V2 escritos:** **15 de 15**.
-**Bootstrap del codigo:** **pendiente**.
+**Bootstrap del codigo:** **completado**.
 **Implementer actual:** Codex, trabajando en `C:\Users\Usuario\Desktop\el-fulbo`.
+
+## Bootstrap completado
+
+- Next.js 14 App Router + React 18.
+- TypeScript strict con `noUncheckedIndexedAccess`.
+- Tailwind CSS.
+- ESLint + Prettier.
+- TanStack Query provider.
+- Clientes Supabase base en `src/lib/supabase/`.
+- PWA con `next-pwa`.
+- Vitest + Testing Library + Playwright config.
+- Supabase local inicializado.
+- Migration inicial V2 creada en `supabase/migrations/`.
+- `specs/04-contracts/types.ts` copiado a `src/lib/types.ts`.
 
 ## Features completos
 
@@ -28,18 +42,21 @@ Todos los 15 features escritos:
 - `feat-014-export-data.md`
 - `feat-015-player-stats.md`
 
-## Engram
+## Verificaciones
 
-- **146 decisiones** registradas.
-- Fase de diseno cerrada con `dec-140`.
-- Scope agregado de stats individuales cerrado con `dec-141` a `dec-144`.
-- Implementer operativo actualizado a Codex con `dec-145`.
-- Scope operativo consolidado en 15 features con `dec-146`.
+- `npm run lint` pasa.
+- `npm run typecheck` pasa.
+- `npm run test` pasa.
+- `npm run test:unit` pasa.
+- `npm run test:integration` pasa con harness inicial.
+- `npm run build` pasa.
+
+## Riesgos / pendientes
+
+- `npx supabase start` no pudo correr porque Docker Desktop no esta iniciado.
+- `npm audit --omit=dev` reporta vulnerabilidades conocidas en Next 14 y `next-pwa`/Workbox. No se actualizo a Next 16 porque el stack cerrado define Next 14.
+- RLS real y RPCs complejas deben auditarse feature por feature.
 
 ## Proximo
 
-Bootstrap del proyecto Next.js desde Codex.
-
-## Bloqueos
-
-Ninguno. No borrar la carpeta; se trabaja sobre este repo.
+Arrancar `feat-001-onboarding-user` contra su spec.
