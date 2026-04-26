@@ -12,7 +12,8 @@ Registro de cambios importantes del proyecto. Formato: `[versión] - YYYY-MM-DD`
 - Copiado contrato TS desde `specs/04-contracts/types.ts` a `src/lib/types.ts`.
 - Ajustado contrato TS para incluir `PlayerStatsAggregate`, `ReintegrationRequest` y notification types acumulados.
 - Verificaciones OK: lint, typecheck, test, test:unit, test:integration, build.
-- Pendiente: validar `npx supabase start` cuando Docker Desktop este iniciado.
+- Supabase local validado con `npx supabase start` y `npx supabase db reset`.
+- Migration inicial aplicada en Postgres local.
 
 ## [0.1.2] - 2026-04-26 - Normalizacion para Codex
 

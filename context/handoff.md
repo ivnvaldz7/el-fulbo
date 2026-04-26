@@ -6,7 +6,7 @@
 
 ## Estado del proyecto
 
-**Fase:** bootstrap tecnico completado.
+**Fase:** bootstrap tecnico completado y Supabase local validado.
 **Proxima fase:** implementar `feat-001-onboarding-user`.
 
 **Version activa:** **V2**.
@@ -35,6 +35,8 @@
 - PWA con `next-pwa` y `public/manifest.json`.
 - Vitest + Testing Library + Playwright config.
 - Supabase CLI instalado como dev dependency y `supabase init` ejecutado.
+- Supabase local levantado con Docker.
+- Migration inicial aplicada con `npx supabase db reset`.
 - Migration inicial creada:
   - `supabase/migrations/20260426000000_initial_schema_v2.sql`
 - Contrato copiado:
@@ -63,26 +65,23 @@ Pasan:
 - `npm run test:integration`
 - `npm run build`
 
-No completado:
+Validado en Supabase local:
 
-- `npx supabase start` fallo porque Docker Desktop no esta iniciado:
-  - error: falta pipe `dockerDesktopLinuxEngine`.
+- `player_stats_aggregate` existe como VIEW.
+- `reintegration_requests` existe como tabla.
+- Migration registrada: `20260426000000`.
 
 ---
 
 ## Riesgos tecnicos abiertos
 
-1. **Supabase local pendiente de validar.**
-   - Docker esta instalado, pero Docker Desktop no esta corriendo.
-   - Proxima accion tecnica: abrir Docker Desktop y correr `npx supabase start`.
-
-2. **Audit npm con vulnerabilidades conocidas.**
+1. **Audit npm con vulnerabilidades conocidas.**
    - `npm audit --omit=dev` reporta issues en Next 14 y `next-pwa`/Workbox.
    - No se actualiza a Next 16 porque contradice el stack cerrado.
    - Decision recomendada: aceptar el riesgo durante MVP local y reevaluar antes de deploy productivo.
 
-3. **Migration inicial necesita validacion real en Postgres.**
-   - Build y TS pasan, pero SQL todavia no fue aplicado localmente por el bloqueo de Docker Desktop.
+2. **RLS/RPCs complejas necesitan pruebas reales por feature.**
+   - La migration inicial aplica, pero las policies y RPCs se deben endurecer con tests integration al implementar cada feature.
 
 ---
 
@@ -124,6 +123,5 @@ Implementar `feat-001-onboarding-user`.
 Antes de tocar la feature:
 
 1. Leer `specs/03-features/feat-001-onboarding-user.md`.
-2. Abrir Docker Desktop y correr `npx supabase start`.
-3. Validar/aplicar la migration inicial.
-4. Recién ahi avanzar con auth Google OAuth + self-assessment.
+2. Confirmar que Supabase sigue corriendo con `npx supabase status`.
+3. Avanzar con auth Google OAuth + self-assessment.

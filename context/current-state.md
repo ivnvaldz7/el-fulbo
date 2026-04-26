@@ -51,9 +51,16 @@ Todos los 15 features escritos:
 - `npm run test:integration` pasa con harness inicial.
 - `npm run build` pasa.
 
+## Supabase local
+
+- `npx supabase start` corre correctamente.
+- `npx supabase db reset` aplico la migration inicial.
+- DB local: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`.
+- Studio local: `http://127.0.0.1:54323`.
+- `.env.local` creado con las keys locales y queda ignorado por Git.
+
 ## Riesgos / pendientes
 
-- `npx supabase start` no pudo correr porque Docker Desktop no esta iniciado.
 - `npm audit --omit=dev` reporta vulnerabilidades conocidas en Next 14 y `next-pwa`/Workbox. No se actualizo a Next 16 porque el stack cerrado define Next 14.
 - RLS real y RPCs complejas deben auditarse feature por feature.
 
