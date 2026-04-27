@@ -9,7 +9,7 @@ export default async function OnboardingStatsPage({ params }: { params: { id: st
   const player = await getCurrentUserPlayerInGroup(supabase, params.id);
 
   if (!player.ok) {
-    redirect(`/invite`);
+    redirect('/join');
   }
 
   if (player.data.statsStatus === 'approved') {

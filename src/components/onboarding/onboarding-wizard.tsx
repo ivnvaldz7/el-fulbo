@@ -53,6 +53,23 @@ function initialDraft(): Draft {
   };
 }
 
+export function selectPrimaryPositionDraft(current: Draft, position: PlayerPosition): Draft {
+  const wasGoalkeeper = current.primaryPosition === 'ARQ';
+  const nextIsGoalkeeper = position === 'ARQ';
+  const changedStatFamily = current.primaryPosition === null || wasGoalkeeper !== nextIsGoalkeeper;
+
+  return {
+    ...current,
+    primaryPosition: position,
+    secondaryPosition: current.secondaryPosition === position ? null : current.secondaryPosition,
+    stats: changedStatFamily
+      ? nextIsGoalkeeper
+        ? defaultGoalkeeperStats
+        : defaultFieldStats
+      : current.stats,
+  };
+}
+
 export function OnboardingWizard({
   groupId,
   displayName,
@@ -100,23 +117,7 @@ export function OnboardingWizard({
   }, [draft, groupId]);
 
   function selectPrimary(position: PlayerPosition) {
-    setDraft((current) => {
-      const wasGoalkeeper = current.primaryPosition === 'ARQ';
-      const nextIsGoalkeeper = position === 'ARQ';
-      const changedStatFamily = current.primaryPosition && wasGoalkeeper !== nextIsGoalkeeper;
-
-      return {
-        ...current,
-        primaryPosition: position,
-        secondaryPosition:
-          current.secondaryPosition === position ? null : current.secondaryPosition,
-        stats: changedStatFamily
-          ? nextIsGoalkeeper
-            ? defaultGoalkeeperStats
-            : defaultFieldStats
-          : current.stats,
-      };
-    });
+    setDraft((current) => selectPrimaryPositionDraft(current, position));
   }
 
   function updateStat(key: string, value: number) {
