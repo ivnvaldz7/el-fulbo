@@ -1,0 +1,22 @@
+import { redirect } from 'next/navigation';
+import { OnboardingWizard } from '@/components/onboarding/onboarding-wizard';
+import { getCurrentUserPlayerInGroup } from '@/lib/services/player.service';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
+import type { GroupId } from '@/lib/types';
+
+export default async function OnboardingStatsPage({ params }: { params: { id: string } }) {
+  const supabase = createServerSupabaseClient();
+  const player = await getCurrentUserPlayerInGroup(supabase, params.id);
+
+  if (!player.ok) {
+    redirect(`/invite`);
+  }
+
+  if (player.data.statsStatus === 'approved') {
+    redirect(`/groups/${params.id}/dashboard`);
+  }
+
+  return (
+    <OnboardingWizard groupId={params.id as GroupId} displayName={player.data.displayName} />
+  );
+}
