@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700;800;900&amp;family=Space+Grotesk:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "tertiary-fixed": "#e5e2e1",
+                    "surface-tint": "#4ae176",
+                    "on-secondary-container": "#b4b5b5",
+                    "on-primary": "#003915",
+                    "on-error": "#690005",
+                    "error-container": "#93000a",
+                    "outline": "#869585",
+                    "on-error-container": "#ffdad6",
+                    "surface-container": "#201f1f",
+                    "surface-dim": "#131313",
+                    "on-surface-variant": "#bccbb9",
+                    "on-secondary": "#2f3131",
+                    "inverse-surface": "#e5e2e1",
+                    "background": "#131313",
+                    "on-primary-fixed": "#002109",
+                    "on-surface": "#e5e2e1",
+                    "on-primary-container": "#004b1e",
+                    "inverse-on-surface": "#313030",
+                    "tertiary": "#c9c6c6",
+                    "primary-fixed-dim": "#4ae176",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "surface-container-high": "#2a2a2a",
+                    "error": "#ffb4ab",
+                    "tertiary-container": "#adabab",
+                    "secondary-container": "#454747",
+                    "secondary": "#c6c6c7",
+                    "surface-container-highest": "#353534",
+                    "primary-container": "#22c55e",
+                    "secondary-fixed": "#e2e2e2",
+                    "on-tertiary-fixed-variant": "#474746",
+                    "on-secondary-fixed-variant": "#454747",
+                    "on-primary-fixed-variant": "#005321",
+                    "tertiary-fixed-dim": "#c8c6c5",
+                    "on-tertiary-fixed": "#1c1b1b",
+                    "surface-container-low": "#1c1b1b",
+                    "inverse-primary": "#006e2f",
+                    "primary-fixed": "#6bff8f",
+                    "surface-variant": "#353534",
+                    "surface-bright": "#3a3939",
+                    "surface-container-lowest": "#0e0e0e",
+                    "on-background": "#e5e2e1",
+                    "outline-variant": "#3d4a3d",
+                    "on-tertiary": "#313030",
+                    "primary": "#4be277",
+                    "on-tertiary-container": "#40403f",
+                    "surface": "#131313"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-sm": "12px",
+                    "margin-desktop": "64px",
+                    "unit": "4px",
+                    "stack-lg": "40px",
+                    "gutter": "16px",
+                    "stack-xs": "4px",
+                    "stack-md": "24px",
+                    "margin-mobile": "20px"
+            },
+            "fontFamily": {
+                    "body-md": ["Lexend"],
+                    "headline-lg": ["Lexend"],
+                    "headline-md": ["Lexend"],
+                    "body-lg": ["Lexend"],
+                    "label-mono": ["Space Grotesk"],
+                    "label-bold": ["Space Grotesk"],
+                    "headline-xl": ["Lexend"]
+            },
+            "fontSize": {
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-mono": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "500"}],
+                    "label-bold": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "headline-xl": ["48px", {"lineHeight": "1.0", "letterSpacing": "-0.04em", "fontWeight": "800"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>.bg-soccer-field {
+    background-image: linear-gradient(rgba(10, 10, 10, 0.85), rgba(10, 10, 10, 0.95)), url(https://lh3.googleusercontent.com/aida-public/AB6AXuBkXq70y58Xb-go7Glj3A08o9oav-ZS4CS-mpXAHji6BSn6WJKBjMJAR-7SvhLvRN-YciimHjoYriTZPrtqbJlgT3pTBtx4TvY50B6YyeRPd0iDrEwpAWdVxSer0Cj8St5sRxbOcq289vvGYRbd4o3H99VpDUmi17SuTzrDyTjQtnGDQYg1apqnrAZUlcsy3MnGsb8EM01uipRHTbfZ79e2BraHS5_l91N67F8VmhcCpBYwTiggatnoJkTZmouQuIfn99KCLDCOg4M);
+    background-size: cover;
+    background-position: center
+    }
+.vs-glow {
+    text-shadow: 0 0 20px rgba(75, 226, 119, 0.4)
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md selection:bg-primary selection:text-on-primary">
+<div class="relative w-[390px] h-[844px] mx-auto overflow-hidden bg-soccer-field flex flex-col border-x border-white/5 shadow-2xl" data-alt="A cinematic night soccer field background with lush green grass visible through a heavy dark moody overlay. Bright stadium floodlights create a hazy atmospheric glow at the edges. The scene captures the raw energy of urban street football at midnight with a high-contrast brutalist aesthetic.">
+<!-- Mobile Status Bar -->
+<div class="h-11 flex justify-between items-end px-6 pb-2 w-full z-50">
+<span class="text-white font-label-bold text-xs">9:41</span>
+<div class="flex gap-1.5 items-center">
+<span class="material-symbols-outlined text-xs text-white">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-xs text-white">wifi</span>
+<span class="material-symbols-outlined text-xs text-white">battery_full</span>
+</div>
+</div>
+<!-- TopAppBar -->
+<header class="bg-neutral-950 text-green-500 docked full-width top-0 border-b-2 border-white/10 flex justify-between items-center w-full px-4 h-16 z-50">
+<div class="active:scale-95 transition-transform flex items-center justify-center">
+<span class="material-symbols-outlined text-green-500">arrow_back</span>
+</div>
+<h1 class="font-lexend font-black tracking-tighter uppercase text-lg text-green-500">SORTEO DE EQUIPOS</h1>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-green-500/30">
+<img alt="User avatar" class="w-full h-full object-cover" data-alt="Close up profile portrait of a stylish urban soccer player with short hair and a confident expression. The lighting is dramatic and cinematic, reflecting a midnight sports mood. High-contrast monochromatic skin tones with a subtle green backlight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAd5nRcdk9Bu7-WnimBH4gYI7UgI-51RcQdG3SveSftIhdS6UkXdg3yQBr53skLVdnygG4UxtqVdMOKdSqXmOjiSyri1kCie5pMgHAFA3aPwJ5vY-byTJdYmNiqijKF_V895yGr1f7iQGru8_go3_mXnAy6nggUgli5y9rPrjunqTC5L4S-Uj8BscTp8GcM17wJAXMupcxAxS0rpQuYYyM-iiBS0mVwEq2meFO9d2kLUxncw9-Si0-cRYFDNbgJ_0Yllkwgwp6nsrI"/>
+</div>
+</header>
+<!-- Subtitle Header -->
+<div class="mt-4 px-6 text-center">
+<p class="font-label-mono text-[10px] text-white/50 uppercase tracking-[0.2em]">8 jugadores confirmados</p>
+</div>
+<!-- Main Content: VS Layout -->
+<main class="flex-grow flex items-center justify-center relative px-4">
+<div class="grid grid-cols-3 w-full items-center">
+<!-- Equipo A -->
+<div class="flex flex-col items-center gap-stack-md">
+<div class="font-headline-md text-white/90 text-sm tracking-widest uppercase mb-2">EQUIPO A</div>
+<div class="flex flex-col gap-4">
+<!-- Player 1 -->
+<div class="w-16 h-16 rounded-full border-2 border-green-500 p-0.5 bg-neutral-900 active:scale-95 transition-transform">
+<img class="w-full h-full rounded-full object-cover" data-alt="Minimalist avatar of a male football player with a focused expression. The visual style is grainy and high-contrast, fitting an urban midnight sports aesthetic. Background is deep charcoal." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCefUz61uvfAKrXw2S4P3x6NxE_wX8DckXChgYNk-FCpFgtmkWAbYG-bFp-IyzbjeALYsR7gsVL_72dTficnEDnFn8aYxHJ8nWENBWIUllLNd0O4dS7niDtxDmxDtkGjnmNbTh7AS8ddiIeAVwtI-eKdYvSCxA1ua6C2glzVtA4foJ1hP--c-tEH4JIXv2pNreFLnWEBmYGA8qtPWR7amWgej_tufTrsJ2CNPkE1y6OFqk_qTD9YHrQvuSx893rkcpY6_m6RPGFiIw"/>
+</div>
+<!-- Player 2 -->
+<div class="w-16 h-16 rounded-full border border-white/20 p-0.5 bg-neutral-900 active:scale-95 transition-transform">
+<img class="w-full h-full rounded-full object-cover" data-alt="Minimalist avatar of a diverse soccer player with athletic features. High-contrast urban photography style with sharp lighting. Deep blacks and white accents dominant." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZkm2JUvVptAbVdCBVopj2Z7AHG3CNXpWU8Kzz_xT49NLfKCt9UjpK210tSrVR20Um-jcuXCnxqsAZB6LpNRo6ZeQqx4m3EjLWGs-pF1i4AtaMsvceSTdt2yV5r0atewqi8d6xWo5wUvI0MKCnw2Mg_qLEi3cDf7a9zHSPcq0A1xgT3PjhBM4pHofamkk8I4YnYuwXlfiEIxALZflCTcpzBzauhpnOmLFR1wbLS5zByS8m1Ue1En3vN2fU2u0FPRvjRMZkEiqdUtI"/>
+</div>
+<!-- Player 3 -->
+<div class="w-16 h-16 rounded-full border border-white/20 p-0.5 bg-neutral-900 active:scale-95 transition-transform">
+<img class="w-full h-full rounded-full object-cover" data-alt="Close-up avatar of a soccer athlete with a sharp haircut. Cinematic sports lighting, monochromatic with high contrast, reflecting a street soccer tournament mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkBkOHXSwgIyWmntaoKaFVUSxjPYlIXhn89E7JzwERMK18Fn-bbA4T1jeAmYNAFJyGvdcOZyWJPFT1FV5vj_K0EKc0_zqNsT-2Q41EE6GqZ97Y7XpJiM6LDs-n6ughHVqs1Svq1mIeKs30HEcfaKzbYs0zLxKXrN1_yxSIt2OAD8hzFDjmKpblt0Q_S0Khd35HCA4GAGIGdaQx5QMcJwDAwyTscU9SC9Wok5vH2ytDLGjJKFwSSelQGRhhEOGmRPeLD5mBYwaSRzg"/>
+</div>
+<!-- Player 4 -->
+<div class="w-16 h-16 rounded-full border border-white/20 p-0.5 bg-neutral-900 active:scale-95 transition-transform">
+<img class="w-full h-full rounded-full object-cover" data-alt="Avatar portrait of a young street soccer player. Brutalist photography style, monochromatic and intense, set against a dark textured background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOf7Zs0UgPrj3d0hse4w32R4gFVPaQrlx5XDCD6ZB0FBtBn-RsxQ9uWdNPtt7Bh8uXJtkj_cFKAP1OdWs5GnRkRWTpX-BVKHrQ8LZk8TnY1jkgSn-Ym5jRqA9wnHzSNZSPkKSQtbTYn286v0zi7LBR6eX8u5Df-idqGRRteyLH0CvpqG0fbZUhUXqX7J6gwFjCknaXSLINg3b3ajt2qcXmJw-_BOwbTe9KPOCAQu-NWAMtd43N8Fl98C-zTj7qq_0cu4QRMsB35t0"/>
+</div>
+</div>
+<div class="h-12 w-1 bg-green-500 mt-2 opacity-50 blur-[2px]"></div>
+</div>
+<!-- VS Center -->
+<div class="flex flex-col items-center justify-center">
+<div class="font-headline-xl text-primary vs-glow italic tracking-tighter leading-none -rotate-12">VS</div>
+</div>
+<!-- Equipo B -->
+<div class="flex flex-col items-center gap-stack-md">
+<div class="font-headline-md text-white/90 text-sm tracking-widest uppercase mb-2">EQUIPO B</div>
+<div class="flex flex-col gap-4">
+<!-- Player 5 -->
+<div class="w-16 h-16 rounded-full border border-white/20 p-0.5 bg-neutral-900 active:scale-95 transition-transform">
+<img class="w-full h-full rounded-full object-cover" data-alt="Minimalist avatar of a competitive football player. Urban, grainy aesthetic with dramatic lighting. Strong contrast between highlights and shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgfuw3Q6RphwRycHR54iNEws7t106qo57Rr-qLZHFZNj15aelbYX2YSWNwSfYWamF1MSe6O0J5ubeNcdDB0jbe7IWNlQyNBms8lgKI_wtA8orOo839DqbnfNJDe-Hq4KnpVluhXAPrtGZonR5GVojCcPaQKTAN_kMbzbq6MkOCaIP0J9DtlT3FgID9MEoulMWsx0GjlB6zxwL7f4x6XN6t5RiKksWZsWQEM7eGm4U-WOv1KRsfBpa8XtvMz8S8Vi6Uj0kXME9SDXk"/>
+</div>
+<!-- Player 6 -->
+<div class="w-16 h-16 rounded-full border border-white/20 p-0.5 bg-neutral-900 active:scale-95 transition-transform">
+<img class="w-full h-full rounded-full object-cover" data-alt="Focused portrait of an athlete for a digital football app. Brutalist design elements, high contrast monochromatic scheme with sharp edge lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfPGzuGVkX4nrdBLGlaq0fpejRpldDVMPelcCLvxuI-1wGrDv06m2m0o0BaBw6rm7nh0_dbXpMNH2NNMqOOZFszT2QNoHyKyX71JjPpp9Y3LDx_iVbMaFU1Z_u_eksnSnj5VrSCSxmj5k2cbTZMxvGDbvoix3ScE8kI5cwxn5sQ0VzCssTWFPOHi-gWusn0vyWKLxfgeAtzvs9zNP-2AZzctaogweFHPJjjTmYAfy2SF1u76t8wNkRHFjVLlBNOwd9WKMA7aPGvCk"/>
+</div>
+<!-- Player 7 -->
+<div class="w-16 h-16 rounded-full border border-white/20 p-0.5 bg-neutral-900 active:scale-95 transition-transform">
+<img class="w-full h-full rounded-full object-cover" data-alt="Cinematic headshot of a player in a dark sportswear hoodie. High-contrast urban sports photography style, deep shadows and striking highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1I7OmumYjoq9zirGMK84XI-zcJ9Kw9crxLWuwXWnbcIprwtrpe_9dHOgohG0XtEnSd0tqqIMNkXkPWtRXPUDbYCCioSoKkWeZlOcd1wCiU_jmJZ8CbMOjMIoir8xvNClK5Ndqf7zD_bFVgZZ4yLZpkP8bn_KH285dsf8iV2XpAFxRnkIUjcaenzff9MPfkPcQal-qWnC4dstrPtFGCTZfo11N6Bq-hckbPvCAAVoPOX-cVgScCP2j7lqZMlrX_so2X65w_IAJTNI"/>
+</div>
+<!-- Player 8 -->
+<div class="w-16 h-16 rounded-full border border-white/20 p-0.5 bg-neutral-900 active:scale-95 transition-transform">
+<img class="w-full h-full rounded-full object-cover" data-alt="Graphic avatar of a young athlete. The image features high-contrast monochromatic styling with a raw, street-ready aesthetic typical of midnight soccer matches." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHHLTTiVL6iA6XuPbxPOhE4DGs7DPUESF5-rzK43KPNEHWW402S4gZh4cNcm0NNlMMFnOV_N8tN7OqqICMjfP_4TS_Zc7uiuvM5pCXZD4d5kclY5k06dlrRqkaqyCFDbowhdN_WiA75U1zbc1aSkPt9fglQKQS3iAoGNTXd6AFlAk0prkMWILG1eU45bkCaV4WkFFW06LPW4hQz9oS5zCNF53PDL8B0lfVFWpRM0xPFov3_gZlTjCNzDWWdAWWr59vgINdWjqgUgE"/>
+</div>
+</div>
+<div class="h-12 w-1 bg-white/20 mt-2"></div>
+</div>
+</div>
+</main>
+<!-- Footer Actions -->
+<div class="flex flex-col items-center px-6 pb-24 gap-4">
+<button class="w-full bg-primary-container text-on-primary-fixed-variant font-headline-md py-4 uppercase tracking-tighter border-2 border-primary active:scale-95 transition-transform">
+                SORTEAR EQUIPOS
+            </button>
+<a class="font-label-mono text-white/40 text-[10px] uppercase hover:text-white transition-colors" href="#">Ver historial de sorteos</a>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-[390px] mx-auto flex justify-around items-stretch h-16 bg-neutral-950 border-t-2 border-white/10 z-[60]">
+<div class="flex flex-col items-center justify-center text-white/50 py-1 px-3 hover:text-green-500 active:bg-green-600 transition-colors">
+<span class="material-symbols-outlined">sports_soccer</span>
+<span class="font-lexend text-[10px] font-bold uppercase tracking-widest mt-1">MATCHES</span>
+</div>
+<div class="flex flex-col items-center justify-center text-white/50 py-1 px-3 hover:text-green-500 active:bg-green-600 transition-colors">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-lexend text-[10px] font-bold uppercase tracking-widest mt-1">SQUADS</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-green-500 text-black py-1 px-3 active:bg-green-600 transition-colors">
+<span class="material-symbols-outlined">casino</span>
+<span class="font-lexend text-[10px] font-bold uppercase tracking-widest mt-1">DRAWS</span>
+</div>
+<div class="flex flex-col items-center justify-center text-white/50 py-1 px-3 hover:text-green-500 active:bg-green-600 transition-colors">
+<span class="material-symbols-outlined">person</span>
+<span class="font-lexend text-[10px] font-bold uppercase tracking-widest mt-1">PROFILE</span>
+</div>
+</nav>
+<!-- Subtle UI Details -->
+<div class="absolute inset-0 pointer-events-none border-[12px] border-white/5 mix-blend-overlay"></div>
+</div>
+</body></html>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Modality } from '@/lib/types';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { createGroup, CREATE_GROUP_DRAFT_KEY } from '@/lib/services/groups.service';
@@ -14,10 +15,10 @@ const modalityOptions: Array<{ value: Modality; label: string }> = [
 ];
 
 export function CreateGroupForm() {
+  const router = useRouter();
   const [name, setName] = useState('');
   const [modality, setModality] = useState<Modality>('F5');
   const [error, setError] = useState<string | null>(null);
-  const [groupId, setGroupId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -43,70 +44,88 @@ export function CreateGroupForm() {
 
     const parsed = createGroupSchema.safeParse({ name, modality });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? 'Algunos datos no son validos.');
+      setError(parsed.error.issues[0]?.message ?? 'Algunos datos no son válidos.');
       return;
     }
 
     setSubmitting(true);
     setError(null);
-    setGroupId(null);
 
     const result = await createGroup(createBrowserSupabaseClient(), parsed.data);
 
-    setSubmitting(false);
     if (!result.ok) {
+      setSubmitting(false);
       setError(result.error.message);
       return;
     }
 
-    setGroupId(result.data.groupId);
+    router.push(`/groups/${result.data.groupId}/onboarding-stats?as=admin`);
+  }
+
+  if (submitting) {
+    return <CreateGroupLoadingScreen />;
   }
 
   return (
-    <form onSubmit={submit} className="space-y-5">
-      <label className="block">
-        <span className="text-sm font-black text-noche">Nombre del grupo</span>
-        <input
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="Fulbito de los jueves"
-          aria-describedby={error ? 'create-group-error' : undefined}
-          className="mt-2 min-h-14 w-full rounded-card border border-black/15 bg-white px-4 text-base font-bold text-noche outline-none focus:border-cancha"
-        />
-      </label>
+    <form onSubmit={submit} className="space-y-4">
+      <div className="border border-white/10 bg-black/40 divide-y divide-white/5">
+        <label className="block p-4">
+          <span className="font-mono text-[10px] font-bold uppercase text-white/60">Nombre del grupo</span>
+          <input
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Ej: Fulbito de los jueves"
+            aria-describedby={error ? 'create-group-error' : undefined}
+            className="mt-2 w-full bg-transparent font-headline text-lg font-bold text-white outline-none placeholder:text-white/20"
+          />
+        </label>
 
-      <label className="block">
-        <span className="text-sm font-black text-noche">Modalidad</span>
-        <select
-          value={modality}
-          onChange={(event) => setModality(event.target.value as Modality)}
-          className="mt-2 min-h-14 w-full rounded-card border border-black/15 bg-white px-4 text-base font-bold text-noche outline-none focus:border-cancha"
-        >
-          {modalityOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
+        <label className="block p-4">
+          <span className="font-mono text-[10px] font-bold uppercase text-white/60">Modalidad default</span>
+          <select
+            value={modality}
+            onChange={(event) => setModality(event.target.value as Modality)}
+            className="mt-2 w-full bg-transparent font-headline text-lg font-bold text-white outline-none appearance-none cursor-pointer"
+          >
+            {modalityOptions.map((option) => (
+              <option key={option.value} value={option.value} className="bg-concrete-overlay">
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
       {error ? (
-        <p id="create-group-error" className="text-sm font-bold text-derrota">
+        <p id="create-group-error" className="py-2 text-center font-mono text-[10px] font-bold uppercase text-pitch-green">
           {error}
         </p>
       ) : null}
 
-      {groupId ? (
-        <p className="text-sm font-bold text-cancha">Grupo creado: {groupId}</p>
-      ) : null}
-
-      <button
-        type="submit"
-        aria-busy={submitting}
-        className="min-h-12 w-full rounded-card bg-noche px-6 py-3 text-sm font-black text-cal"
-      >
-        {submitting ? 'Creando...' : 'Crear grupo'}
-      </button>
+      <footer className="pt-6">
+        <button
+          type="submit"
+          aria-busy={submitting}
+          className="flex h-16 w-full items-center justify-center bg-pitch-green font-headline text-2xl font-bold italic uppercase tracking-tight text-black transition-transform active:scale-95"
+        >
+          {submitting ? 'CREANDO...' : 'CREAR GRUPO ⚽'}
+        </button>
+      </footer>
     </form>
+  );
+}
+
+function CreateGroupLoadingScreen() {
+  return (
+    <div className="flex min-h-[300px] flex-col justify-center text-center">
+      <div className="mx-auto h-12 w-12 animate-spin border-4 border-pitch-green border-t-transparent" />
+      <p className="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Fundando grupo</p>
+      <h2 className="mt-2 font-headline text-2xl font-black italic uppercase text-white tracking-tight">Un toque más y entramos...</h2>
+      <ul className="mt-8 space-y-2 font-mono text-[10px] font-bold uppercase text-white/40">
+        <li className="text-pitch-green">[X] Armando vestuario</li>
+        <li className="text-pitch-green">[X] Preparando tu carnet</li>
+        <li className="animate-pulse">[ ] Abriendo la cancha</li>
+      </ul>
+    </div>
   );
 }

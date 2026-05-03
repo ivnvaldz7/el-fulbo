@@ -2,74 +2,72 @@
 
 > La app que reemplaza todo el quilombo de organizar fulbito en WhatsApp.
 
-## Que es esto
+## Qué es esto
 
-El Fulbo es una PWA para grupos de futbol amateur. Reemplaza encuestas, listas, eventos y mensajes sueltos de WhatsApp con una sola experiencia: **evento -> confirmacion -> sorteo -> resultado -> cards FIFA**.
+El Fulbo es una PWA para grupos de fútbol amateur. Reemplaza encuestas, listas, eventos y mensajes sueltos de WhatsApp con una sola experiencia: **evento → confirmación → sorteo → resultado → cards FIFA**.
 
-**Usuarios objetivo:** 16 a 50+ anos. Grupos de fulbito F5/F6/F8/F11. Organizador + hasta 10 jugadores por grupo en MVP, extendible.
+**Usuarios objetivo:** 16 a 50+ años. Grupos de fulbito F5/F6/F8/F11. Organizador + hasta 10 jugadores por grupo (extendible).
 
 ## Estructura del repo
 
-```text
+```
 el-fulbo/
-├── specs/          <- que hacer
-├── context/        <- donde estamos
-├── engram/         <- por que se decidio
-├── src/            <- codigo de la app (se crea en bootstrap)
-└── supabase/       <- migrations y config local (se crea en bootstrap)
+├── specs/          ← "qué hacer" (inmutable una vez auditado)
+├── context/        ← "dónde estamos" (muta por sesión)
+├── engram/         ← "por qué" (log inmutable de decisiones)
+├── src/            ← código (lo genera Claude Code)
+└── supabase/       ← migrations (lo genera Claude Code)
 ```
 
-## Orquestacion
+## Orquestación multi-agente
 
-El proyecto usa tres roles logicos:
+Este proyecto se construye con tres roles de agentes:
 
-1. **Designer:** escribe specs, debate con Ivan, actualiza Engram.
-2. **Implementer (Codex):** implementa bootstrap y features segun spec aprobado.
-3. **Auditor:** revisa que el codigo cumpla el spec antes de cerrar.
+1. **Designer (Claude):** escribe specs, debate con el usuario, actualiza Engram.
+2. **Implementer (Claude Code / Codex):** implementa features según spec aprobado.
+3. **Auditor (Claude):** revisa que el código cumpla el spec antes de merge.
 
 **Reglas no negociables:**
-- No hay codigo sin spec.
+- No hay código sin spec.
 - No hay agente sin contexto.
-- No hay cierre sin auditoria.
-- El chat no es memoria: todo lo importante va a archivos.
+- No hay cierre sin auditoría.
+- El chat NO es memoria — todo lo importante va a archivos.
 
-## Como retomar el proyecto
+## Cómo retomar el proyecto (o empezar una nueva sesión)
 
-Leer en este orden:
+Cualquier agente que arranque sesión **lee en este orden**:
 
-1. `context/handoff.md` -> estado actual del proyecto.
-2. `specs/_v2-vision.md` -> norte del producto.
-3. `engram/decisions.json` -> decisiones historicas, usando las active.
-4. `context/agent-prompts.md` -> flujo operativo segun rol.
+1. `context/handoff.md` → estado actual del proyecto.
+2. `specs/_v2-vision.md` → el norte del producto (V2).
+3. `engram/decisions.json` → decisiones históricas (solo las active).
+4. `context/agent-prompts.md` → prompt específico según rol.
 
-Al cerrar una sesion, actualizar `context/handoff.md` y guardar snapshot previo en `context/handoff-history/`.
+Al **cerrar sesión**, actualizá `context/handoff.md` y snapshot-eá el anterior en `context/handoff-history/`.
 
-## Stack tecnico
+## Stack técnico
 
-- **Frontend:** Next.js 14 App Router + TypeScript strict + Tailwind.
-- **Backend:** Supabase (PostgreSQL + Auth Google OAuth + Storage).
-- **Estado:** Zustand + TanStack Query.
-- **PWA:** next-pwa con Web Push API.
-- **Hosting:** Vercel.
+- **Frontend:** Next.js 14 App Router + TypeScript strict + Tailwind
+- **Backend:** Supabase (PostgreSQL + Auth Google OAuth + Storage)
+- **Estado:** Zustand + TanStack Query
+- **PWA:** next-pwa con Web Push API
+- **Hosting:** Vercel
 
 Detalle en `specs/00-foundation/architecture-decisions.md`.
 
-## Estado actual
+## Notas
 
-- Producto con specs cerradas y bootstrap tecnico completado.
-- Version activa: **V2**.
-- Features escritas: **15 de 15**.
-- Bootstrap tecnico: **completado**.
-- Implementacion desde ahora: **Codex en esta carpeta**.
-- V1 archivado en `specs/_archive/v1/` como referencia historica.
+- Producto en fase de specs. Todavía no hay código.
+- Versión activa: **V2** (pivote del 2026-04-20).
+- V1 archivado en `specs/_archive/v1/` como referencia histórica.
 - Email de soporte: `ivnvldz7@gmail.com`.
 
-## Como contribuir cuando empiece la implementacion
+## Cómo contribuir (cuando empiece la implementación)
 
-1. Elegir feature en orden desde `specs/03-features/README.md`.
-2. Implementer codea contra spec.
-3. Auditor valida contra spec, contratos y tests.
-4. Se actualiza handoff.
-5. Se commitea una unidad cerrada.
+1. Abrir issue con feature a implementar.
+2. Designer escribe spec en `specs/03-features/`.
+3. Usuario aprueba spec.
+4. Implementer codea en branch propio.
+5. Auditor valida contra spec.
+6. Merge a main.
 
-Ver `context/agent-prompts.md` para prompts exactos.
+Ver `context/agent-prompts.md` para prompts exactos de cada rol.

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MVP Selection - El Fulbo</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700;800;900&amp;family=Space+Grotesk:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .player-card-glow {
+            box-shadow: 0 0 40px -10px rgba(34, 197, 94, 0.3);
+        }
+        .fifa-texture {
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 86c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM85 52c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zm-1 20c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zm-54-7c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM9 26c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-container": "#adabab",
+                    "secondary": "#c6c6c7",
+                    "surface": "#131313",
+                    "outline-variant": "#3d4a3d",
+                    "surface-dim": "#131313",
+                    "on-primary-fixed": "#002109",
+                    "inverse-surface": "#e5e2e1",
+                    "on-tertiary": "#313030",
+                    "error": "#ffb4ab",
+                    "secondary-container": "#454747",
+                    "background": "#131313",
+                    "surface-container-lowest": "#0e0e0e",
+                    "primary": "#4be277",
+                    "surface-variant": "#353534",
+                    "surface-container-low": "#1c1b1b",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "inverse-primary": "#006e2f",
+                    "error-container": "#93000a",
+                    "surface-bright": "#3a3939",
+                    "tertiary-fixed": "#e5e2e1",
+                    "tertiary": "#c9c6c6",
+                    "surface-container-highest": "#353534",
+                    "surface-container-high": "#2a2a2a",
+                    "on-secondary-container": "#b4b5b5",
+                    "on-secondary-fixed-variant": "#454747",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "surface-tint": "#4ae176",
+                    "surface-container": "#201f1f",
+                    "secondary-fixed": "#e2e2e2",
+                    "inverse-on-surface": "#313030",
+                    "on-tertiary-fixed-variant": "#474746",
+                    "on-error": "#690005",
+                    "on-tertiary-fixed": "#1c1b1b",
+                    "on-surface": "#e5e2e1",
+                    "on-error-container": "#ffdad6",
+                    "on-primary-container": "#004b1e",
+                    "on-secondary": "#2f3131",
+                    "primary-fixed": "#6bff8f",
+                    "primary-container": "#22c55e",
+                    "on-surface-variant": "#bccbb9",
+                    "on-primary": "#003915",
+                    "primary-fixed-dim": "#4ae176",
+                    "on-tertiary-container": "#40403f",
+                    "on-primary-fixed-variant": "#005321",
+                    "outline": "#869585",
+                    "tertiary-fixed-dim": "#c8c6c5",
+                    "on-background": "#e5e2e1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-md": "24px",
+                    "stack-lg": "40px",
+                    "gutter": "16px",
+                    "stack-sm": "12px",
+                    "unit": "4px",
+                    "stack-xs": "4px",
+                    "margin-mobile": "20px",
+                    "margin-desktop": "64px"
+            },
+            "fontFamily": {
+                    "label-mono": ["Space Grotesk"],
+                    "headline-lg": ["Lexend"],
+                    "label-bold": ["Space Grotesk"],
+                    "headline-xl": ["Lexend"],
+                    "body-md": ["Lexend"],
+                    "body-lg": ["Lexend"],
+                    "headline-md": ["Lexend"]
+            },
+            "fontSize": {
+                    "label-mono": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-bold": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "headline-xl": ["48px", {"lineHeight": "1.0", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-md overflow-hidden antialiased">
+<!-- Background Layer -->
+<div class="fixed inset-0 z-0">
+<div class="absolute inset-0 bg-black/70 z-10"></div>
+<img class="w-full h-full object-cover grayscale-[20%]" data-alt="A wide cinematic shot of a professional soccer stadium at night under bright floodlights. The vibrant green turf is visible through a dark atmospheric haze. The mood is intense and urban, featuring deep shadows and sharp highlights, perfectly capturing the high-stakes environment of a midnight match. The lighting creates a strong high-contrast look with a focused urban aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4SOuM4DCL6D3a7ZrTjAw7SQ8mAhC5x__JMqoQuJ1bwonSEU3HUwXhnhKJMPYvA_gy4XJ59MyDoYB7wga3y9xTb-B3sWKHAtm9hSfT03LpUO7iFJPVrTfDfwy0oPBDzTbM_5pUOGdCFvxMzmG9590Wg6sdKI3WHcujszpCKk3dOQWM7p7vnnGGK1Y_rMwRFgXkCRzvlc-dRSP3Pn8m1ncaWU7jr712QHPfziOH67rakSevoQWXTVgBtAAd-GQmmG9eZxGF7tBw6_Q"/>
+</div>
+<!-- Main Content Canvas (Fixed Mobile Ratio) -->
+<main class="relative z-20 flex flex-col h-screen w-full max-w-[390px] mx-auto overflow-hidden">
+<!-- TopAppBar (Shared Component Implementation) -->
+<header class="flex items-center justify-between px-4 h-16 w-full z-50 bg-[#0A0A0A] border-b-2 border-[#22C55E]">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 transition-transform text-[#22C55E] hover:bg-[#1A1A1A] p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-lexend font-black uppercase tracking-tighter text-white">MVP SELECTION</h1>
+</div>
+<div class="flex items-center">
+<span class="text-xl font-black text-white italic">EL FULBO</span>
+</div>
+</header>
+<!-- Header Content -->
+<div class="px-gutter pt-8 pb-4 text-center">
+<h2 class="font-headline-xl text-white uppercase italic leading-none mb-1">ELEGÍ AL MVP</h2>
+<p class="font-body-md text-secondary uppercase tracking-widest opacity-80">¿Quién fue el mejor?</p>
+</div>
+<!-- Center: FIFA-Style Carousel -->
+<div class="flex-grow flex items-center justify-center relative overflow-visible">
+<!-- Background Silhouettes -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-30">
+<div class="w-48 h-64 bg-[#1A1A1A] border border-white/10 rounded-lg transform -translate-x-32 scale-90 rotate-[-8deg] blur-sm"></div>
+<div class="w-48 h-64 bg-[#1A1A1A] border border-white/10 rounded-lg transform translate-x-32 scale-90 rotate-[8deg] blur-sm"></div>
+</div>
+<!-- Main Player Card -->
+<div class="relative w-64 h-96 bg-[#1A1A1A] border-2 border-primary-container rounded-lg player-card-glow fifa-texture overflow-hidden flex flex-col items-center">
+<!-- Rating & Position -->
+<div class="absolute top-4 left-4 flex flex-col items-center leading-none">
+<span class="font-headline-lg text-primary-container">87</span>
+<span class="font-label-mono text-white/60">MC</span>
+<div class="w-6 h-1 bg-primary-container mt-2"></div>
+</div>
+<!-- Player Portrait -->
+<div class="mt-8 w-full h-full flex items-end justify-center">
+<img class="w-full h-[85%] object-cover object-top filter contrast-125 brightness-90" data-alt="A detailed portrait of a determined professional soccer player with intense eyes, sweat glistening on his face under stadium floodlights. He is wearing a dark, textured charcoal athletic jersey. The background is a moody, blurred soccer stadium at night. The lighting is dramatic and high-contrast, highlighting the textures of his skin and the jersey with sharp, focused urban aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8GpIzJtmOUbTnc27p_t9ytamNmQti8BGRKuu5gnAnRDVWJMDV0OFN3ALrJ6vaRxdAuugPuDW5jVKs1xiie1SohbcgozjoqP9gPfsIiXKrEAqBk39Z9vRgPBI56U6qzztYvds3zgN9X5-QE-9krLNG-2Irvg8Rlqtht3UxUSG3bxKg98UR00G5b-Mte1kHlJJzcTyl5X354NjiS29Tzh1Yi0kgoHXvJKmn44b-IhyDgRi853FAYwlG8I1Sp9jykz-GE89aIzxgL58"/>
+</div>
+<!-- Name Overlay -->
+<div class="absolute bottom-0 w-full bg-gradient-to-t from-black via-black/80 to-transparent pt-12 pb-6 px-4 text-center">
+<div class="w-full h-px bg-primary-container/30 mb-2"></div>
+<h3 class="font-headline-md text-white uppercase italic tracking-tighter">EL PIBE</h3>
+<div class="flex justify-center gap-2 mt-2">
+<span class="text-[10px] font-label-mono bg-primary-container text-black px-2 py-0.5 rounded-none">MVP CANDIDATE</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Actions -->
+<div class="px-gutter pb-10 flex flex-col items-center gap-4">
+<button class="w-full bg-primary-container text-on-primary-container font-headline-md uppercase italic h-16 border-2 border-primary-container active:scale-[0.98] transition-transform">
+                CONFIRMAR VOTO
+            </button>
+<a class="font-label-bold text-secondary uppercase hover:text-white transition-colors underline underline-offset-4 decoration-primary-container" href="#">
+                Ver resultados
+            </a>
+</div>
+<!-- BottomNavBar (Shared Component Implementation) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-stretch h-20 bg-[#0A0A0A] border-t-2 border-white/10 z-50">
+<!-- Navigation items -->
+<div class="flex flex-col items-center justify-center text-white/60 p-4 w-full h-full hover:bg-white/5 active:bg-[#22C55E] transition-colors duration-100">
+<span class="material-symbols-outlined" data-icon="sports_soccer">sports_soccer</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#22C55E] text-black rounded-none p-4 w-full h-full transition-colors duration-100">
+<span class="material-symbols-outlined" data-icon="leaderboard" style="font-variation-settings: 'FILL' 1;">leaderboard</span>
+</div>
+<div class="flex flex-col items-center justify-center text-white/60 p-4 w-full h-full hover:bg-white/5 active:bg-[#22C55E] transition-colors duration-100">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+</div>
+<div class="flex flex-col items-center justify-center text-white/60 p-4 w-full h-full hover:bg-white/5 active:bg-[#22C55E] transition-colors duration-100">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</div>
+</nav>
+</main>
+</body></html>

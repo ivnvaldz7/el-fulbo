@@ -214,13 +214,13 @@ Si **no se cumplen 3 de 4**, pivotear.
 1. ✅ Foundation V2 (product, glossary, architecture-decisions).
 2. ✅ Domain V2 (entities, business-rules, balancing-algorithm).
 3. ✅ Flows V2 iniciales (core-flows, edge-cases).
-4. ✅ Contracts V2 completos (db-schema, types.ts, error-model).
-5. ✅ Quality V2 actualizado.
-6. ✅ Features V2 en orden priorizado:
-   1. `feat-001 onboarding-user` (signup Google OAuth + self-assessment de stats).
+4. ⬜ Contracts V2 completos (db-schema, types.ts, error-model).
+5. ⬜ Quality V2 actualizado.
+6. ⬜ Features V2 en orden priorizado:
+   1. `feat-001 onboarding-user` (signup Google OAuth + self-assessment de stats pendiente).
    2. `feat-002 create-group` (admin crea grupo).
    3. `feat-003 join-group` (jugador entra a grupo por invitación).
-   4. `feat-004 admin-dashboard` (admin resuelve pendientes).
+   4. `feat-004 admin-approve-stats` (admin aprueba carta inicial y revisiones).
    5. `feat-005 create-event` (admin crea partido con fecha/hora/Maps).
    6. `feat-006 confirm-attendance` (jugadores confirman).
    7. `feat-007 check-in-and-draw` (check-in en cancha + sorteo).
@@ -231,6 +231,5 @@ Si **no se cumplen 3 de 4**, pivotear.
    12. `feat-012 notifications` (Web Push + email semanal).
    13. `feat-013 phantom-player` (admin crea fantasma para completar).
    14. `feat-014 export-data` (backup JSON/CSV).
-   15. `feat-015 player-stats` (stats individuales agregadas).
-7. ⬜ Bootstrap del proyecto Next.js con Codex.
+7. ⬜ Bootstrap del proyecto Next.js con Claude Code.
 8. ⬜ Implementación feature por feature siguiendo ciclo Designer → Implementer → Auditor.

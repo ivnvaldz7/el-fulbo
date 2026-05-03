@@ -10,7 +10,7 @@ export type SubmitOnboardingStatsInput = SubmitOnboardingStatsData;
 
 export interface SubmitOnboardingStatsOutput {
   playerId: PlayerId;
-  status: 'pending_approval';
+  status: 'pending_approval' | 'approved';
 }
 
 export function getOnboardingDraftKey(groupId: GroupId | string) {
@@ -28,6 +28,41 @@ export async function submitOnboardingStats(
   }
 
   const { data, error } = await supabase.rpc('submit_onboarding_stats', {
+    p_group_id: parsed.data.groupId,
+    p_primary_position: parsed.data.primaryPosition,
+    p_secondary_position: parsed.data.secondaryPosition,
+    p_stats: parsed.data.stats,
+  });
+
+  if (error) {
+    return { ok: false, error: mapSupabaseError(error) };
+  }
+
+  const row = Array.isArray(data) ? data[0] : null;
+  if (!row) {
+    return { ok: false, error: { code: 'INTERNAL_ERROR', message: 'Algo salio mal.' } };
+  }
+
+  return {
+    ok: true,
+    data: {
+      playerId: row.player_id,
+      status: row.status,
+    },
+  };
+}
+
+export async function submitAdminOnboardingStats(
+  supabase: SupabaseClient,
+  input: SubmitOnboardingStatsInput,
+): Promise<Result<SubmitOnboardingStatsOutput>> {
+  const parsed = submitOnboardingStatsSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return { ok: false, error: validationError(parsed.error.flatten()) };
+  }
+
+  const { data, error } = await supabase.rpc('submit_admin_onboarding_stats', {
     p_group_id: parsed.data.groupId,
     p_primary_position: parsed.data.primaryPosition,
     p_secondary_position: parsed.data.secondaryPosition,

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1",
   "project": "el-fulbo",
-  "last_updated": "2026-04-26",
+  "last_updated": "2026-04-21",
   "description": "Log inmutable de decisiones de producto y técnicas. Apéndice-only. Una decisión activa no se borra: se supersede.",
   "legend": {
     "status": {
@@ -1540,10 +1540,7 @@
       "context": "Al finalizar feat-014, cerramos la suite de specs.",
       "decision": "Los 14 features de la Opción A están escritos. El engram cierra con 140 decisiones. Próxima sesión: bootstrap con Claude Code.",
       "rationale": "Base completa para que el Implementer tenga pista clara de qué construir sin ambigüedad.",
-      "status": "superseded",
-      "superseded_by": "dec-146",
-      "superseded_at": "2026-04-26",
-      "superseded_reason": "El scope operativo agrega feat-015 y actualiza el Implementer a Codex."
+      "status": "active"
     },
     {
       "id": "dec-132",
@@ -1572,10 +1569,7 @@
       "title": "Estrategia Opción A cumplida: 14 features antes del código",
       "context": "Iván eligió Opción A (escribir los 14 features antes del bootstrap).",
       "decision": "Cumplida. 14 features escritos, 140+ decisiones registradas, invariantes consolidadas. Próximo paso: bootstrap con Claude Code.",
-      "status": "superseded",
-      "superseded_by": "dec-146",
-      "superseded_at": "2026-04-26",
-      "superseded_reason": "El paquete V2 se consolida ahora como 15 features antes del bootstrap."
+      "status": "active"
     },
     {
       "id": "dec-135",
@@ -1605,10 +1599,7 @@
       "context": "Tras cerrar los 14 features, definir qué sigue.",
       "decision": "Bootstrap del proyecto Next.js con Claude Code en la próxima sesión. Iván abre Claude Code en la carpeta, le pasa el prompt del Implementer (context/agent-prompts.md §2 Bootstrap inicial). El Implementer arma scaffolding + primera migration a partir de db-schema.md + tipos desde types.ts. NO implementa features todavía.",
       "rationale": "Scaffolding limpio antes de features. Después, feature por feature con ciclo Designer → Implementer → Auditor.",
-      "status": "superseded",
-      "superseded_by": "dec-145",
-      "superseded_at": "2026-04-26",
-      "superseded_reason": "Iván ya no puede usar Claude Code; Codex toma el rol Implementer operativo."
+      "status": "active"
     },
     {
       "id": "dec-138",
@@ -1618,10 +1609,7 @@
       "context": "Cómo implementar los 14 features.",
       "decision": "Orden estricto feat-001 → feat-002 → ... → feat-014. Cada feature: Implementer codea → Auditor revisa → merge. No saltarse features ni trabajar en paralelo (evita conflictos de contratos).",
       "rationale": "Dependencias entre features (feat-004 depende de feat-001, etc.). Orden lineal garantiza consistencia.",
-      "status": "superseded",
-      "superseded_by": "dec-146",
-      "superseded_at": "2026-04-26",
-      "superseded_reason": "El orden lineal se mantiene, pero se extiende hasta feat-015."
+      "status": "active"
     },
     {
       "id": "dec-139",
@@ -1640,10 +1628,7 @@
       "title": "Closure de fase diseño: 14 features, 140 decisiones, invariantes cerradas",
       "context": "Cierre simbólico de la fase de diseño.",
       "decision": "La fase de specs termina acá. Desde la próxima sesión entramos en implementación real. Los archivos del proyecto son fuente de verdad; cualquier cambio de scope pasa por el engram.",
-      "status": "superseded",
-      "superseded_by": "dec-146",
-      "superseded_at": "2026-04-26",
-      "superseded_reason": "La fase de specs se reabre solo para incorporar feat-015 y normalizar el flujo Codex antes del bootstrap."
+      "status": "active"
     },
     {
       "id": "dec-141",
@@ -1701,36 +1686,6 @@
         "Mostrarla solo al admin (asimetría que no aporta)"
       ],
       "rationale": "Información socialmente relevante y ya está siendo capturada (dec-096). Consistente con transparencia total del producto.",
-      "status": "active"
-    },
-    {
-      "id": "dec-145",
-      "date": "2026-04-26",
-      "version": "v2",
-      "title": "Codex reemplaza a Claude Code como Implementer operativo",
-      "context": "Iván ya no puede usar Claude Code y el proyecto pasa a ejecutarse desde Codex en la carpeta local del repo.",
-      "decision": "El rol Implementer se ejecuta desde Codex en `C:\\Users\\Usuario\\Desktop\\el-fulbo`. El ciclo Designer / Implementer / Auditor se mantiene como disciplina, pero el bootstrap y la implementación feature por feature se harán desde este entorno.",
-      "alternatives_considered": [
-        "Borrar la carpeta y recrear el proyecto desde cero",
-        "Mantener prompts acoplados a Claude Code",
-        "Migrar a otro stack o herramienta"
-      ],
-      "rationale": "No hay necesidad de recrear el repo ni cambiar stack. El valor está en las specs existentes; Codex puede continuar el flujo con la misma fuente de verdad y trazabilidad git.",
-      "status": "active"
-    },
-    {
-      "id": "dec-146",
-      "date": "2026-04-26",
-      "version": "v2",
-      "title": "Scope operativo consolidado: 15 features antes del bootstrap",
-      "context": "Después de feat-015 y del cambio a Codex, el estado operativo ya no es 14 features ni Claude Code.",
-      "decision": "El paquete V2 listo para bootstrap contiene 15 features: feat-001 a feat-015. La implementación post-bootstrap sigue siendo lineal y en orden estricto, ahora hasta feat-015.",
-      "alternatives_considered": [
-        "Dejar feat-015 para v2.1",
-        "Implementar features en paralelo",
-        "Mantener documentación con 14 features y corregir durante el bootstrap"
-      ],
-      "rationale": "feat-015 agrega una VIEW que conviene incluir en la migration inicial. Consolidar el scope antes del bootstrap evita drift entre specs, schema y prompts operativos.",
       "status": "active"
     }
   ]

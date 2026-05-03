@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700;800;900&amp;family=Space+Grotesk:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-container": "#40403f",
+                    "on-secondary-fixed-variant": "#454747",
+                    "on-primary": "#003915",
+                    "on-tertiary-fixed-variant": "#474746",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "on-error": "#690005",
+                    "on-background": "#e5e2e1",
+                    "surface-container-lowest": "#0e0e0e",
+                    "surface-container-low": "#1c1b1b",
+                    "error": "#ffb4ab",
+                    "on-surface-variant": "#bccbb9",
+                    "tertiary-fixed-dim": "#c8c6c5",
+                    "on-secondary": "#2f3131",
+                    "surface-container-high": "#2a2a2a",
+                    "on-primary-fixed-variant": "#005321",
+                    "inverse-primary": "#006e2f",
+                    "on-tertiary": "#313030",
+                    "surface-bright": "#3a3939",
+                    "primary-fixed": "#6bff8f",
+                    "on-surface": "#e5e2e1",
+                    "primary-fixed-dim": "#4ae176",
+                    "background": "#131313",
+                    "tertiary": "#c9c6c6",
+                    "surface-container": "#201f1f",
+                    "primary": "#4be277",
+                    "inverse-surface": "#e5e2e1",
+                    "on-secondary-container": "#b4b5b5",
+                    "surface": "#131313",
+                    "secondary-container": "#454747",
+                    "tertiary-container": "#adabab",
+                    "surface-tint": "#4ae176",
+                    "on-primary-container": "#004b1e",
+                    "on-error-container": "#ffdad6",
+                    "secondary": "#c6c6c7",
+                    "on-primary-fixed": "#002109",
+                    "primary-container": "#22c55e",
+                    "error-container": "#93000a",
+                    "outline-variant": "#3d4a3d",
+                    "outline": "#869585",
+                    "surface-dim": "#131313",
+                    "on-tertiary-fixed": "#1c1b1b",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "surface-variant": "#353534",
+                    "tertiary-fixed": "#e5e2e1",
+                    "inverse-on-surface": "#313030",
+                    "surface-container-highest": "#353534",
+                    "secondary-fixed": "#e2e2e2"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-sm": "12px",
+                    "stack-lg": "40px",
+                    "gutter": "16px",
+                    "unit": "4px",
+                    "stack-xs": "4px",
+                    "margin-mobile": "20px",
+                    "margin-desktop": "64px",
+                    "stack-md": "24px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Lexend"],
+                    "headline-lg": ["Lexend"],
+                    "body-md": ["Lexend"],
+                    "headline-md": ["Lexend"],
+                    "label-mono": ["Space Grotesk"],
+                    "headline-xl": ["Lexend"],
+                    "label-bold": ["Space Grotesk"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "label-mono": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "500"}],
+                    "headline-xl": ["48px", {"lineHeight": "1.0", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                    "label-bold": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .pitch-overlay {
+            background: linear-gradient(to bottom, rgba(19, 19, 19, 0.85) 0%, rgba(19, 19, 19, 0.98) 100%);
+        }
+        .brutalist-border {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md overflow-hidden h-screen flex flex-col">
+<!-- Background Image with Overlay -->
+<div class="fixed inset-0 z-[-1]">
+<img class="w-full h-full object-cover" data-alt="A cinematic low-angle shot of a urban soccer field at night under bright stadium floodlights that pierce through a light evening mist. The dark green grass is textured and sharp, contrasting with the surrounding city concrete and deep black shadows. The mood is aggressive and competitive, styled with high-contrast brutalist aesthetics using a palette of deep blacks and vibrant neon green accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHMqz1APzLOtW_iX0cL-h8ZVjRkXewTHONutgoB-WlHsBl4nQnk6Zkqg5cJrU8IN5N7FTT0hneJKYuxbHZlZEwruIAT8datZRCNoCralbp7x7KdI2uzWWsrP3iHXeQZH6nfWI2cI0RO3GR9kFR4rsv_q69SSf-PJAMhKkwG1VNtE9rqSM6xhlYez_paCWbVFjoiU9SKuhbzqJeB8paPJX0-ORC9piRf75Kt176F5YaiFMazBG0Am2NgFSmltdDSSuTrN-olf8sCwQ"/>
+<div class="absolute inset-0 pitch-overlay"></div>
+</div>
+<!-- TopAppBar -->
+<header class="bg-neutral-950 flex justify-between items-center w-full px-4 h-16 border-b-2 border-white/10 shrink-0">
+<div class="flex items-center gap-4">
+<button class="text-green-500 active:bg-green-500 active:text-black transition-colors duration-100 p-1">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-['Lexend'] uppercase tracking-tight font-black text-lg text-green-500">MEMORIA DEL GRUPO</h1>
+</div>
+<div class="w-10"></div> <!-- Spacer for balance -->
+</header>
+<!-- Navigation Tabs -->
+<nav class="flex w-full bg-neutral-950 shrink-0">
+<button class="flex-1 py-4 text-green-500 border-b-2 border-green-500 font-['Lexend'] uppercase font-bold text-[10px] tracking-widest">
+            PARTIDOS
+        </button>
+<button class="flex-1 py-4 text-neutral-400 hover:bg-neutral-900 font-['Lexend'] uppercase font-bold text-[10px] tracking-widest">
+            ESTADÍSTICAS
+        </button>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 overflow-y-auto p-gutter flex flex-col items-center">
+<!-- Scoreboard Title Anchor -->
+<div class="w-full text-center mb-stack-lg mt-unit">
+<span class="font-label-mono text-primary uppercase mb-stack-xs block">Historial Reciente</span>
+<h2 class="font-headline-xl text-on-background uppercase italic tracking-tighter">EL FULBO</h2>
+</div>
+<!-- Matches Card -->
+<div class="w-full max-w-md bg-surface-container-low brutalist-border rounded-lg overflow-hidden flex flex-col mb-stack-md">
+<!-- Match Item 1 -->
+<div class="flex items-center justify-between p-stack-md border-b border-white/5 hover:bg-neutral-900/50 transition-colors">
+<div class="flex flex-col">
+<span class="font-label-mono text-neutral-500 mb-1">17/05</span>
+<span class="font-headline-md text-on-background uppercase">vs. Los Cruzados</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-headline-md text-primary font-black tracking-widest">5 - 4</span>
+<span class="font-label-bold text-primary">(W)</span>
+</div>
+</div>
+<!-- Match Item 2 -->
+<div class="flex items-center justify-between p-stack-md border-b border-white/5 hover:bg-neutral-900/50 transition-colors">
+<div class="flex flex-col">
+<span class="font-label-mono text-neutral-500 mb-1">10/05</span>
+<span class="font-headline-md text-on-background uppercase">vs. La Banda del Pepe</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-headline-md text-primary font-black tracking-widest">6 - 2</span>
+<span class="font-label-bold text-primary">(W)</span>
+</div>
+</div>
+<!-- Match Item 3 -->
+<div class="flex items-center justify-between p-stack-md border-b border-white/5 hover:bg-neutral-900/50 transition-colors">
+<div class="flex flex-col">
+<span class="font-label-mono text-neutral-500 mb-1">03/05</span>
+<span class="font-headline-md text-on-background uppercase">vs. Los del Barrio</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-headline-md text-neutral-400 font-black tracking-widest">3 - 3</span>
+<span class="font-label-bold text-neutral-500">(E)</span>
+</div>
+</div>
+<!-- Match Item 4 -->
+<div class="flex items-center justify-between p-stack-md hover:bg-neutral-900/50 transition-colors">
+<div class="flex flex-col">
+<span class="font-label-mono text-neutral-500 mb-1">26/04</span>
+<span class="font-headline-md text-on-background uppercase">vs. Villa United</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-headline-md text-primary font-black tracking-widest">2 - 1</span>
+<span class="font-label-bold text-primary">(W)</span>
+</div>
+</div>
+</div>
+<!-- Secondary Action -->
+<button class="w-full max-w-md py-4 border-2 border-neutral-700 text-on-background font-label-bold uppercase tracking-widest hover:border-white transition-colors active:scale-95 duration-150">
+            VER MÁS HISTORIAL
+        </button>
+</main>
+<!-- BottomNavBar -->
+<footer class="fixed bottom-0 left-0 w-full flex justify-around items-center h-20 pb-safe bg-neutral-950 border-t-2 border-white/10 z-50">
+<a class="flex flex-col items-center justify-center text-green-500 pt-2 border-t-2 border-green-500 flex-1 h-full" href="#">
+<span class="material-symbols-outlined">sports_soccer</span>
+<span class="font-['Lexend'] uppercase font-bold text-[10px] tracking-widest mt-1">MATCHES</span>
+</a>
+<a class="flex flex-col items-center justify-center text-neutral-500 pt-2 flex-1 h-full hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-['Lexend'] uppercase font-bold text-[10px] tracking-widest mt-1">GROUPS</span>
+</a>
+<a class="flex flex-col items-center justify-center text-neutral-500 pt-2 flex-1 h-full hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-['Lexend'] uppercase font-bold text-[10px] tracking-widest mt-1">STATS</span>
+</a>
+<a class="flex flex-col items-center justify-center text-neutral-500 pt-2 flex-1 h-full hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Lexend'] uppercase font-bold text-[10px] tracking-widest mt-1">PROFILE</span>
+</a>
+</footer>
+</body></html>

@@ -5,17 +5,35 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        cancha: '#1f7a4d',
-        cal: '#f6f3e7',
-        noche: '#171a1f',
-        pelota: '#f4b740',
-        derrota: '#c44949',
+        // Stitch "Nocturnal Pitch" Palette
+        'pitch-green': '#22C55E',
+        'absolute-dark': '#0A0A0A',
+        'concrete-overlay': '#1A1A1A',
+        fulbo: {
+          bg: '#0A0A0A',
+          panel: '#1A1A1A',
+          cta: '#22C55E',
+          accent: '#F59E0B',
+          text: '#FFFFFF',
+          muted: '#869585', // Matches 'outline' from Stitch
+        },
       },
       fontFamily: {
-        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        sans: ['Lexend', 'system-ui', 'sans-serif'],
+        mono: ['Space Grotesk', 'monospace'],
+        headline: ['Lexend', 'sans-serif'],
       },
       borderRadius: {
-        card: '8px',
+        none: '0px',
+        card: '0px',
+        panel: '0px',
+      },
+      borderWidth: {
+        '3': '3px',
+      },
+      boxShadow: {
+        // Stitch avoids shadows, using borders for depth
+        none: 'none',
       },
     },
   },

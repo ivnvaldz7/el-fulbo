@@ -4,7 +4,13 @@ import { getCurrentUserPlayerInGroup } from '@/lib/services/player.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { GroupId } from '@/lib/types';
 
-export default async function OnboardingStatsPage({ params }: { params: { id: string } }) {
+export default async function OnboardingStatsPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams?: { as?: string };
+}) {
   const supabase = createServerSupabaseClient();
   const player = await getCurrentUserPlayerInGroup(supabase, params.id);
 
@@ -17,6 +23,10 @@ export default async function OnboardingStatsPage({ params }: { params: { id: st
   }
 
   return (
-    <OnboardingWizard groupId={params.id as GroupId} displayName={player.data.displayName} />
+    <OnboardingWizard
+      groupId={params.id as GroupId}
+      displayName={player.data.displayName}
+      asAdmin={searchParams?.as === 'admin'}
+    />
   );
 }

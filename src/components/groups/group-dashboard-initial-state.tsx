@@ -1,49 +1,60 @@
-const backgroundImage =
-  "linear-gradient(rgba(5, 16, 12, 0.15), rgba(5, 16, 12, 0.15)), url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='900' viewBox='0 0 1200 900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%2307130e'/%3E%3Cstop offset='.55' stop-color='%231d4d2c'/%3E%3Cstop offset='1' stop-color='%23040705'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='900' fill='url(%23g)'/%3E%3Cg fill='none' stroke='%23f3efe0' stroke-opacity='.22' stroke-width='8'%3E%3Crect x='110' y='95' width='980' height='710' rx='28'/%3E%3Cpath d='M600 95v710M110 450h980'/%3E%3Ccircle cx='600' cy='450' r='105'/%3E%3C/g%3E%3Cg fill='%23f3efe0' fill-opacity='.08'%3E%3Ccircle cx='980' cy='165' r='90'/%3E%3Ccircle cx='205' cy='720' r='130'/%3E%3C/g%3E%3C/svg%3E\")";
+import { FloatingPanel } from '@/components/ui/floating-panel';
+import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 
 type GroupDashboardInitialStateProps = {
   groupName: string;
   modality: string;
   activePlayers: number;
+  adminPendingTotal?: number;
 };
 
 export function GroupDashboardInitialState({
   groupName,
   modality,
   activePlayers,
+  adminPendingTotal = 0,
 }: GroupDashboardInitialStateProps) {
   const showInviteBanner = activePlayers < 2;
+  const showAdminPendingBanner = adminPendingTotal > 0;
 
   return (
-    <main
-      className="relative flex min-h-screen items-end overflow-hidden bg-cover bg-center px-4 pb-4 pt-16 sm:items-center sm:justify-center"
-      style={{ backgroundImage }}
-    >
-      <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
+    <ImmersiveScreen contentClassName="mx-auto max-w-xl">
+      <FloatingPanel className="w-full border-2 border-white/10">
+        <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-pitch-green">{modality}</p>
+        <h1 className="mt-2 font-headline text-4xl font-black italic uppercase leading-none text-white">{groupName}</h1>
 
-      <section className="relative z-10 w-full max-w-xl rounded-card bg-noche/95 p-6 text-cal shadow-2xl">
-        <p className="text-sm font-black uppercase tracking-wide text-cancha">{modality}</p>
-        <h1 className="mt-3 text-4xl font-black">{groupName}</h1>
+        {showAdminPendingBanner ? (
+          <div className="mt-8 border border-amber-400/20 bg-amber-400/5 p-5">
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400">Admin</p>
+            <h2 className="mt-1 font-headline text-xl font-black italic uppercase text-white">Tenés {adminPendingTotal} pendientes</h2>
+            <a
+              href="./admin-tasks"
+              className="mt-4 inline-flex min-h-12 items-center justify-center bg-amber-400 px-6 py-2 font-headline text-sm font-bold uppercase text-black transition-transform active:scale-95"
+            >
+              Ver ahora
+            </a>
+          </div>
+        ) : null}
 
         {showInviteBanner ? (
-          <div className="mt-8">
-            <h2 className="text-3xl font-black">Sumá a tus jugadores</h2>
-            <p className="mt-3 text-base font-bold leading-relaxed text-cal/80">
-              Compartí este link en el grupo de WhatsApp y los que entren ya están
+          <div className="mt-10">
+            <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Sumá a tus jugadores</h2>
+            <p className="mt-3 font-headline text-base font-medium leading-relaxed text-white/60">
+              Compartí este link en el grupo de WhatsApp y los que entren ya están adentro.
             </p>
             <button
               type="button"
-              className="mt-7 min-h-12 w-full rounded-card bg-cancha px-6 py-3 text-sm font-black text-white"
+              className="mt-8 flex min-h-14 w-full items-center justify-center bg-pitch-green px-6 py-3 font-headline text-lg font-bold italic uppercase text-black transition-transform active:scale-95"
             >
               Invitar jugadores
             </button>
           </div>
         ) : (
-          <p className="mt-8 text-base font-bold text-cal/80">
-            El grupo ya tiene jugadores para empezar.
+          <p className="mt-10 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
+            El grupo ya tiene jugadores para empezar el fulbito.
           </p>
         )}
-      </section>
-    </main>
+      </FloatingPanel>
+    </ImmersiveScreen>
   );
 }

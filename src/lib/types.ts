@@ -69,6 +69,7 @@ type Brand<K, T> = K & { __brand: T };
 
 export type UserId = Brand<string, 'UserId'>;
 export type GroupId = Brand<string, 'GroupId'>;
+export type InviteCode = Brand<string, 'InviteCode'>;
 export type PlayerId = Brand<string, 'PlayerId'>;
 export type EventId = Brand<string, 'EventId'>;
 export type MembershipId = Brand<string, 'MembershipId'>;
@@ -460,6 +461,8 @@ export type AppErrorCode =
   | 'STATS_PENDING_APPROVAL'
   | 'REVISION_ALREADY_PENDING'
   | 'INVITE_CODE_INVALID'
+  | 'EXPELLED_COOLDOWN_ACTIVE'
+  | 'REINTEGRATION_REQUEST_PENDING'
   | 'INVITE_CODE_EXPIRED'
   | 'MAGIC_LINK_EXPIRED'
   | 'MAGIC_LINK_INVALID'

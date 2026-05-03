@@ -24,7 +24,7 @@ export function AcceptInviteButton({ inviteCode }: { inviteCode: string }) {
     };
 
     if (!response.ok || !body.ok || !body.data) {
-      setError(body.error?.message ?? 'No pudimos unirte al grupo.');
+      setError(body.error?.message ?? 'No pudimos sumarte al grupo.');
       setLoading(false);
       return;
     }
@@ -44,7 +44,7 @@ export function AcceptInviteButton({ inviteCode }: { inviteCode: string }) {
         disabled={loading}
         className="min-h-12 w-full rounded-card bg-noche px-5 py-3 text-sm font-black text-cal disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {loading ? 'Uniendote...' : 'Unirme al grupo'}
+        {loading ? 'Uniéndote...' : 'Unite al fulbito'}
       </button>
       {error ? <p className="text-sm font-bold text-derrota">{error}</p> : null}
     </div>

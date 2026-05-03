@@ -1,20 +1,4 @@
-import { calculateOverall, getTier, type PlayerPosition, type PlayerStats } from '@/lib/types';
-
-const tierLabels = {
-  bronze: 'Bronce',
-  silver: 'Plata',
-  gold_matte: 'Oro simple',
-  gold: 'Oro',
-  mvp: 'MVP',
-};
-
-const tierClasses = {
-  bronze: 'from-amber-800 via-yellow-700 to-stone-800 text-yellow-50',
-  silver: 'from-slate-200 via-zinc-100 to-slate-400 text-zinc-950',
-  gold_matte: 'from-yellow-500 via-amber-200 to-yellow-700 text-zinc-950',
-  gold: 'from-yellow-300 via-amber-100 to-yellow-600 text-zinc-950',
-  mvp: 'from-yellow-200 via-amber-300 to-orange-500 text-zinc-950',
-};
+import { calculateOverall, type PlayerPosition, type PlayerStats } from '@/lib/types';
 
 export function PlayerCardPreview({
   name,
@@ -28,43 +12,56 @@ export function PlayerCardPreview({
   pending?: boolean;
 }) {
   const overall = calculateOverall(stats, position);
-  const tier = getTier(overall);
   const statEntries = Object.entries(stats);
 
   return (
     <article
       aria-live="polite"
-      className={`relative mx-auto aspect-[5/7] w-full max-w-72 overflow-hidden rounded-card bg-gradient-to-br p-5 shadow-2xl ${tierClasses[tier]}`}
+      className="relative mx-auto aspect-[2/3] w-full max-w-[280px] border-2 border-[#D4AF37]/40 bg-concrete-overlay flex flex-col shadow-[0_0_20px_rgba(212,175,55,0.15)]"
     >
+      {/* Card Texture/Overlay */}
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.1),transparent_70%)] opacity-30"></div>
+      
       {pending ? (
-        <span className="absolute right-3 top-3 rounded-card bg-noche px-2 py-1 text-xs font-black uppercase text-cal">
-          Pendiente
+        <span className="absolute right-2 top-2 z-20 bg-pitch-green px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-black">
+          PENDIENTE
         </span>
       ) : null}
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-5xl font-black leading-none">{overall}</p>
-          <p className="mt-1 text-sm font-black">{position}</p>
+
+      {/* Card Header */}
+      <div className="relative z-10 flex p-5 pb-0">
+        <div className="flex flex-col items-center border-r border-white/20 pr-4">
+          <span className="font-headline text-5xl font-black leading-none text-[#D4AF37]">{overall}</span>
+          <span className="mt-1 font-mono text-sm font-bold text-white/60">{position}</span>
         </div>
-        <p className="rounded-card border border-current/30 px-2 py-1 text-xs font-black">
-          {tierLabels[tier]}
-        </p>
+        <div className="flex flex-grow items-center justify-center pt-2">
+          <div className="flex h-24 w-24 items-center justify-center bg-white/5 text-5xl font-black text-white/20 grayscale">
+            {name.slice(0, 1).toUpperCase()}
+          </div>
+        </div>
       </div>
 
-      <div className="mt-12 flex h-24 items-center justify-center rounded-card border border-current/20 bg-white/20 text-4xl font-black">
-        {name.slice(0, 1).toUpperCase()}
+      {/* Card Body */}
+      <div className="relative z-10 mt-4 flex flex-col items-center px-2 text-center">
+        <h2 className="w-full truncate font-headline text-2xl font-black italic tracking-widest uppercase text-white">
+          {name}
+        </h2>
+        <div className="mt-1 border border-pitch-green/40 bg-pitch-green/10 px-2 py-0.5">
+          <span className="font-mono text-[10px] font-bold text-pitch-green uppercase">
+            ESTILO STREET
+          </span>
+        </div>
       </div>
 
-      <h2 className="mt-5 truncate text-center text-xl font-black">{name}</h2>
-
-      <dl className="mt-5 grid grid-cols-2 gap-2 text-sm font-black">
+      {/* Stats Grid */}
+      <div className="relative z-10 mt-auto grid grid-cols-3 gap-x-4 gap-y-2 border-t border-white/10 bg-black/40 px-4 py-5">
         {statEntries.map(([key, value]) => (
-          <div key={key} className="flex items-center justify-between border-t border-current/20 pt-1">
-            <dt className="uppercase">{key}</dt>
-            <dd>{value * 10}</dd>
+          <div key={key} className="flex flex-col items-center">
+            <span className="font-mono text-base font-bold text-white">{value * 10}</span>
+            <span className="font-mono text-[10px] font-bold uppercase text-white/40">{key}</span>
           </div>
         ))}
-      </dl>
+      </div>
     </article>
   );
 }

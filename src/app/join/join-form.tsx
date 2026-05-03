@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight } from 'lucide-react';
 import { inviteCodeSchema } from '@/lib/validations/onboarding';
 
 function formatInviteCode(value: string) {
@@ -37,7 +36,7 @@ export function JoinForm() {
     if (!response.ok || !body.ok) {
       setError(
         body.error?.message ??
-          'No encontramos ese codigo. Revisa que este bien escrito, o pedile el link a quien te invito.',
+          'Código inválido. Revisá que esté bien escrito.',
       );
       setLoading(false);
       return;
@@ -47,25 +46,34 @@ export function JoinForm() {
   }
 
   return (
-    <form onSubmit={submit} className="mt-8 space-y-4">
-      <label className="block">
-        <span className="sr-only">Codigo de invitacion</span>
-        <input
-          value={code}
-          onChange={(event) => setCode(formatInviteCode(event.target.value))}
-          placeholder="FULBO-XXXXXX"
-          className="min-h-14 w-full rounded-card border border-black/15 bg-white px-4 text-2xl font-black uppercase tracking-wide outline-none focus:border-cancha"
-        />
-      </label>
-      {error ? <p className="text-sm font-bold text-derrota">{error}</p> : null}
-      <button
-        type="submit"
-        disabled={!parsed.success || loading}
-        className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-card bg-noche px-5 py-3 text-sm font-black text-cal disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        {loading ? 'Validando...' : 'Continuar'}
-        <ArrowRight className="h-4 w-4" aria-hidden="true" />
-      </button>
+    <form onSubmit={submit} className="space-y-4">
+      <div className="border border-white/10 bg-black/40 p-4">
+        <label className="block">
+          <span className="font-mono text-[10px] font-bold uppercase text-white/40">Código de invitación</span>
+          <input
+            value={code}
+            onChange={(event) => setCode(formatInviteCode(event.target.value))}
+            placeholder="FULBO-XXXXXX"
+            className="mt-2 w-full bg-transparent font-headline text-3xl font-black uppercase tracking-widest text-white outline-none placeholder:text-white/10"
+          />
+        </label>
+      </div>
+
+      {error ? (
+        <p className="py-2 text-center font-mono text-[10px] font-bold uppercase text-pitch-green italic">
+          {error}
+        </p>
+      ) : null}
+
+      <footer className="pt-6">
+        <button
+          type="submit"
+          disabled={!parsed.success || loading}
+          className="flex h-16 w-full items-center justify-center bg-pitch-green font-headline text-2xl font-bold italic uppercase tracking-tight text-black transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {loading ? 'VALIDANDO...' : 'ENTRAR A LA CANCHA'}
+        </button>
+      </footer>
     </form>
   );
 }

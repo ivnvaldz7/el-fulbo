@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-bright": "#3a3939",
+                        "surface-variant": "#353534",
+                        "primary-fixed": "#6bff8f",
+                        "surface": "#131313",
+                        "on-tertiary-container": "#40403f",
+                        "primary": "#4be277",
+                        "outline-variant": "#3d4a3d",
+                        "on-tertiary": "#313030",
+                        "on-background": "#e5e2e1",
+                        "surface-container-lowest": "#0e0e0e",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "secondary-fixed": "#e2e2e2",
+                        "on-tertiary-fixed-variant": "#474746",
+                        "on-secondary-fixed-variant": "#454747",
+                        "on-primary-fixed-variant": "#005321",
+                        "primary-container": "#22c55e",
+                        "surface-container-highest": "#353534",
+                        "surface-container-low": "#1c1b1b",
+                        "inverse-primary": "#006e2f",
+                        "on-tertiary-fixed": "#1c1b1b",
+                        "on-surface": "#e5e2e1",
+                        "on-primary-fixed": "#002109",
+                        "inverse-surface": "#e5e2e1",
+                        "background": "#131313",
+                        "on-secondary": "#2f3131",
+                        "surface-dim": "#131313",
+                        "on-surface-variant": "#bccbb9",
+                        "surface-container": "#201f1f",
+                        "secondary": "#c6c6c7",
+                        "tertiary-container": "#adabab",
+                        "secondary-container": "#454747",
+                        "surface-container-high": "#2a2a2a",
+                        "error": "#ffb4ab",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "tertiary": "#c9c6c6",
+                        "primary-fixed-dim": "#4ae176",
+                        "inverse-on-surface": "#313030",
+                        "on-primary-container": "#004b1e",
+                        "on-secondary-container": "#b4b5b5",
+                        "on-primary": "#003915",
+                        "on-error": "#690005",
+                        "surface-tint": "#4ae176",
+                        "tertiary-fixed": "#e5e2e1",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "on-error-container": "#ffdad6",
+                        "outline": "#869585",
+                        "error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "stack-lg": "40px",
+                        "stack-xs": "4px",
+                        "stack-md": "24px",
+                        "margin-mobile": "20px",
+                        "gutter": "16px",
+                        "stack-sm": "12px",
+                        "margin-desktop": "64px"
+                    },
+                    "fontFamily": {
+                        "label-bold": ["Space Grotesk"],
+                        "headline-xl": ["Lexend"],
+                        "label-mono": ["Space Grotesk"],
+                        "headline-md": ["Lexend"],
+                        "body-lg": ["Lexend"],
+                        "headline-lg": ["Lexend"],
+                        "body-md": ["Lexend"]
+                    },
+                    "fontSize": {
+                        "label-bold": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "headline-xl": ["48px", {"lineHeight": "1.0", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                        "label-mono": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .pitch-overlay {
+            background: linear-gradient(to bottom, rgba(10, 10, 10, 0.7) 0%, rgba(10, 10, 10, 0.95) 100%);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-md antialiased overflow-hidden">
+<!-- Background Layer -->
+<div class="fixed inset-0 z-[-1]">
+<img class="w-full h-full object-cover" data-alt="A cinematic low-angle shot of an urban soccer pitch at night under intense floodlights. The dark synthetic turf is detailed and textured, while the background dissolves into a moody, deep atmosphere of midnight blues and blacks. High-contrast lighting creates sharp highlights and deep shadows, evoking a gritty and aggressive street soccer vibe that aligns with the brutalist and high-energy brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBL4qzmR6liAgZoGuo6oM4k3liqBVz6Hrrn5pj6bBXlPhLL8KmHtaf0l2dSSBgfbD67SXua8ZHTHoBYkpM2hEOhIZ9RtdPUwpILowHGU5bxeIFMK4_-rya7FjBShXwPXhB8zW5NHzoUF4O0b5Q187naA6iIkJmwJxa_t3GmxqUyeBuVZiGLPcKvrfHffb1Ux76qxIOJ1bkw8wvUycc4dPnyqzEm6FGCLRfsn3jeUjtwHj3O63L5FTcSUzX0-OaP5c3gBoeqTSYu5jw"/>
+<div class="absolute inset-0 pitch-overlay"></div>
+</div>
+<!-- Main Content Shell (Mobile Viewport Restricted) -->
+<main class="relative mx-auto w-full max-w-[390px] h-screen flex flex-col overflow-hidden">
+<!-- Status Bar Mockup -->
+<div class="flex justify-between items-center px-6 pt-4 pb-2 text-[12px] font-bold tracking-tight">
+<span>21:45</span>
+<div class="flex gap-1.5 items-center">
+<span class="material-symbols-outlined !text-[14px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined !text-[14px]">wifi</span>
+<span class="material-symbols-outlined !text-[14px]">battery_very_low</span>
+</div>
+</div>
+<!-- TopAppBar -->
+<header class="bg-neutral-950 text-green-500 border-b-2 border-white/10 flex justify-between items-center w-full px-4 h-16">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-white cursor-pointer hover:border-green-500 transition-colors" data-icon="arrow_back">arrow_back</span>
+<h1 class="font-['Lexend'] uppercase tracking-tighter font-black text-xl text-green-500">PENDING TASKS</h1>
+</div>
+<div class="w-10 h-10 rounded-full border-2 border-green-500 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional and sharp close-up portrait of a male sports administrator with a clean-cut look, set against a dark monochromatic studio background. The lighting is high-contrast and dramatic, highlighting strong facial features. The image maintains the urban, intense athletic brand aesthetic through a moody color palette of blacks and cold grays." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYRTwISuuUqxlWI29vwn65swLKkr7AB-HkZAdb4FkLYoDfKRRKE1uposTuIMpZcO88K7j44VosRJE9ePFKOWLOSak6ZGvwL0GfhHWNfFsK_MJyZ8h6XE-iGGUsTY5i8BQQbB2Ai4jf-r6DVZ4YmU7YAEmPqTknluiwy3Oko5vORYJflp187xDDitv2ADV8LC7wFkjoGT1NUZzHkZOi0r-q4cevpBUILBmQxAXJ6688RtdtEF38t2GhDYIxY5DnrlxWwLdXJLf5guM"/>
+</div>
+</header>
+<!-- Header Content -->
+<section class="px-6 pt-8 pb-4">
+<h2 class="font-headline-lg text-white uppercase italic tracking-tighter leading-none mb-1">Tenés cosas por resolver</h2>
+<p class="font-label-mono text-on-surface-variant uppercase">Administración de Match Day</p>
+</section>
+<!-- Task List -->
+<div class="flex-1 px-4 flex flex-col gap-3 overflow-y-auto pb-24">
+<!-- Task 1 -->
+<div class="bg-surface-container-low border border-white/10 flex items-center p-4 gap-4 hover:border-primary transition-colors group">
+<div class="w-12 h-12 flex-shrink-0 bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center rounded-full">
+<span class="material-symbols-outlined text-amber-500" data-icon="person_search">person_search</span>
+</div>
+<div class="flex-1">
+<h3 class="font-label-bold text-white uppercase mb-0.5">FALTA 1 JUGADOR</h3>
+<p class="font-label-mono text-on-surface-variant uppercase text-[10px]">Confirmá quién falta</p>
+</div>
+<button class="bg-primary px-3 py-1.5 font-label-bold text-[11px] text-black uppercase hover:bg-primary-fixed transition-all active:scale-95">
+                    RESOLVER
+                </button>
+</div>
+<!-- Task 2 -->
+<div class="bg-surface-container-low border border-white/10 flex items-center p-4 gap-4 hover:border-primary transition-colors group">
+<div class="w-12 h-12 flex-shrink-0 bg-orange-600/20 border-2 border-orange-600 flex items-center justify-center rounded-full">
+<span class="material-symbols-outlined text-orange-600" data-icon="stadium">stadium</span>
+</div>
+<div class="flex-1">
+<h3 class="font-label-bold text-white uppercase mb-0.5">FALTA CONFIRMAR LA CANCHA</h3>
+<p class="font-label-mono text-on-surface-variant uppercase text-[10px]">Elegí la cancha</p>
+</div>
+<button class="bg-primary px-3 py-1.5 font-label-bold text-[11px] text-black uppercase hover:bg-primary-fixed transition-all active:scale-95">
+                    RESOLVER
+                </button>
+</div>
+<!-- Task 3 -->
+<div class="bg-surface-container-low border border-white/10 flex items-center p-4 gap-4 hover:border-primary transition-colors group">
+<div class="w-12 h-12 flex-shrink-0 bg-primary/20 border-2 border-primary flex items-center justify-center rounded-full">
+<span class="material-symbols-outlined text-primary" data-icon="groups">groups</span>
+</div>
+<div class="flex-1">
+<h3 class="font-label-bold text-white uppercase mb-0.5">FALTA EL SORTEO</h3>
+<p class="font-label-mono text-on-surface-variant uppercase text-[10px]">Armá los equipos</p>
+</div>
+<button class="bg-primary px-3 py-1.5 font-label-bold text-[11px] text-black uppercase hover:bg-primary-fixed transition-all active:scale-95">
+                    RESOLVER
+                </button>
+</div>
+<!-- Task 4 -->
+<div class="bg-surface-container-low border border-white/10 flex items-center p-4 gap-4 hover:border-primary transition-colors group">
+<div class="w-12 h-12 flex-shrink-0 bg-surface-variant border-2 border-outline-variant flex items-center justify-center rounded-full">
+<span class="material-symbols-outlined text-secondary" data-icon="military_tech">military_tech</span>
+</div>
+<div class="flex-1">
+<h3 class="font-label-bold text-white uppercase mb-0.5">ELEGIR MVP</h3>
+<p class="font-label-mono text-on-surface-variant uppercase text-[10px]">Aún no se votó</p>
+</div>
+<button class="bg-primary px-3 py-1.5 font-label-bold text-[11px] text-black uppercase hover:bg-primary-fixed transition-all active:scale-95">
+                    RESOLVER
+                </button>
+</div>
+</div>
+<!-- Sticky Footer Action -->
+<div class="fixed bottom-20 left-0 right-0 w-full max-w-[390px] mx-auto px-6 pb-6 pt-4 bg-gradient-to-t from-neutral-950 to-transparent">
+<button class="w-full h-14 border-2 border-white text-white font-headline-md uppercase tracking-widest hover:bg-white hover:text-black transition-all active:scale-95 flex items-center justify-center gap-2">
+                VER PARTIDO
+            </button>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center h-20 bg-neutral-950 px-2 border-t-2 border-white/10 z-50">
+<div class="flex flex-col items-center justify-center text-white/60 pt-2 hover:text-green-400 transition-all duration-100 ease-in-out">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-['Lexend'] font-bold text-[10px] tracking-tight">DASHBOARD</span>
+</div>
+<div class="flex flex-col items-center justify-center text-green-500 border-t-4 border-green-500 pt-1 hover:text-green-400 transition-all duration-100 ease-in-out">
+<span class="material-symbols-outlined" data-icon="checklist_rtl">checklist_rtl</span>
+<span class="font-['Lexend'] font-bold text-[10px] tracking-tight">TASKS</span>
+</div>
+<div class="flex flex-col items-center justify-center text-white/60 pt-2 hover:text-green-400 transition-all duration-100 ease-in-out">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="font-['Lexend'] font-bold text-[10px] tracking-tight">SQUADS</span>
+</div>
+<div class="flex flex-col items-center justify-center text-white/60 pt-2 hover:text-green-400 transition-all duration-100 ease-in-out">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Lexend'] font-bold text-[10px] tracking-tight">SETTINGS</span>
+</div>
+</nav>
+</main>
+</body></html>

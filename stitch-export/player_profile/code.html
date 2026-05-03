@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700;800;900&amp;family=Space+Grotesk:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed": "#1c1b1b",
+                    "on-tertiary": "#313030",
+                    "on-primary-fixed": "#002109",
+                    "surface-container": "#201f1f",
+                    "on-background": "#e5e2e1",
+                    "on-primary-container": "#004b1e",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "on-surface": "#e5e2e1",
+                    "primary-fixed": "#6bff8f",
+                    "surface-container-low": "#1c1b1b",
+                    "tertiary": "#c9c6c6",
+                    "error-container": "#93000a",
+                    "outline-variant": "#3d4a3d",
+                    "surface-tint": "#4ae176",
+                    "tertiary-container": "#adabab",
+                    "surface-container-high": "#2a2a2a",
+                    "on-tertiary-container": "#40403f",
+                    "surface-container-highest": "#353534",
+                    "surface-variant": "#353534",
+                    "primary-fixed-dim": "#4ae176",
+                    "on-secondary-fixed-variant": "#454747",
+                    "inverse-on-surface": "#313030",
+                    "surface-dim": "#131313",
+                    "surface-bright": "#3a3939",
+                    "secondary-container": "#454747",
+                    "error": "#ffb4ab",
+                    "on-primary": "#003915",
+                    "surface": "#131313",
+                    "background": "#131313",
+                    "secondary": "#c6c6c7",
+                    "on-secondary-container": "#b4b5b5",
+                    "inverse-primary": "#006e2f",
+                    "on-error-container": "#ffdad6",
+                    "outline": "#869585",
+                    "primary": "#4be277",
+                    "tertiary-fixed-dim": "#c8c6c5",
+                    "primary-container": "#22c55e",
+                    "inverse-surface": "#e5e2e1",
+                    "surface-container-lowest": "#0e0e0e",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "tertiary-fixed": "#e5e2e1",
+                    "secondary-fixed": "#e2e2e2",
+                    "on-tertiary-fixed-variant": "#474746",
+                    "on-surface-variant": "#bccbb9",
+                    "on-primary-fixed-variant": "#005321",
+                    "on-error": "#690005",
+                    "on-secondary": "#2f3131"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-xs": "4px",
+                    "margin-desktop": "64px",
+                    "unit": "4px",
+                    "stack-sm": "12px",
+                    "stack-lg": "40px",
+                    "stack-md": "24px",
+                    "margin-mobile": "20px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "label-mono": ["Space Grotesk"],
+                    "label-bold": ["Space Grotesk"],
+                    "headline-xl": ["Lexend"],
+                    "headline-md": ["Lexend"],
+                    "headline-lg": ["Lexend"],
+                    "body-md": ["Lexend"],
+                    "body-lg": ["Lexend"]
+            },
+            "fontSize": {
+                    "label-mono": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "500"}],
+                    "label-bold": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "headline-xl": ["48px", {"lineHeight": "1.0", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                    "headline-md": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "1.5", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+.player-card-bg {
+    background: linear-gradient(135deg, #1A1A1A 0%, #0A0A0A 100%);
+    position: relative;
+    overflow: hidden
+    }
+.player-card-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(#FFD700 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.05
+    }
+.pitch-overlay {
+    background-image: linear-gradient(to bottom, rgba(10, 10, 10, 0.8), rgba(10, 10, 10, 0.95)), url(https://lh3.googleusercontent.com/aida-public/AB6AXuA1fNGA1i0_cQSBrg4mhvRnnfRtbGy123bLU_gtLJLIXzzkDcAIjxPh-93civ8WUAvmJAxPRNQ95IpNumXHPZkeYNKSXqJ-xxy7C8ffvbAzSswnR4nhLrQpaf90450V3vwYeNmddoqKY_1_p8j-y46CM8xB60ABfdZepmKht1avfXok3QlUma9Ltsuu3xCZRyYekMKcaPrNxt1qD94idhPgy6ooB1GVZPBbTm966OF8zB4kOwK5O8fX0vyc5QvNpEfGvrihDFH0Tng);
+    background-size: cover;
+    background-position: center
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body-md text-on-surface selection:bg-primary selection:text-on-primary antialiased">
+<!-- Background Layer -->
+<div class="fixed inset-0 pitch-overlay -z-10" data-alt="A cinematic, low-angle shot of an empty urban soccer pitch at night under bright stadium floodlights. The grass is lush and dark green, with deep shadows stretching across the field. A heavy dark overlay creates a gritty, moody atmosphere with high contrast, keeping the focus on the central area where the UI will sit. The lighting is dramatic and aggressive, suggesting a high-stakes match environment."></div>
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 h-16 bg-[#0A0A0A] border-b-2 border-[#FFFFFF]/10">
+<button class="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-white">arrow_back</span>
+</button>
+<h1 class="font-lexend font-black tracking-tighter uppercase text-white">PLAYER_PROFILE</h1>
+<button class="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-white">settings</span>
+</button>
+</header>
+<main class="pt-24 pb-24 px-4 max-w-md mx-auto space-y-stack-md">
+<!-- FIFA-Inspired Player Card -->
+<div class="relative mx-auto w-full max-w-[300px] aspect-[2/3] player-card-bg border-2 border-[#FFD700]/30 rounded-xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+<!-- Splatter Texture Overlay -->
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBKGwMhIu8K3S7iJ5_Zbq4_GZFW5GtsRrVJ4my3lh3DbVuR9AMKHu5mAQmTzxDQ-o1w6uj-sVDfU1b2Mxw5oduq-xRaWfVIT25bbJXmztpxtaYbHj2-mMIA19C0zOUjImUCbZYnGvBl-K6EC-4XWTyX2wp9O1HLafVVd0DDKGKTOrqyKQa1NJZCklhUsYJAD1HQlumKozT-KeaMcUZGmjummLEjp0fJN-Lzo5SWxhNcl67n0jHc9xHd5oTUxfyGLRCNstrKmnwAUno');"></div>
+<!-- Overall & Position -->
+<div class="absolute top-6 left-6 flex flex-col items-center">
+<span class="font-headline-xl text-[#FFD700] leading-none">87</span>
+<span class="font-label-bold text-white mt-1 border-t border-white/20 pt-1">MC</span>
+<div class="mt-2 w-6 h-4 overflow-hidden rounded-sm">
+<img alt="Argentina Flag" class="w-full h-full object-cover" data-alt="A high-quality, crisp representation of the Argentine national flag featuring its iconic light blue and white horizontal stripes and the Sun of May symbol in the center. The colors are vibrant and accurate, displayed as a small graphic element on a premium sports profile card." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJ_0Iv3KHu4SbB8qmGuFtMaaUy9X9qVEkNA7_B8QiQfK0Srnb5uWr-pVySoLGRoecVX7YSXScj7QEht6GVGPHGlLtWgXhFXViNhEPtq888TNmbiRk9g5mc0ufBRdWBTPmcT8dz5SqJD_7yVj3N_UQQrWpQQsmb39qwQbSPi4QUajQDmfbr47zZnRhwpj002kQ-NhnDszCQ8KIjYFOWscdjacs1mEddCjipCyyFcqNHc7zfTOec4muM7kl2_ltYQ0bcPbNIoNJ5FTs"/>
+</div>
+</div>
+<!-- Player Portrait -->
+<div class="absolute bottom-0 right-0 w-full h-[85%] flex items-end justify-center">
+<img class="h-full object-cover object-top grayscale-[0.2] contrast-125" data-alt="A professional sports portrait of a serious and aggressive football player with a focused gaze. The lighting is high-contrast, reminiscent of stadium floodlights, highlighting facial features and athletic build. The player has a modern hairstyle and is dressed in a dark, minimalist soccer jersey. The overall aesthetic is gritty, urban, and high-fidelity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJmQGSesmZS2r4i61ZycUMnO9brNtH_UdoKDmwh2iv2wanaErc8UiVuo-T-OShPqH4YDQcO1n8Lw12D-ivdzrcSUCmYN_liBlplp-e738NEvYkdtknKsEn78Fqtd_9vmOgHNVY5TH7wJWEQ08RPN7RUa9X-dwBdxalrQMFWkf0XTPo8vS2x-AWz4YKUL9Fdz43ii8uab48hqGWH7BNf6xaOh9dzaNfhM25WT-bpFz3hXqx59AbyUtdnb8qI8rureApCqzVXvgLHN8"/>
+</div>
+<!-- Gradient Bottom Fade -->
+<div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90"></div>
+<!-- Name & Team Role -->
+<div class="absolute bottom-16 w-full text-center px-4">
+<h2 class="font-headline-lg text-white uppercase italic tracking-tighter">EL PIBE</h2>
+<p class="font-label-mono text-[#FFD700] uppercase text-[10px] tracking-widest mt-1">MOTOR DEL EQUIPO</p>
+</div>
+<!-- Stats Footer -->
+<div class="absolute bottom-0 w-full h-12 bg-black/40 backdrop-blur-sm border-t border-[#FFD700]/20 flex items-center justify-around px-2">
+<div class="flex flex-col items-center">
+<span class="font-label-mono text-[#FFD700] text-[10px]">RIT</span>
+<span class="font-label-bold text-white">82</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-label-mono text-[#FFD700] text-[10px]">PAS</span>
+<span class="font-label-bold text-white">88</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-label-mono text-[#FFD700] text-[10px]">DEF</span>
+<span class="font-label-bold text-white">75</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-label-mono text-[#FFD700] text-[10px]">FIS</span>
+<span class="font-label-bold text-white">86</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-label-mono text-[#FFD700] text-[10px]">TIR</span>
+<span class="font-label-bold text-white">83</span>
+</div>
+</div>
+</div>
+<!-- Level Section -->
+<section class="bg-surface-container border border-white/10 p-stack-md rounded-lg shadow-2xl">
+<div class="flex justify-between items-end mb-stack-sm">
+<div>
+<span class="font-label-mono text-primary text-[10px] uppercase">NIVEL</span>
+<h3 class="font-headline-md text-white">Avanzado</h3>
+</div>
+<div class="text-right">
+<span class="font-label-mono text-tertiary text-[12px]">620 / 1000 XP</span>
+</div>
+</div>
+<div class="relative h-3 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="absolute top-0 left-0 h-full bg-primary w-[62%] transition-all duration-1000"></div>
+<!-- Milestone dots -->
+<div class="absolute inset-0 flex justify-around items-center px-4 pointer-events-none">
+<div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+</div>
+</div>
+<div class="mt-stack-sm flex justify-between">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="w-2 h-2 rounded-full bg-white/10"></span>
+<span class="w-2 h-2 rounded-full bg-white/10"></span>
+</div>
+</section>
+<!-- Stats Section -->
+<section class="space-y-stack-sm">
+<h3 class="font-headline-md text-primary uppercase italic tracking-tight border-l-4 border-primary pl-3">ESTADÍSTICAS</h3>
+<div class="grid grid-cols-3 gap-0 border border-white/10 bg-surface-container overflow-hidden rounded-lg">
+<div class="flex flex-col items-center justify-center p-stack-md border-r border-white/10">
+<span class="font-headline-md text-white leading-none">12</span>
+<span class="font-label-mono text-tertiary text-[10px] mt-1 uppercase">Partidos</span>
+</div>
+<div class="flex flex-col items-center justify-center p-stack-md border-r border-white/10">
+<span class="font-headline-md text-white leading-none">7</span>
+<span class="font-label-mono text-tertiary text-[10px] mt-1 uppercase">Goles</span>
+</div>
+<div class="flex flex-col items-center justify-center p-stack-md">
+<span class="font-headline-md text-white leading-none">4</span>
+<span class="font-label-mono text-tertiary text-[10px] mt-1 uppercase">Asistencias</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-16 bg-[#0A0A0A] border-t-2 border-[#FFFFFF]/10">
+<a class="flex flex-col items-center justify-center text-white/50 h-full hover:text-[#22C55E] transition-colors active:bg-[#22C55E]/10" href="#">
+<span class="material-symbols-outlined">sports_soccer</span>
+<span class="font-lexend text-[10px] uppercase font-bold">MATCHES</span>
+</a>
+<a class="flex flex-col items-center justify-center text-white/50 h-full hover:text-[#22C55E] transition-colors active:bg-[#22C55E]/10" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-lexend text-[10px] uppercase font-bold">RANKING</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#22C55E] border-t-2 border-[#22C55E] h-full active:bg-[#22C55E]/10" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-lexend text-[10px] uppercase font-bold">PROFILE</span>
+</a>
+<a class="flex flex-col items-center justify-center text-white/50 h-full hover:text-[#22C55E] transition-colors active:bg-[#22C55E]/10" href="#">
+<span class="material-symbols-outlined">stadium</span>
+<span class="font-lexend text-[10px] uppercase font-bold">FIELDS</span>
+</a>
+</nav>
+</body></html>

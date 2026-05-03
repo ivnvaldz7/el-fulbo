@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>El Fulbo - Join Group</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700;800;900&amp;family=Space+Grotesk:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-container": "#adabab",
+                    "surface-tint": "#4ae176",
+                    "on-primary-container": "#004b1e",
+                    "on-error-container": "#ffdad6",
+                    "secondary": "#c6c6c7",
+                    "on-primary-fixed": "#002109",
+                    "primary-container": "#22c55e",
+                    "error-container": "#93000a",
+                    "outline-variant": "#3d4a3d",
+                    "outline": "#869585",
+                    "surface-dim": "#131313",
+                    "on-tertiary-fixed": "#1c1b1b",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "surface-variant": "#353534",
+                    "tertiary-fixed": "#e5e2e1",
+                    "inverse-on-surface": "#313030",
+                    "surface-container-highest": "#353534",
+                    "secondary-fixed": "#e2e2e2",
+                    "on-tertiary-container": "#40403f",
+                    "on-secondary-fixed-variant": "#454747",
+                    "on-primary": "#003915",
+                    "on-tertiary-fixed-variant": "#474746",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "on-error": "#690005",
+                    "on-background": "#e5e2e1",
+                    "surface-container-lowest": "#0e0e0e",
+                    "surface-container-low": "#1c1b1b",
+                    "error": "#ffb4ab",
+                    "on-surface-variant": "#bccbb9",
+                    "tertiary-fixed-dim": "#c8c6c5",
+                    "on-secondary": "#2f3131",
+                    "surface-container-high": "#2a2a2a",
+                    "on-primary-fixed-variant": "#005321",
+                    "inverse-primary": "#006e2f",
+                    "on-tertiary": "#313030",
+                    "surface-bright": "#3a3939",
+                    "primary-fixed": "#6bff8f",
+                    "on-surface": "#e5e2e1",
+                    "primary-fixed-dim": "#4ae176",
+                    "background": "#131313",
+                    "tertiary": "#c9c6c6",
+                    "surface-container": "#201f1f",
+                    "primary": "#4be277",
+                    "inverse-surface": "#e5e2e1",
+                    "on-secondary-container": "#b4b5b5",
+                    "surface": "#131313",
+                    "secondary-container": "#454747"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-lg": "40px",
+                    "gutter": "16px",
+                    "stack-sm": "12px",
+                    "unit": "4px",
+                    "stack-xs": "4px",
+                    "margin-mobile": "20px",
+                    "margin-desktop": "64px",
+                    "stack-md": "24px"
+            },
+            "fontFamily": {
+                    "label-mono": ["Space Grotesk"],
+                    "headline-xl": ["Lexend"],
+                    "label-bold": ["Space Grotesk"],
+                    "headline-md": ["Lexend"],
+                    "headline-lg": ["Lexend"],
+                    "body-md": ["Lexend"],
+                    "body-lg": ["Lexend"]
+            },
+            "fontSize": {
+                    "label-mono": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "500"}],
+                    "headline-xl": ["48px", {"lineHeight": "1.0", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                    "label-bold": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "1.5", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+.bg-overlay {
+    background-image: linear-gradient(rgba(10, 10, 10, 0.8), rgba(10, 10, 10, 0.8)), url(https://lh3.googleusercontent.com/aida-public/AB6AXuDZ94xbsN4IuAP1Gt2888aaFX8307wI8KClI7F_kwnv1GeO5Kau68J1NqNppN1pvXdKzSmB7XzR8IDs9xf2Bi5g3-E4YtWW1FB5YtXxNgOMiCQxfvkOGxPj56Z_Qgu3ZU-NJp7aTnz5WfP51O7A6xB26g55SJuPIDyPk6kKHxjmMtGuSJdricrz7bf08gKXCS5XoPp_tEwtOTggrJB-p0F7uf-lDTSIUS188ULwLbvuO4ZsmoN6QAg2assuRbxil1EPl5Cq3k786mE);
+    background-size: cover;
+    background-position: center
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col relative overflow-hidden">
+<!-- Background Layer -->
+<div class="absolute inset-0 z-0 bg-overlay" data-alt="A gritty, urban amateur soccer field at night, illuminated by intense, high-contrast floodlights that create long shadows on the artificial turf. Surrounding the pitch are looming apartment blocks in a dark, atmospheric city neighborhood. The overall aesthetic is raw and cinematic, dominated by deep blacks and cool tones, with a heavy dark overlay that emphasizes the gritty, nocturnal sports atmosphere of El Fulbo.">
+</div>
+<!-- Top Navigation (Contextual Suppression of BottomNavBar) -->
+<header class="relative z-10 flex justify-between items-center w-full px-4 h-16">
+<button class="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-on-background" style="font-variation-settings: 'wght' 700;">arrow_back</span>
+</button>
+<div class="flex items-center gap-2">
+<span class="text-xs font-label-mono text-white/40 tracking-widest uppercase">CONEXIÓN SEGURA</span>
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="relative z-10 flex-1 flex flex-col px-margin-mobile pt-stack-md pb-stack-lg">
+<!-- Header Section -->
+<div class="mb-stack-lg">
+<h1 class="font-headline-xl text-on-background leading-[0.9] flex flex-col italic uppercase">
+<span>UNIRSE</span>
+<span class="text-primary-fixed">A UN GRUPO</span>
+</h1>
+<p class="font-body-md text-white/60 mt-stack-xs">Ingresá el código de invitación para entrar a la cancha.</p>
+</div>
+<!-- Main Card -->
+<div class="bg-surface-container-low border border-white/10 p-gutter rounded-lg flex flex-col gap-stack-md">
+<!-- Code Input Field -->
+<div class="space-y-stack-xs">
+<label class="font-label-mono text-[10px] text-white/40 uppercase tracking-wider">CÓDIGO DEL GRUPO</label>
+<div class="flex items-center justify-between border-b-2 border-primary-fixed py-2">
+<span class="font-headline-md text-primary-fixed tracking-widest">FUL-7X9K</span>
+<button class="active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="qr_code_scanner">qr_code_scanner</span>
+</button>
+</div>
+</div>
+<!-- Player List Section -->
+<div class="space-y-stack-sm">
+<div class="flex justify-between items-center">
+<h3 class="font-label-bold text-white uppercase text-[12px]">JUGADORES EN EL GRUPO (8)</h3>
+</div>
+<div class="flex -space-x-3 overflow-hidden">
+<img class="inline-block h-10 w-10 rounded-full border-2 border-surface-container-low" data-alt="Close-up portrait of a determined young soccer player with sweat on his face, illuminated by harsh side lighting to emphasize grit. High contrast photography in black and white with a subtle green tint." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD61fr7-EKV_V_tXd8ru4q7LUmuaAtBkZfVdulkz66xrBrY19VlX04sLObPZLw4-Yba_TwR2F2dd_zqVYYbbjmRBOr9fLYNLpXem9oV11r2e9tM1_H0bMp3D360JPb12ZoiRK53QR-IyxvBkRl5mReAV3jiTZ4ZuyAtvzsM7G7K1Byz8z774BTfKopCKA2SbofFuf0R7YGS4PwQKo5HCmFyY1UDwmwvYr1TStxbRiE9lk_On_Jj-r35BWJ_kcuUm2eLZe8GLmHEHuE"/>
+<img class="inline-block h-10 w-10 rounded-full border-2 border-surface-container-low" data-alt="Portrait of an athletic man in sports gear against a dark urban backdrop, professional sports photography style with dramatic lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCr29nAGZmiM7L47poejG9BfClV7J489sUa_8hqqpiSceFKkhiucVcdAoWvMkVPHwvJzCdbJ0P_bTCzEiTy0hODjL8QtKvD5EjgsUzpov6RZmKwfFbGbY5hWbqrIRN6BCE0m9kQzPiutBntl-ttFSg2GCsD7UAYhg00SR0uLTiogA_jvAR6-_hYSFvak1EkDKpi15ZdyfmxvSpYbFLms5bF6d1WW-yIQrDocoixSDKVvbn_PtnowPds949SCnngu0HNv3H2oBpiB3Y"/>
+<img class="inline-block h-10 w-10 rounded-full border-2 border-surface-container-low" data-alt="Modern profile of a female athlete looking intensely at the camera, night stadium lighting effect, high grain cinematic texture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFcEPNJ2R4lvHJBJzheKH7pAmFnuV0S8V_70sEfFc-mi0JBKOCvW20xrCcedkHolI-F1X-U0JihAuYyevnGSo2ywwgG6ujsQNulv8gNc1pnRnhU1SP87EDsal_Ybr_13Xcb4gRKf2NDsWlAc0HXeJT_n3l5U2NgnVvc2NqV3owN1l8qMLtusPBwTQa_BmnNC_TYaIgcu160AY_0XR-mfmZDml3hoCHgFkrUtZd64m8XhCUZv-KUxYDDWP4PxBhegvxHPIcCbKMrWU"/>
+<img class="inline-block h-10 w-10 rounded-full border-2 border-surface-container-low" data-alt="Candid street soccer player portrait, moody lighting, urban sportswear aesthetic with raw industrial background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCC6aUvzTzxJGTGvoymhztcvmsHLApjcfmn3lK81h6tNFYmQXtLvIPFS4aTUokIG-jObXh-E-SMjWI4A9JyMMuKDx5OF4iy-gfpPD9RbYnYRlsh8Yayhu79mxRoxUvZz6iOAs9bDklaXjsAJ1qNW3lqTJNvw9n8kRVmsI1JgBMDy_UqpZ5ad-a3hwYws0mmG3QhIuWOr7cTDl7ljcJAWFBodIWf3snLzwmfx_jg00efvjg30TvZ_c8pgm_JisIA73C6ySTn_d9wZro"/>
+<div class="flex items-center justify-center h-10 w-10 rounded-full border-2 border-surface-container-low bg-surface-container-high text-primary-fixed font-label-bold text-xs">
+                        +3
+                    </div>
+</div>
+</div>
+<!-- Match Info Section -->
+<div class="pt-stack-md border-t border-white/5 space-y-stack-sm">
+<h3 class="font-label-bold text-white uppercase text-[12px]">INFO DEL PARTIDO</h3>
+<div class="grid grid-cols-2 gap-stack-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-white/40 text-[18px]" data-icon="calendar_today">calendar_today</span>
+<span class="font-body-md text-white/80">Sáb 24/05</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-white/40 text-[18px]" data-icon="schedule">schedule</span>
+<span class="font-body-md text-white/80">21:00 hs</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-white/40 text-[18px]" data-icon="stadium">stadium</span>
+<span class="font-body-md text-white/80">La Canchita</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-white/40 text-[18px]" data-icon="location_on">location_on</span>
+<span class="font-body-md text-white/80">Villa Crespo</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer / CTA -->
+<div class="mt-auto pt-stack-lg flex flex-col gap-stack-md items-center">
+<button class="w-full h-14 bg-primary-fixed text-on-primary-fixed font-label-bold text-lg uppercase tracking-wider rounded-lg active:scale-95 transition-transform flex items-center justify-center gap-2">
+                UNIRME AL GRUPO
+                <span class="material-symbols-outlined" data-icon="sports_soccer">sports_soccer</span>
+</button>
+<button class="font-label-bold text-white/40 uppercase tracking-widest text-[12px] hover:text-white transition-colors">
+                Cancelar
+            </button>
+</div>
+</main>
+<!-- Scanner Overlay Visual Cue (Minimal) -->
+<div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 opacity-20">
+<div class="w-1 h-1 bg-white rounded-full"></div>
+<div class="w-1 h-1 bg-white rounded-full"></div>
+<div class="w-1 h-1 bg-white rounded-full"></div>
+</div>
+</body></html>

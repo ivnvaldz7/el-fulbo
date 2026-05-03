@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700;800;900&amp;family=Space+Grotesk:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-tint": "#4ae176",
+                    "inverse-on-surface": "#313030",
+                    "secondary": "#c6c6c7",
+                    "on-tertiary": "#313030",
+                    "on-surface-variant": "#bccbb9",
+                    "tertiary-fixed": "#e5e2e1",
+                    "on-tertiary-fixed-variant": "#474746",
+                    "background": "#131313",
+                    "outline-variant": "#3d4a3d",
+                    "outline": "#869585",
+                    "inverse-primary": "#006e2f",
+                    "surface-container-low": "#1c1b1b",
+                    "on-secondary-fixed-variant": "#454747",
+                    "tertiary": "#c9c6c6",
+                    "secondary-fixed": "#e2e2e2",
+                    "primary-container": "#22c55e",
+                    "surface-bright": "#3a3939",
+                    "surface": "#131313",
+                    "on-background": "#e5e2e1",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "on-primary": "#003915",
+                    "on-error": "#690005",
+                    "surface-container-high": "#2a2a2a",
+                    "secondary-container": "#454747",
+                    "primary-fixed": "#6bff8f",
+                    "on-tertiary-fixed": "#1c1b1b",
+                    "surface-dim": "#131313",
+                    "on-surface": "#e5e2e1",
+                    "on-primary-fixed": "#002109",
+                    "error": "#ffb4ab",
+                    "surface-container": "#201f1f",
+                    "primary": "#4be277",
+                    "on-primary-container": "#004b1e",
+                    "error-container": "#93000a",
+                    "surface-container-highest": "#353534",
+                    "on-tertiary-container": "#40403f",
+                    "on-error-container": "#ffdad6",
+                    "on-secondary-container": "#b4b5b5",
+                    "on-primary-fixed-variant": "#005321",
+                    "on-secondary": "#2f3131",
+                    "tertiary-fixed-dim": "#c8c6c5",
+                    "tertiary-container": "#adabab",
+                    "surface-variant": "#353534",
+                    "surface-container-lowest": "#0e0e0e",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "inverse-surface": "#e5e2e1",
+                    "primary-fixed-dim": "#4ae176"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "64px",
+                    "gutter": "16px",
+                    "unit": "4px",
+                    "stack-xs": "4px",
+                    "stack-sm": "12px",
+                    "stack-md": "24px",
+                    "stack-lg": "40px",
+                    "margin-mobile": "20px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Lexend"],
+                    "body-md": ["Lexend"],
+                    "body-lg": ["Lexend"],
+                    "label-bold": ["Space Grotesk"],
+                    "headline-md": ["Lexend"],
+                    "label-mono": ["Space Grotesk"],
+                    "headline-xl": ["Lexend"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-bold": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "label-mono": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "500"}],
+                    "headline-xl": ["48px", {"lineHeight": "1.0", "letterSpacing": "-0.04em", "fontWeight": "800"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+        }
+        .bg-overlay {
+            background: linear-gradient(to bottom, rgba(10, 10, 10, 0.7), rgba(10, 10, 10, 0.95));
+        }
+        .scoreboard-card {
+            background: rgba(26, 26, 26, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen relative flex flex-col">
+<!-- Hero Background Image -->
+<div class="fixed inset-0 z-0 overflow-hidden">
+<img alt="Soccer pitch at night" class="w-full h-full object-cover grayscale opacity-40 scale-110" data-alt="A cinematic, high-contrast photograph of an urban soccer pitch at night, captured under bright, aggressive floodlights that cast long, dramatic shadows. The grass is textured and dark green, while the surrounding environment is shrouded in deep black mystery. The atmosphere is intense and moody, with a slight film grain texture, perfectly aligning with a brutalist street soccer aesthetic. The lighting creates sharp highlights on the white lines of the pitch." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD66WWqd5LkTf_QlfGxIeDmWk_bsrituOQWZUILDI-Yzjepe_MhUElc577fFggpZ5-N6Z1zxhGictgLOamhDg8SRiyTinT92gMPISokXAsMYo2eR61PTU75ABJ-rlRabfGONkHZMsxzZFPLzsNNNoCyzAY_wl_9rT6m3LN9cq-7VTjEh50_5yoTnQoM512hMaRQcThoMLwqfBuiTx1A8TjVfZhr76d9gZ1V0IfkafZfvdlXJXZDOmUlpE3u9BtzguavUQVnscCCjq8"/>
+<div class="absolute inset-0 bg-overlay"></div>
+</div>
+<!-- Mobile Status Bar (Simulated) -->
+<div class="relative z-10 w-full px-4 pt-2 flex justify-between items-center text-[10px] font-label-mono text-white/40">
+<span>21:45</span>
+<div class="flex gap-1 items-center">
+<span class="material-symbols-outlined text-[12px]" data-icon="signal_cellular_alt">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[12px]" data-icon="wifi">wifi</span>
+<span class="material-symbols-outlined text-[12px]" data-icon="battery_full">battery_full</span>
+</div>
+</div>
+<!-- TopAppBar -->
+<header class="relative z-10 w-full px-4 h-16 flex justify-between items-center bg-black border-b-2 border-green-500">
+<div class="flex items-center gap-3">
+<button class="text-white active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<div class="flex flex-col">
+<h1 class="font-lexend font-black uppercase tracking-tighter text-2xl text-green-500 italic leading-none">RESULTADO</h1>
+<span class="font-label-mono text-[10px] text-white/60 tracking-widest uppercase">Partido finalizado</span>
+</div>
+</div>
+<div class="text-green-500">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</div>
+</header>
+<!-- Main Content -->
+<main class="relative z-10 flex-1 flex flex-col p-5 gap-6">
+<!-- Scoreboard Card -->
+<section class="scoreboard-card p-8 flex flex-col items-center justify-center border-l-4 border-l-primary">
+<div class="w-full flex justify-between items-center">
+<!-- Team 1 -->
+<div class="flex flex-col items-center flex-1">
+<span class="font-label-bold text-white/50 text-xs mb-4">EQUIPO 1</span>
+<span class="font-headline-xl text-[80px] text-white italic">5</span>
+</div>
+<!-- vs Separator -->
+<div class="px-6">
+<span class="text-primary font-black text-2xl italic">×</span>
+</div>
+<!-- Team 2 -->
+<div class="flex flex-col items-center flex-1">
+<span class="font-label-bold text-white/50 text-xs mb-4">EQUIPO 2</span>
+<span class="font-headline-xl text-[80px] text-white italic">3</span>
+</div>
+</div>
+</section>
+<!-- Goalscorers Card -->
+<section class="bg-surface-container border border-white/10 p-6">
+<h2 class="font-headline-md text-primary text-sm uppercase mb-6 tracking-widest font-black italic">GOLEADORES</h2>
+<div class="flex flex-col gap-4">
+<!-- Row 1 -->
+<div class="flex justify-between items-center border-b border-white/5 pb-3">
+<span class="font-body-lg text-white font-bold">Tomy</span>
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-white">2</span>
+<span class="text-xl">⚽</span>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="flex justify-between items-center border-b border-white/5 pb-3">
+<span class="font-body-lg text-white font-bold">Nico</span>
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-white">2</span>
+<span class="text-xl">⚽</span>
+</div>
+</div>
+<!-- Row 3 -->
+<div class="flex justify-between items-center">
+<span class="font-body-lg text-white font-bold">Pablo</span>
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-white">1</span>
+<span class="text-xl">⚽</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Meta Info -->
+<div class="mt-auto grid grid-cols-2 gap-px bg-white/10 border border-white/10">
+<div class="bg-black/40 p-4 flex flex-col">
+<span class="font-label-mono text-[9px] text-white/40 uppercase">Duración</span>
+<span class="font-label-bold text-white text-sm uppercase">90 MIN + 4'</span>
+</div>
+<div class="bg-black/40 p-4 flex flex-col">
+<span class="font-label-mono text-[9px] text-white/40 uppercase">Sede</span>
+<span class="font-label-bold text-white text-sm uppercase">CANCHA EL PUENTE</span>
+</div>
+</div>
+</main>
+<!-- Bottom Footer / CTA -->
+<footer class="relative z-10 px-5 pb-10 pt-4 bg-gradient-to-t from-black to-transparent">
+<button class="w-full bg-primary text-on-primary py-5 font-headline-md text-base uppercase tracking-tighter italic flex justify-center items-center gap-3 active:scale-[0.98] transition-transform">
+<span>GUARDAR RESULTADO</span>
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+</button>
+</footer>
+<!-- BottomNavBar Suppression Check: Suppressed because it's a success/result screen focused on a single action -->
+</body></html>

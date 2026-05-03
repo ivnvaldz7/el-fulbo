@@ -6,6 +6,11 @@ export const inviteCodeSchema = z
   .toUpperCase()
   .regex(/^FULBO-[A-Z0-9]{6}$/);
 
+export const reintegrationRequestSchema = z.object({
+  inviteCode: inviteCodeSchema,
+  message: z.string().trim().max(200).nullable().optional(),
+});
+
 export const fieldStatsSchema = z.object({
   pac: z.number().int().min(1).max(8),
   sho: z.number().int().min(1).max(8),

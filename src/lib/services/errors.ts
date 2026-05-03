@@ -21,6 +21,18 @@ const customMessages: Record<string, AppError> = {
     code: 'INVITE_CODE_INVALID',
     message: 'Ese link de invitacion no sirve.',
   },
+  FORBIDDEN: {
+    code: 'FORBIDDEN',
+    message: 'No tenés permisos para hacer eso.',
+  },
+  EXPELLED_COOLDOWN_ACTIVE: {
+    code: 'EXPELLED_COOLDOWN_ACTIVE',
+    message: 'Todavía no podés volver a pedir. Esperá un poco más.',
+  },
+  REINTEGRATION_REQUEST_PENDING: {
+    code: 'REINTEGRATION_REQUEST_PENDING',
+    message: 'Ya mandaste una solicitud. Esperá a que el admin la revise.',
+  },
   STATS_PENDING_APPROVAL: {
     code: 'STATS_PENDING_APPROVAL',
     message: 'Tus stats estan pendientes de aprobacion.',
@@ -32,6 +44,10 @@ const customMessages: Record<string, AppError> = {
   UNAUTHORIZED: {
     code: 'UNAUTHORIZED',
     message: 'Necesitas iniciar sesion.',
+  },
+  CONFLICT: {
+    code: 'CONFLICT',
+    message: 'Esa acción ya no coincide con el estado actual.',
   },
 };
 
@@ -56,6 +72,9 @@ export function mapSupabaseError(error: unknown): AppError {
       return { code: 'NOT_FOUND', message: 'No encontramos lo que buscas.', details: err };
     case '42501':
     case 'PGRST301':
+      if (err.message?.includes('FORBIDDEN')) {
+        return { code: 'FORBIDDEN', message: 'No tenés permisos para hacer eso.', details: err };
+      }
       return { code: 'UNAUTHORIZED', message: 'Necesitas iniciar sesion.', details: err };
     default:
       return { code: 'INTERNAL_ERROR', message: 'Algo salio mal.', details: err };

@@ -2,27 +2,80 @@
 
 Registro de cambios importantes del proyecto. Formato: `[versión] - YYYY-MM-DD`.
 
-## [0.2.0] - 2026-04-26 - Bootstrap tecnico Codex
+## [0.1.2] - 2026-05-02 — corrección de estado + regla de registro
 
-- Inicializado Next.js 14 App Router + React 18 + TypeScript strict.
-- Configurados Tailwind, ESLint, Prettier, Vitest, Testing Library y Playwright.
-- Agregados providers base y clientes Supabase.
-- Configurada PWA con `next-pwa` y manifest.
-- Ejecutado `supabase init` y creada migration inicial V2.
-- Copiado contrato TS desde `specs/04-contracts/types.ts` a `src/lib/types.ts`.
-- Ajustado contrato TS para incluir `PlayerStatsAggregate`, `ReintegrationRequest` y notification types acumulados.
-- Verificaciones OK: lint, typecheck, test, test:unit, test:integration, build.
-- Supabase local validado con `npx supabase start` y `npx supabase db reset`.
-- Migration inicial aplicada en Postgres local.
-
-## [0.1.2] - 2026-04-26 - Normalizacion para Codex
-
-- Codex queda como Implementer operativo desde `C:\Users\Usuario\Desktop\el-fulbo`.
-- Actualizados `handoff.md`, `current-state.md`, `agent-prompts.md`, `README.md` y README de features.
-- Agregadas decisiones `dec-145` y `dec-146` al engram.
-- `dec-131`, `dec-134`, `dec-137`, `dec-138` y `dec-140` marcadas como superseded por el cambio de scope/implementer.
-- Total: 15 features, 146 decisiones.
-- Snapshot previo guardado en `context/handoff-history/2026-04-26-pre-codex-normalization.md`.
+- Iniciada la pasada de fundación visual mobile-first para bajar el mockup a UI real.
+- Agregados primitives reutilizables:
+  - `src/components/ui/immersive-screen.tsx`
+  - `src/components/ui/floating-panel.tsx`
+- Actualizada la landing real en `src/app/page.tsx` con:
+  - fondo inmersivo nocturno
+  - overlay oscuro
+  - CTA dominante verde
+  - preview de cards en panel flotante
+- Migrado `src/components/groups/group-dashboard-initial-state.tsx` al mismo sistema visual.
+- Tokens visuales alineados en `tailwind.config.ts` y `src/app/globals.css`.
+- Validaciones:
+  - `npm run typecheck` ✅
+  - `npm run test -- src/components/groups/group-dashboard-initial-state.test.tsx` ✅
+- Snapshot del handoff previo guardado en `context/handoff-history/2026-05-02-pre-ui-foundation-pass.md`.
+- Alineado el naming documental de `feat-004` a `feat-004-admin-dashboard.md`.
+- Iniciada la primera pasada de `feat-004-admin-dashboard` con foco en el widget de pendientes admin.
+- Cerrada la primera pasada de `feat-004-admin-dashboard` con:
+  - migration `20260502183000_feat_004_admin_summary.sql`
+  - RPC `get_pending_tasks_summary`
+  - widget admin de pendientes en el dashboard del grupo
+  - base de la ruta `/groups/{id}/admin-tasks`
+- Iniciada la segunda pasada de `feat-004-admin-dashboard` con foco en el detalle real de `/admin-tasks`.
+- Cerrada la segunda pasada de `feat-004-admin-dashboard` con:
+  - migration `20260502193000_feat_004_admin_tasks_detail.sql`
+  - RPC `get_admin_tasks_detail`
+  - render real de secciones para reintegros, cartas nuevas y revisiones en `/groups/{id}/admin-tasks`
+- Iniciada la tercera pasada de `feat-004-admin-dashboard` con foco en mutaciones reales de resolución.
+- Cerrada la tercera pasada de `feat-004-admin-dashboard` con:
+  - migration `20260502200000_feat_004_admin_resolve_actions.sql`
+  - RPCs `approve_initial_stats`, `reject_initial_stats`, `approve_stat_revision`, `reject_stat_revision`, `approve_reintegration_request`, `reject_reintegration_request`
+  - endpoint `/api/admin-tasks/resolve`
+  - acciones reales de aprobar/rechazar desde `/groups/{id}/admin-tasks`
+- Validaciones:
+  - `src/lib/services/admin-tasks.service.test.ts` ✅
+  - `src/components/groups/group-dashboard-initial-state.test.tsx` ✅
+  - `tests/integration/admin-tasks-flow.test.ts` ✅
+  - `npm run typecheck` ✅
+- Verificado contra código que el **bootstrap ya estaba hecho**; la documentación decía incorrectamente que seguía pendiente.
+- Actualizados `context/current-state.md` y `context/handoff.md` para reflejar el estado real.
+- Snapshot del handoff previo guardado en `context/handoff-history/2026-05-02-pre-status-fix.md`.
+- Nueva regla operativa: **antes de cada pasada hay que dejar registro actualizado**.
+- Cerrada la primera pasada de `feat-003-join-group` con foco en la ramificación base del flow de invitaciones.
+- Agregada migration `20260502170000_feat_003_invite_validation.sql` con RPC `validate_invite_code`.
+- Agregada migration `20260502190000_feat_003_reintegration_flows.sql` con:
+  - ampliación de `validate_invite_code`
+  - RPC `reactivate_player`
+  - RPC `create_reintegration_request`
+- Implementadas pantallas/redirects base para:
+  - invite inválido
+  - grupo archivado
+  - grupo lleno
+  - límite de 10 grupos
+  - usuario anónimo
+  - miembro activo
+  - usuario nuevo
+- Iniciada la fase 2 de `feat-003` para cubrir retorno voluntario, expulsados, cooldown y solicitudes de reintegro.
+- Cerrada la fase 2 de `feat-003` con:
+  - `welcome-back`
+  - `request-return`
+  - `request-pending`
+  - `cooldown`
+  - `request-sent`
+- Validaciones:
+  - `src/lib/services/invite.service.test.ts` ✅
+  - `npm run typecheck` ✅
+  - `tests/integration/join-group.test.ts` ✅ luego de aplicar migraciones locales.
+- Bugfix en `20260502170000_feat_003_invite_validation.sql`: se corrigió un `SELECT ... INTO` inválido que impedía aplicar la migración en la DB local.
+- Evidencia usada para la corrección:
+  - `package.json`
+  - `src/app/page.tsx`
+  - `supabase/migrations/20260426000000_initial_schema_v2.sql`
 
 ## [0.1.1] - 2026-04-24 — feat-015 agregada (stats individuales)
 

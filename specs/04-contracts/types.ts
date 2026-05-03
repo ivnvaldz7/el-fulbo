@@ -40,23 +40,11 @@ export type NotificationType =
   | 'attendance_changed'
   | 'someone_dropped'
   | 'owner_temporary_assigned'
-  | 'owner_assigned'
-  | 'owner_removed'
-  | 'owner_temporary_accepted'
-  | 'owner_temporary_rejected'
-  | 'owner_temporary_no_one_accepted'
   | 'stats_pending_approval'
   | 'stats_approved'
   | 'stats_revision_requested'
   | 'stats_revision_resolved'
   | 'stats_changed_log'
-  | 'player_returned'
-  | 'reintegration_request'
-  | 'reintegration_approved'
-  | 'reintegration_rejected'
-  | 'event_rescheduled'
-  | 'event_updated'
-  | 'match_ready'
   | 'mvp_awarded'
   | 'boost_applied'
   | 'weekly_digest';
@@ -246,36 +234,6 @@ export interface StatRevisionRequest {
   createdAt: string;
 }
 
-export interface ReintegrationRequest {
-  id: string;
-  playerId: PlayerId;
-  groupId: GroupId;
-  userId: UserId;
-  message: string | null;
-  status: RevisionStatus;
-  resolvedByUserId: UserId | null;
-  resolvedAt: string | null;
-  resolutionNote: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface PlayerStatsAggregate {
-  playerId: PlayerId;
-  groupId: GroupId;
-  userId: UserId | null;
-  displayName: string;
-  matchesPlayed: number;
-  wins: number;
-  draws: number;
-  losses: number;
-  winPercentage: number | null;
-  mvpCount: number;
-  lastMvpAt: string | null;
-  attendanceRate: number | null;
-  lateDropouts: number;
-}
-
 export interface TemporaryOwner {
   id: string;
   eventId: EventId;
@@ -455,7 +413,6 @@ export type AppErrorCode =
   | 'RATE_LIMIT'
   | 'ADMIN_GROUP_LIMIT_REACHED'
   | 'PLAYER_GROUP_LIMIT_REACHED'
-  | 'USER_PLAYER_GROUPS_LIMIT_REACHED'
   | 'OWNER_CAP_REACHED'
   | 'STATS_PENDING_APPROVAL'
   | 'REVISION_ALREADY_PENDING'

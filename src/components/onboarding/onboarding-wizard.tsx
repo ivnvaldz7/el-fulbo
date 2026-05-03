@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Shield, Goal, Footprints, Dumbbell } from 'lucide-react';
 import { PlayerCardPreview } from '@/components/cards/player-card-preview';
+import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import type { FieldStats, GoalkeeperStats, GroupId, PlayerPosition, PlayerStats } from '@/lib/types';
 import {
   defaultFieldStats,
@@ -73,9 +74,11 @@ export function selectPrimaryPositionDraft(current: Draft, position: PlayerPosit
 export function OnboardingWizard({
   groupId,
   displayName,
+  asAdmin = false,
 }: {
   groupId: GroupId;
   displayName: string;
+  asAdmin?: boolean;
 }) {
   const router = useRouter();
   const storageKey = getOnboardingDraftKey(groupId);
@@ -123,7 +126,7 @@ export function OnboardingWizard({
   function updateStat(key: string, value: number) {
     const clamped = Math.max(1, Math.min(8, value));
     if (value > 8) {
-      setMessage('Para desbloquear 9 y 10, el admin te tiene que ajustar o ganas partidos.');
+      setMessage('Para desbloquear 9 y 10, el admin te tiene que ajustar.');
     }
     setDraft((current) => ({
       ...current,
@@ -146,7 +149,7 @@ export function OnboardingWizard({
     const response = await fetch('/api/onboarding/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(parsed.data),
+      body: JSON.stringify(asAdmin ? { ...parsed.data, asAdmin: true } : parsed.data),
     });
 
     const body = (await response.json()) as { ok: boolean; error?: { message: string } };
@@ -158,138 +161,163 @@ export function OnboardingWizard({
     }
 
     window.localStorage.removeItem(storageKey);
-    router.push(`/groups/${groupId}/pending`);
+    router.push(asAdmin ? `/groups/${groupId}/dashboard` : `/groups/${groupId}/pending`);
   }
 
   if (draft.step === 1) {
     return (
-      <div className="mx-auto flex min-h-screen w-full max-w-4xl flex-col justify-center px-5 py-10">
-        <p className="text-sm font-black uppercase text-cancha">Paso 1 de 2</p>
-        <h1 className="mt-3 text-4xl font-black text-noche">En que posicion jugas?</h1>
+      <ImmersiveScreen align="center" className="flex-col">
+        <header className="fixed top-0 z-30 flex h-16 w-full max-w-[390px] items-center justify-between border-b-2 border-white/10 bg-absolute-dark px-4">
+          <button className="text-white active:scale-95 transition-transform">
+            <span className="material-symbols-outlined text-pitch-green">person</span>
+          </button>
+          <h1 className="font-headline text-xl font-black italic uppercase tracking-tighter text-white">EL FULBO</h1>
+          <div className="w-6"></div>
+        </header>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2">
-          {positions.map(({ value, label, icon: Icon }) => {
-            const selected = draft.primaryPosition === value;
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() => selectPrimary(value)}
-                className={`rounded-card border p-5 text-left transition ${
-                  selected ? 'border-cancha bg-cancha text-white' : 'border-black/10 bg-white/80'
-                }`}
-              >
-                <Icon className="mb-5 h-7 w-7" aria-hidden="true" />
-                <span className="text-2xl font-black">{value}</span>
-                <span className="ml-3 text-sm font-bold">{label}</span>
-              </button>
-            );
-          })}
-        </div>
+        <main className="mt-16 flex w-full max-w-[390px] flex-col px-6">
+          <section className="py-6">
+            <h2 className="font-headline text-3xl font-bold uppercase italic leading-none text-white">CREÁ TU JUGADOR</h2>
+            <p className="font-mono text-[10px] uppercase text-pitch-green mt-1">Paso 1: Tu posición</p>
+          </section>
 
-        <button
-          type="button"
-          onClick={() => setShowSecondary((value) => !value)}
-          className="mt-6 text-left text-sm font-black text-cancha"
-        >
-          Tenes segunda posicion?
-        </button>
-
-        {showSecondary ? (
-          <div className="mt-3 grid gap-2 sm:grid-cols-4">
-            {positions.map(({ value }) => (
-              <button
-                key={value}
-                type="button"
-                disabled={draft.primaryPosition === value}
-                onClick={() =>
-                  setDraft((current) => ({
-                    ...current,
-                    secondaryPosition: current.secondaryPosition === value ? null : value,
-                  }))
-                }
-                className={`rounded-card border px-4 py-3 text-sm font-black disabled:cursor-not-allowed disabled:opacity-30 ${
-                  draft.secondaryPosition === value
-                    ? 'border-cancha bg-cancha text-white'
-                    : 'border-black/10 bg-white/80'
-                }`}
-              >
-                {value}
-              </button>
-            ))}
+          <div className="grid gap-3">
+            {positions.map(({ value, label, icon: Icon }) => {
+              const selected = draft.primaryPosition === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => selectPrimary(value)}
+                  className={`flex items-center gap-4 border p-4 text-left transition ${
+                    selected ? 'border-pitch-green bg-pitch-green text-black' : 'border-white/10 bg-concrete-overlay text-white'
+                  }`}
+                >
+                  <Icon className={`h-6 w-6 ${selected ? 'text-black' : 'text-pitch-green'}`} aria-hidden="true" />
+                  <div>
+                    <span className="block font-headline text-lg font-black italic uppercase leading-none">{label}</span>
+                    <span className="font-mono text-[10px] uppercase opacity-60">{value}</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
-        ) : null}
 
-        <button
-          type="button"
-          disabled={!canContinue}
-          onClick={() => setDraft((current) => ({ ...current, step: 2 }))}
-          className="mt-8 min-h-12 rounded-card bg-noche px-6 py-3 font-black text-cal disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Siguiente
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => setShowSecondary((value) => !value)}
+            className="mt-6 text-left font-mono text-[10px] font-bold uppercase tracking-widest text-pitch-green"
+          >
+            {showSecondary ? '— QUITAR SEGUNDA POSICIÓN' : '+ AGREGAR SEGUNDA POSICIÓN'}
+          </button>
+
+          {showSecondary ? (
+            <div className="mt-3 grid grid-cols-4 gap-2">
+              {positions.map(({ value }) => (
+                <button
+                  key={value}
+                  type="button"
+                  disabled={draft.primaryPosition === value}
+                  onClick={() =>
+                    setDraft((current) => ({
+                      ...current,
+                      secondaryPosition: current.secondaryPosition === value ? null : value,
+                    }))
+                  }
+                  className={`border py-2 font-mono text-[10px] font-bold uppercase disabled:cursor-not-allowed disabled:opacity-20 ${
+                    draft.secondaryPosition === value
+                      ? 'border-pitch-green bg-pitch-green text-black'
+                      : 'border-white/10 bg-concrete-overlay text-white'
+                  }`}
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          <footer className="mt-10">
+            <button
+              type="button"
+              disabled={!canContinue}
+              onClick={() => setDraft((current) => ({ ...current, step: 2 }))}
+              className="w-full bg-pitch-green py-4 font-headline text-xl font-bold italic uppercase tracking-tight text-black transition-transform active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              SIGUIENTE →
+            </button>
+          </footer>
+        </main>
+      </ImmersiveScreen>
     );
   }
 
   return (
-    <div className="mx-auto grid min-h-screen w-full max-w-6xl gap-8 px-5 py-8 lg:grid-cols-2">
-      <section className="sticky top-4 self-start">
-        <button
-          type="button"
+    <ImmersiveScreen align="center" className="flex-col">
+      <header className="fixed top-0 z-30 flex h-16 w-full max-w-[390px] items-center justify-between border-b-2 border-white/10 bg-absolute-dark px-4">
+        <button 
           onClick={() => setDraft((current) => ({ ...current, step: 1 }))}
-          className="mb-5 inline-flex items-center gap-2 text-sm font-black text-cancha"
+          className="text-white active:scale-95 transition-transform"
         >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Atras
+          <ArrowLeft className="h-6 w-6 text-pitch-green" aria-hidden="true" />
         </button>
-        <PlayerCardPreview
-          name={displayName}
-          position={draft.primaryPosition ?? 'MED'}
-          stats={stats}
-          pending
-        />
-      </section>
+        <h1 className="font-headline text-xl font-black italic uppercase tracking-tighter text-white">EL FULBO</h1>
+        <div className="w-6"></div>
+      </header>
 
-      <section>
-        <p className="text-sm font-black uppercase text-cancha">Paso 2 de 2</p>
-        <h1 className="mt-3 text-4xl font-black text-noche">Arma tu carta</h1>
-        <div className="mt-7 space-y-5">
-          {Object.entries(statLabels).map(([key, label]) => (
-            <label key={key} className="block rounded-card border border-black/10 bg-white/80 p-4">
-              <span className="flex items-center justify-between gap-4">
-                <span>
-                  <span className="text-sm font-black uppercase text-noche">{key}</span>
-                  <span className="ml-3 text-sm font-semibold text-neutral-600">{label}</span>
-                </span>
-                <span className="text-xl font-black text-cancha">
-                  {stats[key as keyof PlayerStats]}
-                </span>
-              </span>
-              <input
-                className="mt-4 w-full accent-cancha"
-                type="range"
-                min={1}
-                max={8}
-                step={1}
-                value={Number(stats[key as keyof PlayerStats])}
-                onChange={(event) => updateStat(key, Number(event.target.value))}
-              />
-            </label>
-          ))}
-        </div>
+      <main className="mt-16 flex w-full max-w-[390px] flex-col px-6">
+        <section className="py-6">
+          <h2 className="font-headline text-3xl font-bold uppercase italic leading-none text-white">ARMÁ TU CARTA</h2>
+          <p className="font-mono text-[10px] uppercase text-pitch-green mt-1">Paso 2: Tus habilidades</p>
+        </section>
 
-        {message ? <p className="mt-5 text-sm font-bold text-cancha">{message}</p> : null}
+        <section className="mb-6 flex justify-center">
+          <PlayerCardPreview
+            name={displayName}
+            position={draft.primaryPosition ?? 'MED'}
+            stats={stats}
+            pending
+          />
+        </section>
 
-        <button
-          type="button"
-          onClick={submit}
-          disabled={submitting}
-          className="mt-8 min-h-12 w-full rounded-card bg-noche px-6 py-3 font-black text-cal disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {submitting ? 'Mandando...' : 'Mandar al admin'}
-        </button>
-      </section>
-    </div>
+        <section className="space-y-3">
+          <div className="border border-white/10 bg-concrete-overlay divide-y divide-white/5">
+            {Object.entries(statLabels).map(([key, label]) => (
+              <div key={key} className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-mono text-[10px] font-bold uppercase text-white/60">{label}</span>
+                  <span className="font-headline text-lg font-black italic text-pitch-green">{stats[key as keyof PlayerStats] * 10}</span>
+                </div>
+                <input
+                  className="h-1 w-full cursor-pointer appearance-none bg-white/10 accent-pitch-green [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-pitch-green"
+                  type="range"
+                  min={1}
+                  max={8}
+                  step={1}
+                  value={Number(stats[key as keyof PlayerStats])}
+                  onChange={(event) => updateStat(key, Number(event.target.value))}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {message ? (
+          <p className="mt-4 font-mono text-[10px] font-bold uppercase text-pitch-green text-center">
+            {message}
+          </p>
+        ) : null}
+
+        <footer className="mt-8 pb-10">
+          <button
+            type="button"
+            onClick={submit}
+            disabled={submitting}
+            className="w-full bg-pitch-green py-4 font-headline text-xl font-bold italic uppercase tracking-tight text-black transition-transform active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {submitting ? 'MANDANDO...' : asAdmin ? 'CREAR JUGADOR' : 'GUARDAR JUGADOR'}
+          </button>
+        </footer>
+      </main>
+    </ImmersiveScreen>
   );
 }

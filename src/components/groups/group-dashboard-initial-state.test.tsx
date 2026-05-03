@@ -9,7 +9,7 @@ describe('GroupDashboardInitialState', () => {
     expect(screen.getByText('Fulbito')).toBeInTheDocument();
     expect(screen.getByText('Sumá a tus jugadores')).toBeInTheDocument();
     expect(
-      screen.getByText('Compartí este link en el grupo de WhatsApp y los que entren ya están'),
+      screen.getByText(/Compartí este link en el grupo de WhatsApp/i),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Invitar jugadores' })).toBeInTheDocument();
   });
@@ -26,5 +26,19 @@ describe('GroupDashboardInitialState', () => {
 
     expect(screen.queryByText('Sumá a tus jugadores')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Invitar jugadores' })).not.toBeInTheDocument();
+  });
+
+  it('renders the admin pending widget when there are tasks to resolve', () => {
+    render(
+      <GroupDashboardInitialState
+        groupName="Fulbito"
+        modality="F5"
+        activePlayers={3}
+        adminPendingTotal={4}
+      />,
+    );
+
+    expect(screen.getByText('Tenés 4 pendientes')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ver ahora' })).toBeInTheDocument();
   });
 });
