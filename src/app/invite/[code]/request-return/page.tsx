@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 import { resolveInviteState } from '@/lib/services/invite.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { RequestReturnForm } from './request-return-form';
+import { ImmersiveScreen } from '@/components/ui/immersive-screen';
+import { FloatingPanel } from '@/components/ui/floating-panel';
 
 export default async function InviteRequestReturnPage({ params }: { params: { code: string } }) {
   const inviteCode = decodeURIComponent(params.code).toUpperCase();
@@ -17,22 +19,25 @@ export default async function InviteRequestReturnPage({ params }: { params: { co
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-5 py-10">
-      <section className="rounded-card border border-black/10 bg-white/80 p-6 shadow-sm">
-        <h1 className="text-3xl font-black text-noche">Para volver necesitás que el admin te apruebe</h1>
-        <p className="mt-4 text-neutral-700">
-          Fuiste sacado del grupo. Si querés volver, mandá una solicitud al admin.
-        </p>
+    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px]">
+      <FloatingPanel className="border-2 border-white/10">
+        <header className="mb-8">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Solicitud</p>
+          <h1 className="mt-2 font-headline text-2xl font-black italic uppercase leading-none text-white">PEDÍ VOLVER</h1>
+          <p className="mt-4 font-headline text-sm font-medium leading-relaxed text-white/60">
+            Fuiste sacado del grupo. Si querés volver a entrar, mandale una solicitud al admin para que te apruebe.
+          </p>
+        </header>
 
         <RequestReturnForm inviteCode={inviteCode} />
 
         <Link
           href="/"
-          className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-card border border-black/15 px-5 py-3 text-sm font-black text-noche"
+          className="mt-6 flex min-h-12 w-full items-center justify-center border-2 border-white/10 bg-black/40 font-headline text-xs font-bold uppercase tracking-widest text-white/60 transition-colors active:bg-white/5"
         >
           No, gracias
         </Link>
-      </section>
-    </main>
+      </FloatingPanel>
+    </ImmersiveScreen>
   );
 }

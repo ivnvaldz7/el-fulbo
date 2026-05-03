@@ -67,10 +67,17 @@ Registro de cambios importantes del proyecto. Formato: `[versión] - YYYY-MM-DD`
   - `request-pending`
   - `cooldown`
   - `request-sent`
+- Completada la migración visual al sistema **Nocturnal Pitch** en todas las pantallas públicas y de invitación:
+  - Migradas todas las sub-páginas de `/invite/[code]` (`archived`, `cooldown`, `group-full`, `request-pending`, `request-return`, `request-sent`, `user-limit`, `welcome-back`).
+  - Aplicados primitives `ImmersiveScreen` y `FloatingPanel` con coherencia estética (dark mode, pitch green, headline font).
+  - Verificada la persistencia de lógica funcional y navegación en todos los estados del flow de invitaciones.
 - Validaciones:
   - `src/lib/services/invite.service.test.ts` ✅
+  - `src/lib/services/admin-tasks.service.test.ts` ✅
+  - `src/components/groups/group-dashboard-initial-state.test.tsx` ✅
+  - `tests/integration/join-group.test.ts` ✅
+  - `tests/integration/admin-tasks-flow.test.ts` ✅
   - `npm run typecheck` ✅
-  - `tests/integration/join-group.test.ts` ✅ luego de aplicar migraciones locales.
 - Bugfix en `20260502170000_feat_003_invite_validation.sql`: se corrigió un `SELECT ... INTO` inválido que impedía aplicar la migración en la DB local.
 - Evidencia usada para la corrección:
   - `package.json`

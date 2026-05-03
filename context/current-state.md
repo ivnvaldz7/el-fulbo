@@ -35,17 +35,15 @@ Todos los 15 features escritos:
 
 ## Próximo
 
-- Actualizar registro antes de cada pasada.
-- Continuar implementación sobre la base ya bootstrappeada.
-- **Última pasada completada:** fundación visual mobile-first.
+- **feat-005 (Create Event)**: iniciar implementación de la creación de partidos.
+- Mantener registro actualizado antes de cada pasada.
+
+- **Última pasada completada:** migración visual total (Nocturnal Pitch) de pantallas públicas e invitación.
 - Implementado en esta pasada:
-  - primitives reutilizables `ImmersiveScreen` y `FloatingPanel`
-  - nueva landing real sobre `src/app/page.tsx` con estética nocturna + CTA dominante
-  - adaptación de `GroupDashboardInitialState` al nuevo lenguaje visual
-  - tokens Tailwind/`globals.css` alineados a la nueva dirección visual oscura
+  - Todas las sub-páginas de `/invite/[code]` actualizadas al nuevo sistema visual (`archived`, `cooldown`, `group-full`, etc.).
+  - Sincronización de estilos entre landing, onboarding y flujos de ingreso.
 - Verificación:
-  - `npm run test -- src/components/groups/group-dashboard-initial-state.test.tsx` ✅
-  - `src/lib/services/admin-tasks.service.test.ts` ✅
+  - `tests/integration/join-group.test.ts` ✅
   - `tests/integration/admin-tasks-flow.test.ts` ✅
   - `npm run typecheck` ✅
 

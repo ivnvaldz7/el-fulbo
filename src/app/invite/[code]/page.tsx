@@ -6,6 +6,8 @@ import { GoogleSignInButton } from '@/components/auth/google-sign-in-button';
 import { resolveInviteState } from '@/lib/services/invite.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { AcceptInviteButton } from './accept-invite-button';
+import { ImmersiveScreen } from '@/components/ui/immersive-screen';
+import { FloatingPanel } from '@/components/ui/floating-panel';
 
 export default async function InvitePage({ params }: { params: { code: string } }) {
   const inviteCode = decodeURIComponent(params.code).toUpperCase();
@@ -60,39 +62,44 @@ export default async function InvitePage({ params }: { params: { code: string } 
   const isAnonymous = resolution.data.kind === 'anonymous';
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col justify-center px-5 py-10">
-      <Link href="/" className="mb-8 text-sm font-black text-cancha">
-        Volver
-      </Link>
-
-      <section className="rounded-card border border-black/10 bg-white/80 p-6 shadow-sm">
-        <div className="flex items-center gap-4">
-          {preview.logoUrl ? (
-            <Image
-              src={preview.logoUrl}
-              alt={`Logo de ${preview.groupName}`}
-              width={64}
-              height={64}
-              className="h-16 w-16 rounded-card border border-black/10 object-cover"
-            />
-          ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-card bg-cancha text-cal">
-              <UsersRound className="h-7 w-7" aria-hidden="true" />
+    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px]">
+      <FloatingPanel className="border-2 border-white/10">
+        <header className="mb-8">
+          <Link href="/" className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
+            ← Volver
+          </Link>
+          
+          <div className="mt-6 flex items-center gap-4">
+            {preview.logoUrl ? (
+              <div className="relative h-16 w-16 overflow-hidden border-2 border-white/10 bg-absolute-dark">
+                <Image
+                  src={preview.logoUrl}
+                  alt={`Logo de ${preview.groupName}`}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <div className="flex h-16 w-16 items-center justify-center border-2 border-white/10 bg-absolute-dark text-pitch-green">
+                <UsersRound className="h-7 w-7" aria-hidden="true" />
+              </div>
+            )}
+            <div>
+              <h1 className="font-headline text-2xl font-black italic uppercase leading-none text-white">{preview.groupName}</h1>
+              <p className="mt-1 font-mono text-[9px] font-bold uppercase tracking-tight text-white/40">
+                {preview.defaultModality} · {preview.activePlayers} jugadores
+              </p>
             </div>
-          )}
-          <div>
-            <h1 className="text-3xl font-black text-noche">{preview.groupName}</h1>
-            <p className="mt-1 text-sm font-bold text-neutral-600">
-              {preview.defaultModality} · {preview.activePlayers} jugadores · Organizado por {preview.adminName}
-            </p>
           </div>
-        </div>
+        </header>
 
-        <p className="mt-8 text-2xl font-black text-noche">¡Te invitaron!</p>
-        <p className="mt-1 text-lg font-bold text-noche">Unite al fulbito de este grupo.</p>
-        <p className="mt-2 text-neutral-700">
-          Usamos tu cuenta de Google para guardar tu carta y tus partidos.
-        </p>
+        <section className="mb-8">
+          <p className="font-headline text-2xl font-black italic uppercase leading-tight text-white">¡Te invitaron!</p>
+          <p className="mt-2 font-headline text-sm font-medium leading-relaxed text-white/60">
+            Unite al grupo de <span className="text-pitch-green">{preview.adminName}</span>. 
+            Usamos tu cuenta de Google para guardar tu carta y tus partidos.
+          </p>
+        </section>
 
         <div className="mt-8">
           {isAnonymous ? (
@@ -101,7 +108,7 @@ export default async function InvitePage({ params }: { params: { code: string } 
             <AcceptInviteButton inviteCode={inviteCode} />
           )}
         </div>
-      </section>
-    </main>
+      </FloatingPanel>
+    </ImmersiveScreen>
   );
 }

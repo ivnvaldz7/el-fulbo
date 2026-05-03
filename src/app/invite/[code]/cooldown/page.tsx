@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { resolveInviteState } from '@/lib/services/invite.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { ImmersiveScreen } from '@/components/ui/immersive-screen';
+import { FloatingPanel } from '@/components/ui/floating-panel';
 
 function formatDate(dateIso: string) {
   return new Intl.DateTimeFormat('es-AR', {
@@ -26,26 +28,31 @@ export default async function InviteCooldownPage({ params }: { params: { code: s
   const { cooldown } = resolution.data;
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-5 py-10">
-      <section className="rounded-card border border-black/10 bg-white/80 p-6 shadow-sm">
-        <h1 className="text-3xl font-black text-noche">Ya pediste volver</h1>
-        <p className="mt-4 text-neutral-700">
-          El admin no aprobó tu pedido del {formatDate(cooldown.lastRejectionAt)}. Podés volver a pedir a partir
-          del {formatDate(cooldown.cooldownExpiresAt)}.
-        </p>
+    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px]">
+      <FloatingPanel className="text-center border-2 border-pitch-green/20">
+        <header className="mb-6">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">En espera</p>
+          <h1 className="mt-2 font-headline text-2xl font-black italic uppercase leading-none text-white">YA PEDISTE</h1>
+          <p className="mt-4 font-headline text-sm font-medium leading-relaxed text-white/60">
+            El admin no aprobó tu pedido del <span className="text-white">{formatDate(cooldown.lastRejectionAt)}</span>. 
+            Podés volver a pedir a partir del <span className="text-pitch-green font-bold">{formatDate(cooldown.cooldownExpiresAt)}</span>.
+          </p>
+        </header>
+
         {cooldown.lastRejectionNote ? (
-          <div className="mt-5 rounded-card border border-black/10 bg-black/5 p-4 text-sm text-neutral-700">
-            <p className="font-black text-noche">Mensaje del admin</p>
-            <p className="mt-2">{cooldown.lastRejectionNote}</p>
+          <div className="mb-6 border border-white/10 bg-absolute-dark p-4 text-left">
+            <p className="font-mono text-[9px] font-bold uppercase tracking-widest text-white/40">Mensaje del admin</p>
+            <p className="mt-2 font-headline text-sm font-medium text-white/80 italic">"{cooldown.lastRejectionNote}"</p>
           </div>
         ) : null}
+
         <Link
           href="/"
-          className="mt-8 inline-flex min-h-12 w-full items-center justify-center rounded-card bg-noche px-5 py-3 text-sm font-black text-cal"
+          className="mt-4 flex min-h-14 w-full items-center justify-center bg-pitch-green px-8 font-headline text-lg font-bold italic uppercase text-black transition-transform active:scale-95"
         >
-          Volver al inicio
+          VOLVER AL INICIO
         </Link>
-      </section>
-    </main>
+      </FloatingPanel>
+    </ImmersiveScreen>
   );
 }

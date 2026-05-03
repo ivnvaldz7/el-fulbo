@@ -4,6 +4,8 @@ import { PlayerCardPreview } from '@/components/cards/player-card-preview';
 import { resolveInviteState } from '@/lib/services/invite.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { ReactivateButton } from './reactivate-button';
+import { ImmersiveScreen } from '@/components/ui/immersive-screen';
+import { FloatingPanel } from '@/components/ui/floating-panel';
 
 function timeAgoLabel(dateIso: string) {
   const now = new Date();
@@ -30,32 +32,38 @@ export default async function InviteWelcomeBackPage({ params }: { params: { code
   const { preview, archivedPlayer } = resolution.data;
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center px-5 py-10">
-      <section className="grid items-center gap-8 lg:grid-cols-[1fr_320px]">
-        <div>
-          <p className="text-sm font-black uppercase tracking-wide text-cancha">¡Volviste!</p>
-          <h1 className="mt-3 text-4xl font-black text-noche">Esta es tu carta del grupo {preview.groupName}</h1>
-          <p className="mt-4 text-lg text-neutral-700">
-            Te fuiste hace {timeAgoLabel(archivedPlayer.archivedAt)}. Si querés, volvés con tus stats e historial.
-          </p>
-          <div className="mt-8 max-w-sm">
-            <ReactivateButton playerId={archivedPlayer.id} fallbackGroupId={preview.groupId} />
-            <Link
-              href="/"
-              className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-card border border-black/15 px-5 py-3 text-sm font-black text-noche"
-            >
-              Prefiero no volver
-            </Link>
-          </div>
-        </div>
-
+    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px]">
+      <div className="mb-8 flex justify-center">
         <PlayerCardPreview
           name={archivedPlayer.displayName}
           position={archivedPlayer.primaryPosition}
           stats={archivedPlayer.stats}
           pending={archivedPlayer.statsStatus === 'pending_approval'}
         />
-      </section>
-    </main>
+      </div>
+
+      <FloatingPanel className="text-center border-2 border-pitch-green/20">
+        <header className="mb-6">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">¡Volviste!</p>
+          <h1 className="mt-2 font-headline text-2xl font-black italic uppercase leading-none text-white">
+            TU CARTA EN {preview.groupName}
+          </h1>
+          <p className="mt-4 font-headline text-sm font-medium leading-relaxed text-white/60">
+            Te fuiste hace <span className="text-white">{timeAgoLabel(archivedPlayer.archivedAt)}</span>. 
+            Podés volver ahora mismo con tus stats e historial intactos.
+          </p>
+        </header>
+
+        <div className="mt-8 flex flex-col gap-3">
+          <ReactivateButton playerId={archivedPlayer.id} fallbackGroupId={preview.groupId} />
+          <Link
+            href="/"
+            className="flex min-h-12 w-full items-center justify-center border-2 border-white/10 bg-black/40 font-headline text-xs font-bold uppercase tracking-widest text-white/60 transition-colors active:bg-white/5"
+          >
+            Prefiero no volver
+          </Link>
+        </div>
+      </FloatingPanel>
+    </ImmersiveScreen>
   );
 }

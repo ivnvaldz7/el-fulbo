@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { resolveInviteState } from '@/lib/services/invite.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { ImmersiveScreen } from '@/components/ui/immersive-screen';
+import { FloatingPanel } from '@/components/ui/floating-panel';
 
 function daysAgoLabel(dateIso: string) {
   const now = new Date();
@@ -23,19 +25,24 @@ export default async function InviteRequestPendingPage({ params }: { params: { c
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-5 py-10">
-      <section className="rounded-card border border-black/10 bg-white/80 p-6 shadow-sm">
-        <h1 className="text-3xl font-black text-noche">Ya mandaste una solicitud</h1>
-        <p className="mt-4 text-neutral-700">
-          Esperá que el admin la revise. La enviaste hace {daysAgoLabel(resolution.data.requestCreatedAt)}.
-        </p>
+    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px]">
+      <FloatingPanel className="text-center border-2 border-pitch-green/20">
+        <header className="mb-6">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Pendiente</p>
+          <h1 className="mt-2 font-headline text-2xl font-black italic uppercase leading-none text-white">YA MANDASTE</h1>
+          <p className="mt-4 font-headline text-sm font-medium leading-relaxed text-white/60">
+            Mandaste la solicitud hace <span className="text-white">{daysAgoLabel(resolution.data.requestCreatedAt)}</span>. 
+            Esperá que el admin la revise para poder volver a la cancha.
+          </p>
+        </header>
+
         <Link
           href="/"
-          className="mt-8 inline-flex min-h-12 w-full items-center justify-center rounded-card bg-noche px-5 py-3 text-sm font-black text-cal"
+          className="mt-8 flex min-h-14 w-full items-center justify-center bg-pitch-green px-8 font-headline text-lg font-bold italic uppercase text-black transition-transform active:scale-95"
         >
-          Volver al inicio
+          VOLVER AL INICIO
         </Link>
-      </section>
-    </main>
+      </FloatingPanel>
+    </ImmersiveScreen>
   );
 }

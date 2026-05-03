@@ -40,12 +40,10 @@
 - ✅ `feat-014-export-data.md` (backup ZIP JSON + CSV).
 - ✅ `feat-015-player-stats.md` (stats individuales MVP).
 
-### UI & UX (Nocturnal Pitch)
-- ✅ Primitives `ImmersiveScreen` y `FloatingPanel`.
-- ✅ Landing, `/welcome`, `/join` y onboarding de stats.
-- ✅ Todas las pantallas de invitación (`/invite/[code]/*`) migradas.
-- ✅ `GroupDashboardInitialState` y `/admin-tasks`.
-- ✅ Verificado con `tests/integration/join-group.test.ts`.
+### Evidencia verificada en código
+- ✅ `package.json` con Next 14, Supabase, Tailwind, Vitest y Playwright.
+- ✅ `src/app/page.tsx` implementado.
+- ✅ `supabase/migrations/20260426000000_initial_schema_v2.sql` creada.
 
 ---
 
@@ -167,5 +165,15 @@ Checklist general al revisar cualquier PR:
 ## Próxima acción
 
 **Siguiente sesión / siguiente pasada:**
-- **feat-005 (Create Event)**: iniciar implementación de la creación de partidos.
-- Mantener registro actualizado antes de cada pasada.
+- la base visual shared YA arrancó
+- implementado:
+  - `src/components/ui/immersive-screen.tsx`
+  - `src/components/ui/floating-panel.tsx`
+  - landing real nueva en `src/app/page.tsx`
+  - `GroupDashboardInitialState` migrado al mismo lenguaje visual
+- validado con:
+  - `npm run typecheck`
+  - `npm run test -- src/components/groups/group-dashboard-initial-state.test.tsx`
+- siguiente paso natural:
+  - bajar este sistema a `/welcome`, onboarding y dashboard real del grupo
+  - mantener registro sincronizado antes de seguir
