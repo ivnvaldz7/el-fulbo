@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AppProviders } from '@/lib/providers/app-providers';
+import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
   title: 'El Fulbo',
@@ -17,6 +18,7 @@ export default function RootLayout({
     <html lang="es-AR">
       <body>
         <AppProviders>{children}</AppProviders>
+        <Toaster />
       </body>
     </html>
   );

@@ -35,7 +35,8 @@ Todos los 15 features escritos:
 
 ## Próximo
 
-- **feat-005 (Create Event)**: iniciar implementación de la creación de partidos.
+- **feat-006 (Confirm Attendance)**: apply/verify pendientes a nivel código.
+- **feat-005**: ✅ verificado (en esta sesión).
 - Mantener registro actualizado antes de cada pasada.
 
 - **Última pasada completada:** migración visual total (Nocturnal Pitch) de pantallas públicas e invitación.

@@ -1,6 +1,6 @@
 create extension if not exists "pgcrypto";
 
-create type public.modality as enum ('F5', 'F6', 'F8', 'F11');
+create type public.modality as enum ('F5', 'F6', 'F7', 'F8', 'F11');
 create type public.player_position as enum ('ARQ', 'DEF', 'MED', 'DEL');
 create type public.group_role as enum ('admin', 'owner');
 create type public.event_status as enum (

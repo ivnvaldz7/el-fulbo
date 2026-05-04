@@ -1,0 +1,2 @@
+-- This migration previously contained RPC definitions that are now consolidated into 20260503165800_feat_005_events.sql.
+-- This file is intentionally left mostly empty or with comments to avoid re-introducing duplicate or incorrect RPC definitions.

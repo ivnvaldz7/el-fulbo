@@ -1,11 +1,21 @@
 import { FloatingPanel } from '@/components/ui/floating-panel';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 
+type Match = {
+  id: string;
+  date: string;
+  time: string;
+  // Agrega aquí cualquier otro campo relevante de un partido que necesites mostrar
+};
+
 type GroupDashboardInitialStateProps = {
   groupName: string;
   modality: string;
   activePlayers: number;
   adminPendingTotal?: number;
+  userRole: string;
+  closestMatch?: Match;
+  matchesToday: Match[];
 };
 
 export function GroupDashboardInitialState({
@@ -13,9 +23,14 @@ export function GroupDashboardInitialState({
   modality,
   activePlayers,
   adminPendingTotal = 0,
+  userRole,
+  closestMatch,
+  matchesToday,
 }: GroupDashboardInitialStateProps) {
   const showInviteBanner = activePlayers < 2;
   const showAdminPendingBanner = adminPendingTotal > 0;
+  const isAdminOrOwner = userRole === 'admin' || userRole === 'owner';
+  const hasClosestMatch = closestMatch !== undefined;
 
   return (
     <ImmersiveScreen contentClassName="mx-auto max-w-xl">
@@ -35,6 +50,44 @@ export function GroupDashboardInitialState({
             </a>
           </div>
         ) : null}
+
+        {hasClosestMatch ? (
+          <div className="mt-10">
+            <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Próximo Partido</h2>
+            <p className="mt-3 font-headline text-base font-medium leading-relaxed text-white/60">
+              {new Date(closestMatch.date).toLocaleDateString()} a las {closestMatch.time}
+            </p>
+            {/* Aquí puedes agregar un botón para ver los detalles del partido, editar, etc. */}
+          </div>
+        ) : isAdminOrOwner ? (
+          <div className="mt-10">
+            <button
+              type="button"
+              className="mt-8 flex min-h-14 w-full items-center justify-center bg-pitch-green px-6 py-3 font-headline text-lg font-bold italic uppercase text-black transition-transform active:scale-95"
+            >
+              Crear partido
+            </button>
+          </div>
+        ) : (
+          <p className="mt-10 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
+            Todavía no hay partidos programados.
+          </p>
+        )}
+
+        {matchesToday.length > 0 && (
+          <div className="mt-6">
+            <h3 className="font-headline text-xl font-black italic uppercase leading-none text-white/80">Más partidos hoy</h3>
+            <ul className="mt-3 space-y-2">
+              {matchesToday.map((match) => (
+                <li key={match.id} className="text-white/60">
+                  <p className="font-headline text-base font-medium leading-relaxed">
+                    A las {match.time}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {showInviteBanner ? (
           <div className="mt-10">

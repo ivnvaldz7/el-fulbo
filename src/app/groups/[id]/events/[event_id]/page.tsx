@@ -1,0 +1,399 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+import EventAttendeesList from '@/components/EventAttendeesList/EventAttendeesList';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { showEventNotification } from '@/lib/notifications';
+import { createBrowserSupabaseClient } from '@/lib/supabase/client';
+import type { AttendanceStatus, Event, EventId, EventStatus, GroupId } from '@/lib/types';
+import {
+  type CurrentPlayerAttendanceContext,
+  type EventAttendee,
+  EventsService,
+} from '@/lib/services/events.service';
+
+const ATTENDANCE_OPTIONS: Array<{ value: AttendanceStatus; label: string; accent: string }> = [
+  { value: 'going', label: 'Voy', accent: 'bg-emerald-500 text-black' },
+  { value: 'not_going', label: 'No voy', accent: 'bg-zinc-100 text-black' },
+  { value: 'maybe', label: 'Tal vez', accent: 'bg-amber-400 text-black' },
+];
+
+function canEditAttendance(status: EventStatus) {
+  return status === 'scheduled' || status === 'confirming';
+}
+
+function helperCopy(
+  eventStatus: EventStatus,
+  currentPlayer: CurrentPlayerAttendanceContext | null,
+  selectedStatus: AttendanceStatus | null,
+) {
+  if (!currentPlayer) {
+    return 'Necesitás estar logueado y ser jugador del grupo para confirmar.';
+  }
+
+  if (currentPlayer.statsStatus === 'pending_approval') {
+    return 'Esperá que aprueben tu carta para confirmar.';
+  }
+
+  if (!canEditAttendance(eventStatus)) {
+    return 'El partido ya arrancó el check-in. No podés cambiar tu respuesta.';
+  }
+
+  if (!selectedStatus) {
+    return 'Tocá para confirmar.';
+  }
+
+  switch (selectedStatus) {
+    case 'going':
+      return 'Quedaste marcado como disponible para jugar.';
+    case 'not_going':
+      return 'Avisaste que no llegás al partido.';
+    case 'maybe':
+      return 'Quedaste en duda. Podés cambiarlo cuando quieras antes del check-in.';
+  }
+}
+
+function formatEventDate(value: string) {
+  return new Date(value).toLocaleDateString('es-AR', {
+    weekday: 'long',
+    day: '2-digit',
+    month: '2-digit',
+  });
+}
+
+function formatEventTime(value: string) {
+  return new Date(value).toLocaleTimeString('es-AR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+export default function EventViewPage() {
+  const router = useRouter();
+  const params = useParams();
+  const groupId = params.id as GroupId;
+  const eventId = params.event_id as EventId;
+
+  const supabase = useMemo(() => createBrowserSupabaseClient(), []);
+  const eventsService = useMemo(() => new EventsService(supabase), [supabase]);
+
+  const [event, setEvent] = useState<Event | null>(null);
+  const [attendees, setAttendees] = useState<EventAttendee[]>([]);
+  const [currentPlayer, setCurrentPlayer] = useState<CurrentPlayerAttendanceContext | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<AttendanceStatus | null>(null);
+  const [isAdminOrOwner, setIsAdminOrOwner] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [savingAttendance, setSavingAttendance] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
+  const refreshAttendees = useCallback(async () => {
+    const nextAttendees = await eventsService.getEventAttendees(eventId);
+    setAttendees(nextAttendees);
+  }, [eventId, eventsService]);
+
+  const loadEvent = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const eventData = await eventsService.getEventById(eventId);
+      const [nextAttendees, nextCurrentPlayer, nextIsAdminOrOwner] = await Promise.all([
+        eventsService.getEventAttendees(eventId),
+        eventsService.getCurrentPlayerAttendanceContext(eventData.group_id, eventId),
+        eventsService.isCurrentUserAdminOrOwner(eventData.group_id),
+      ]);
+
+      setEvent(eventData);
+      setAttendees(nextAttendees);
+      setCurrentPlayer(nextCurrentPlayer);
+      setSelectedStatus(nextCurrentPlayer?.attendanceStatus ?? null);
+      setIsAdminOrOwner(
+        nextIsAdminOrOwner ||
+          (nextCurrentPlayer ? eventData.created_by_user_id === nextCurrentPlayer.userId : false),
+      );
+    } catch (loadError) {
+      console.error(loadError);
+      setError('No pudimos cargar el partido.');
+      toast.error('No pudimos cargar el partido.');
+    } finally {
+      setLoading(false);
+    }
+  }, [eventId, eventsService]);
+
+  useEffect(() => {
+    void loadEvent();
+  }, [loadEvent]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`event-attendance:${eventId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'event_attendances',
+          filter: `event_id=eq.${eventId}`,
+        },
+        () => {
+          void refreshAttendees();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [eventId, refreshAttendees, supabase]);
+
+  async function handleAttendanceChange(nextStatus: AttendanceStatus) {
+    if (!event || !currentPlayer) {
+      return;
+    }
+
+    if (currentPlayer.statsStatus === 'pending_approval' || !canEditAttendance(event.status)) {
+      return;
+    }
+
+    const previousStatus = selectedStatus;
+    const previousAttendees = attendees;
+    const optimisticAttendee: EventAttendee = {
+      playerId: currentPlayer.playerId,
+      userId: currentPlayer.userId,
+      displayName: currentPlayer.displayName,
+      photoUrl: null,
+      joinedAt: null,
+      status: nextStatus,
+      checkedIn: false,
+      checkedInAt: null,
+      statsStatus: currentPlayer.statsStatus,
+    };
+
+    setSavingAttendance(true);
+    setSelectedStatus(nextStatus);
+    setAttendees((current) => {
+      const existingIndex = current.findIndex((attendee) => attendee.playerId === currentPlayer.playerId);
+      if (existingIndex === -1) {
+        return [...current, optimisticAttendee];
+      }
+
+      return current.map((attendee) =>
+        attendee.playerId === currentPlayer.playerId
+          ? { ...attendee, status: nextStatus, checkedIn: false, checkedInAt: null }
+          : attendee,
+      );
+    });
+
+    try {
+      await eventsService.updateAttendance({
+        p_event_id: event.id,
+        p_status: nextStatus,
+      });
+      setCurrentPlayer((value) =>
+        value
+          ? {
+              ...value,
+              attendanceStatus: nextStatus,
+            }
+          : value,
+      );
+      toast.success('Guardamos tu respuesta.');
+      void refreshAttendees();
+    } catch (updateError: any) {
+      console.error(updateError);
+      setSelectedStatus(previousStatus);
+      setAttendees(previousAttendees);
+      toast.error(updateError?.message ?? 'No pudimos guardar tu respuesta, reintentá.');
+    } finally {
+      setSavingAttendance(false);
+    }
+  }
+
+  async function handleConfirmCancellation(motive?: string) {
+    if (!event) {
+      return;
+    }
+
+    try {
+      setSavingAttendance(true);
+      await eventsService.cancelEvent({
+        p_event_id: event.id,
+        p_motive: motive ?? null,
+      });
+      showEventNotification('event_cancelled', { eventName: event.field_name });
+      toast.success('Partido cancelado.');
+      router.push(`/groups/${groupId}/dashboard`);
+    } catch (cancelError) {
+      console.error(cancelError);
+      toast.error('No pudimos cancelar el partido.');
+    } finally {
+      setSavingAttendance(false);
+      setShowCancelModal(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[300px] flex-col justify-center text-center">
+        <div className="mx-auto h-12 w-12 animate-spin border-4 border-pitch-green border-t-transparent" />
+        <p className="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
+          Cargando evento
+        </p>
+        <h2 className="mt-2 font-headline text-2xl font-black italic uppercase tracking-tight text-white">
+          Recuperando detalles del partido...
+        </h2>
+      </div>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black p-4 text-white">
+        <div className="mx-auto max-w-md rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-center text-red-100">
+          {error ?? 'No se pudo cargar el partido.'}
+        </div>
+      </div>
+    );
+  }
+
+  const attendanceLocked = !canEditAttendance(event.status);
+  const attendanceDisabled =
+    savingAttendance ||
+    attendanceLocked ||
+    !currentPlayer ||
+    currentPlayer.statsStatus === 'pending_approval';
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black p-4 text-white">
+      {showCancelModal ? (
+        <ConfirmationModal
+          title="Confirmar cancelación"
+          message="¿Seguro que querés cancelar este partido?"
+          onConfirm={handleConfirmCancellation}
+          onCancel={() => setShowCancelModal(false)}
+          loading={savingAttendance}
+          showMotiveField
+        />
+      ) : null}
+
+      <div className="mx-auto max-w-md space-y-4">
+        <header className="rounded-lg border border-white/10 bg-black/40 p-4">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
+            Partido
+          </p>
+          <h1 className="mt-2 font-headline text-3xl font-black italic uppercase tracking-tight text-white">
+            {event.field_name}
+          </h1>
+          <div className="mt-4 space-y-2 text-sm text-white/80">
+            <p>
+              <span className="font-mono text-[10px] font-bold uppercase text-white/50">Fecha:</span>{' '}
+              {formatEventDate(event.scheduled_at)}
+            </p>
+            <p>
+              <span className="font-mono text-[10px] font-bold uppercase text-white/50">Hora:</span>{' '}
+              {formatEventTime(event.scheduled_at)}
+            </p>
+            <p>
+              <span className="font-mono text-[10px] font-bold uppercase text-white/50">Modalidad:</span>{' '}
+              {event.modality}
+            </p>
+            <p>
+              <span className="font-mono text-[10px] font-bold uppercase text-white/50">Estado:</span>{' '}
+              {event.status}
+            </p>
+            {event.field_maps_url ? (
+              <p>
+                <span className="font-mono text-[10px] font-bold uppercase text-white/50">Maps:</span>{' '}
+                <a
+                  href={event.field_maps_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-pitch-green underline"
+                >
+                  Ver ubicación
+                </a>
+              </p>
+            ) : null}
+            {event.notes ? (
+              <p>
+                <span className="font-mono text-[10px] font-bold uppercase text-white/50">Notas:</span>{' '}
+                {event.notes}
+              </p>
+            ) : null}
+          </div>
+        </header>
+
+        <section className="rounded-lg border border-white/10 bg-black/40 p-4">
+          <div className="mb-4">
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
+              Confirmación
+            </p>
+            <h2 className="mt-1 font-headline text-2xl font-black italic uppercase tracking-tight text-white">
+              ¿Vas?
+            </h2>
+            <p className="mt-2 text-sm text-white/70">
+              {helperCopy(event.status, currentPlayer, selectedStatus)}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            {ATTENDANCE_OPTIONS.map((option) => {
+              const selected = selectedStatus === option.value;
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => void handleAttendanceChange(option.value)}
+                  disabled={attendanceDisabled}
+                  className={`rounded-lg border px-3 py-4 font-headline text-lg font-bold italic uppercase tracking-tight transition ${
+                    selected
+                      ? `${option.accent} border-transparent`
+                      : 'border-white/10 bg-white/[0.04] text-white hover:border-white/20'
+                  } disabled:cursor-not-allowed disabled:opacity-50`}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-white/10 bg-black/40 p-4">
+          <div className="mb-4">
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
+              Lista en vivo
+            </p>
+            <h2 className="mt-1 font-headline text-2xl font-black italic uppercase tracking-tight text-white">
+              Asistencia
+            </h2>
+          </div>
+
+          <EventAttendeesList attendees={attendees} />
+        </section>
+
+        {isAdminOrOwner && event.status !== 'cancelled' && event.status !== 'played' ? (
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => router.push(`/groups/${groupId}/events/${eventId}/edit`)}
+              className="h-12 rounded-lg bg-blue-600 font-headline text-lg font-bold italic uppercase tracking-tight text-white transition-transform active:scale-95"
+            >
+              Editar
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowCancelModal(true)}
+              className="h-12 rounded-lg bg-red-600 font-headline text-lg font-bold italic uppercase tracking-tight text-white transition-transform active:scale-95"
+            >
+              Cancelar
+            </button>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}

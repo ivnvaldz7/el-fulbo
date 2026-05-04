@@ -13,7 +13,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:unit": "vitest run --dir src",
-    "test:integration": "vitest run --dir tests/integration",
+    "test:integration": "npm run supabase db reset && vitest run --dir tests/integration",
     "test:e2e": "playwright test",
     "test:coverage": "vitest run --coverage",
     "supabase": "supabase"
@@ -29,6 +29,9 @@
     "next-pwa": "^5.6.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.6.0",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
     "zod": "^4.3.6",
     "zustand": "^5.0.12"
   },
@@ -42,6 +45,7 @@
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.5.0",
+    "dotenv": "^17.4.2",
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.35",
     "jsdom": "^29.0.2",
