@@ -11,6 +11,7 @@ import type { AttendanceStatus, Event, EventId, EventStatus, GroupId } from '@/l
 import {
   type CurrentPlayerAttendanceContext,
   type EventAttendee,
+  type PlayedMatchSummaryItem,
   EventsService,
 } from '@/lib/services/events.service';
 
@@ -22,6 +23,11 @@ const ATTENDANCE_OPTIONS: Array<{ value: AttendanceStatus; label: string; accent
 
 function canEditAttendance(status: EventStatus) {
   return status === 'scheduled' || status === 'confirming';
+}
+
+function canOpenCheckIn(status: EventStatus, scheduledAt: string) {
+  const hoursToEvent = (new Date(scheduledAt).getTime() - Date.now()) / 36e5;
+  return (status === 'scheduled' || status === 'confirming' || status === 'checked_in') && hoursToEvent <= 4;
 }
 
 function helperCopy(
@@ -82,6 +88,7 @@ export default function EventViewPage() {
   const [event, setEvent] = useState<Event | null>(null);
   const [attendees, setAttendees] = useState<EventAttendee[]>([]);
   const [currentPlayer, setCurrentPlayer] = useState<CurrentPlayerAttendanceContext | null>(null);
+  const [playedSummary, setPlayedSummary] = useState<PlayedMatchSummaryItem[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<AttendanceStatus | null>(null);
   const [isAdminOrOwner, setIsAdminOrOwner] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -114,6 +121,12 @@ export default function EventViewPage() {
         nextIsAdminOrOwner ||
           (nextCurrentPlayer ? eventData.created_by_user_id === nextCurrentPlayer.userId : false),
       );
+      if (eventData.status === 'played') {
+        const summary = await eventsService.getPlayedMatchSummary(eventId);
+        setPlayedSummary(summary);
+      } else {
+        setPlayedSummary([]);
+      }
     } catch (loadError) {
       console.error(loadError);
       setError('No pudimos cargar el partido.');
@@ -166,6 +179,7 @@ export default function EventViewPage() {
       displayName: currentPlayer.displayName,
       photoUrl: null,
       joinedAt: null,
+      primaryPosition: null,
       status: nextStatus,
       checkedIn: false,
       checkedInAt: null,
@@ -265,6 +279,44 @@ export default function EventViewPage() {
     attendanceLocked ||
     !currentPlayer ||
     currentPlayer.statsStatus === 'pending_approval';
+  const mvp = playedSummary.find((item) => item.isMvp) ?? null;
+  const boostsApplied = playedSummary.filter((item) => item.boostApplied);
+
+  async function handleShareSummary() {
+    const scoreLine = `${event.team_a_name ?? 'Equipo A'} ${event.team_a_score ?? 0} - ${event.team_b_score ?? 0} ${event.team_b_name ?? 'Equipo B'}`;
+    const mvpLine = mvp ? `MVP: ${mvp.displayName}` : null;
+    const boostsLine =
+      boostsApplied.length > 0
+        ? `Boosts: ${boostsApplied
+            .map((item) =>
+              `${item.displayName} ${
+                item.boostApplied
+                  ? Object.entries(item.boostApplied)
+                      .map(([stat, delta]) => `${stat.toUpperCase()} +${delta}`)
+                      .join(', ')
+                  : ''
+              }`,
+            )
+            .join(' · ')}`
+        : null;
+
+    const shareText = [event.field_name, scoreLine, mvpLine, boostsLine].filter(Boolean).join('\n');
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `Resumen ${event.field_name}`,
+          text: shareText,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        toast.success('Resumen copiado al portapapeles.');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('No pudimos compartir el resumen.');
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black p-4 text-white">
@@ -375,8 +427,115 @@ export default function EventViewPage() {
           <EventAttendeesList attendees={attendees} />
         </section>
 
+        {event.status === 'drawn' ? (
+          <div className="grid gap-3 md:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => router.push(`/groups/${groupId}/events/${eventId}/teams`)}
+              className="w-full rounded-lg bg-pitch-green px-4 py-4 font-headline text-xl font-black italic uppercase text-black"
+            >
+              Ver equipos
+            </button>
+            {isAdminOrOwner ? (
+              <button
+                type="button"
+                onClick={() => router.push(`/groups/${groupId}/events/${eventId}/result`)}
+                className="w-full rounded-lg bg-amber-400 px-4 py-4 font-headline text-xl font-black italic uppercase text-black"
+              >
+                Cargar resultado
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
+        {event.status === 'played' ? (
+          <section className="space-y-4 rounded-lg border border-white/10 bg-black/40 p-4">
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Resultado final</p>
+            <div className="mt-3 flex items-center justify-between gap-4">
+              <div>
+                <p className="font-headline text-xl font-black italic uppercase">{event.team_a_name ?? 'Equipo A'}</p>
+                <p className="mt-1 text-3xl font-black">{event.team_a_score ?? 0}</p>
+              </div>
+              <span className="text-2xl font-black text-white/50">-</span>
+              <div className="text-right">
+                <p className="font-headline text-xl font-black italic uppercase">{event.team_b_name ?? 'Equipo B'}</p>
+                <p className="mt-1 text-3xl font-black">{event.team_b_score ?? 0}</p>
+              </div>
+            </div>
+            {event.notes ? <p className="mt-4 text-sm text-white/70">{event.notes}</p> : null}
+            {mvp ? (
+              <div className="rounded-lg border border-amber-400/40 bg-amber-400/10 p-4">
+                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">MVP</p>
+                <h3 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">{mvp.displayName}</h3>
+                <p className="mt-1 text-sm text-white/65">
+                  {mvp.team === 'A' ? event.team_a_name ?? 'Equipo A' : event.team_b_name ?? 'Equipo B'} ·{' '}
+                  {mvp.assignedPosition ?? 'SIN POS'}
+                </p>
+              </div>
+            ) : null}
+
+            {boostsApplied.length > 0 ? (
+              <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
+                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
+                  Boosts aplicados
+                </p>
+                <ul className="mt-3 space-y-3">
+                  {boostsApplied.map((item) => (
+                    <li key={item.playerId} className="rounded-lg border border-white/10 px-3 py-3">
+                      <p className="font-semibold text-white">{item.displayName}</p>
+                      <p className="mt-1 text-sm text-white/70">
+                        {Object.entries(item.boostApplied ?? {})
+                          .map(([stat, delta]) => `${stat.toUpperCase()} +${delta}`)
+                          .join(' · ')}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {playedSummary.length > 0 ? (
+              <div className="grid gap-3 md:grid-cols-2">
+                {(['A', 'B'] as const).map((teamKey) => {
+                  const teamName = teamKey === 'A' ? event.team_a_name ?? 'Equipo A' : event.team_b_name ?? 'Equipo B';
+                  const players = playedSummary.filter((item) => item.team === teamKey);
+                  return (
+                    <div key={teamKey} className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
+                      <p className="font-headline text-xl font-black italic uppercase text-white">{teamName}</p>
+                      <ul className="mt-3 space-y-2 text-sm text-white/75">
+                        {players.map((item) => (
+                          <li key={item.playerId}>
+                            {item.displayName} · {item.assignedPosition ?? 'SIN POS'}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={() => void handleShareSummary()}
+              className="w-full rounded-lg bg-white/[0.08] px-4 py-4 font-headline text-xl font-black italic uppercase"
+            >
+              Compartir resumen
+            </button>
+          </section>
+        ) : null}
+
         {isAdminOrOwner && event.status !== 'cancelled' && event.status !== 'played' ? (
-          <div className="grid grid-cols-2 gap-3 pt-2">
+          <div className={`grid gap-3 pt-2 ${canOpenCheckIn(event.status, event.scheduled_at) ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            {canOpenCheckIn(event.status, event.scheduled_at) ? (
+              <button
+                type="button"
+                onClick={() => router.push(`/groups/${groupId}/events/${eventId}/check-in`)}
+                className="h-12 rounded-lg bg-emerald-500 font-headline text-lg font-bold italic uppercase tracking-tight text-black transition-transform active:scale-95"
+              >
+                Check-in
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={() => router.push(`/groups/${groupId}/events/${eventId}/edit`)}

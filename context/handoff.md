@@ -6,8 +6,8 @@
 
 ## Estado del proyecto
 
-**Fase:** specs V2 completas + bootstrap del repo **YA realizado** + implementación inicial en curso.
-**Próxima fase:** seguir implementación sobre base existente y mantener registro antes de cada pasada.
+**Fase:** specs V2 completas + bootstrap del repo **YA realizado** + features críticas con cobertura real en curso.
+**Próxima fase:** continuar con feat-009 o pulidos finos, manteniendo registro antes de cada pasada.
 
 **Versión activa:** **V2**.
 
@@ -47,39 +47,51 @@
 - ✅ `GroupDashboardInitialState` y `/admin-tasks`.
 - ✅ Verificado con `tests/integration/join-group.test.ts`.
 
+### RPCs críticas blindadas
+- ✅ `update_attendance` con test real por `supabase.rpc(...)`.
+- ✅ `confirm_draw` con test real por `supabase.rpc(...)`.
+- ✅ `load_match_result` con test real por `supabase.rpc(...)`.
+
 ---
 
 ## Corrección de estado en esta sesión
 
 - Se verificó que `context/current-state.md` y este `handoff.md` habían quedado desactualizados.
-- Ambos decían que el bootstrap estaba pendiente.
-- El código demuestra lo contrario: la base Next.js + Supabase + migración inicial ya existe.
+- Ambos ya reflejan ahora el estado real de las features críticas y sus RPCs.
+- El código demuestra que la base Next.js + Supabase + migración inicial ya existía y que `feat-008` ya quedó cerrada.
 - Se establece como regla operativa: **antes de cada pasada hay que dejar registro actualizado**.
 
 **Impacto:**
-- El próximo paso ya NO es “bootstrap”.
-- El próximo paso es continuar implementación/documentación desde el estado real del repo.
+- El próximo paso ya NO es “cerrar feat-008”.
+- El próximo paso es feat-009 o, si hace falta, refinamiento visual/documental de lo ya cerrado.
 
 ---
 
 ## Próximos pasos (por orden)
 
 1. **Antes de cada pasada**, actualizar `CHANGELOG.md`, `context/current-state.md` y `context/handoff.md` si cambió el estado.
-2. **Continuar implementación** sobre el repo actual, sin repetir bootstrap.
-3. **Última pasada cerrada:** `feat-003-join-group` fase 2.
-4. **Base ya implementada en fase inicial:**
+2. **RPCs críticas ya blindadas**:
+   - `update_attendance`
+   - `confirm_draw`
+   - `load_match_result`
+3. **Continuar implementación** sobre el repo actual, sin repetir bootstrap.
+4. **Última pasada cerrada:** cierre de `feat-008` + documentación sincronizada.
+5. **Base ya implementada en fase inicial:**
    - RPC `validate_invite_code`
    - resolución server-side de estados base del invite flow
    - redirects/pantallas para `invalid`, `archived`, `group-full`, `user-limit`
    - ramificación correcta para `anonymous`, `active_member` y `new`
-5. **Implementado en fase 2:**
+6. **Implementado en fase 2:**
    - `voluntary_returner` con pantalla `welcome-back` y reactivación real
    - `expelled_can_request` con formulario server-side
    - `expelled_pending_request`
    - `expelled_cooldown`
    - `request-sent`
    - nuevas RPCs `reactivate_player` y `create_reintegration_request`
-6. **Verificación hecha:**
+7. **Implementado en feat-007:**
+   - check-in + sorteo + equipos
+   - cleanup de helpers legacy de permisos
+8. **Verificación hecha:**
    - unit tests de `invite.service` pasando
    - `npm run typecheck` pasando
    - `tests/integration/join-group.test.ts` pasando luego de aplicar migraciones locales
@@ -88,6 +100,26 @@
    - verificar contra specs
    - registrar descubrimientos no obvios en engram
    - snapshotear `handoff.md` en `handoff-history/` antes de reescribir
+
+### Guardrail nuevo para RPCs de Supabase
+
+Cuando aparezca `NOT_FOUND` sobre una RPC recién migrada:
+
+1. Confirmar existencia en catálogo (`pg_proc`) y firma exacta.
+2. Confirmar que la app use los mismos nombres de parámetros que la función.
+3. Confirmar si el test está usando SQL directo o `supabase.rpc(...)`.
+4. Ejecutar primero `NOTIFY pgrst, 'reload schema'`.
+5. Reprobar la llamada real por Supabase autenticado.
+6. Recién después revisar grants o considerar cambios de firma.
+
+NO cambiar enums a `text` para “probar”. Eso degrada el contrato sin demostrar causa.
+
+### Estado actual de `feat-008`
+
+- RPC `load_match_result` implementada y verificada.
+- UI de carga de resultado implementada en `/groups/[id]/events/[event_id]/result`.
+- Resumen post-partido visible en `/groups/[id]/events/[event_id]` cuando el estado es `played`.
+- Cobertura real de Supabase RPC agregada para `update_attendance`, `confirm_draw` y `load_match_result`.
 
 ---
 
@@ -144,6 +176,7 @@ Total de cambios al schema desde V1 base:
 9. **Estrategia Opción A CUMPLIDA:** los 15 features están escritos.
 10. **Diseño visual pendiente:** sesiones dedicadas con preguntas al usuario.
 11. **Nueva regla operativa:** antes de cada pasada se deja registro actualizado del estado real.
+12. **Nueva regla operativa para RPCs:** un test SQL directo NO valida exposición PostgREST; si el bug es de `supabase.rpc`, hay que reprobar por el camino real.
 
 ---
 
@@ -167,5 +200,5 @@ Checklist general al revisar cualquier PR:
 ## Próxima acción
 
 **Siguiente sesión / siguiente pasada:**
-- **feat-005 (Create Event)**: iniciar implementación de la creación de partidos.
-- Mantener registro actualizado antes de cada pasada.
+- **feat-009 (Boost System)**: continuar con el siguiente feature sobre la base de `load_match_result`.
+- Si hace falta, pulir visualmente `feat-008` sin tocar el contrato transaccional ya cerrado.

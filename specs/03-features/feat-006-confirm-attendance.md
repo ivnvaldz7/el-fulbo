@@ -4,6 +4,15 @@
 
 Que cada Player pueda responder rápido si va al partido, usando la app como reemplazo directo de la encuesta de WhatsApp. Debe sentirse tan liviano como votar en una encuesta nativa: 1 tap y listo.
 
+> **Nota de implementación real (2026-05-05):**
+> la verdad operativa de `feat-006` hoy vive en
+> `src/app/groups/[id]/events/[event_id]/page.tsx`,
+> `src/components/EventAttendeesList/EventAttendeesList.tsx`,
+> `src/lib/services/events.service.ts`,
+> `supabase/migrations/20260504013000_feat_006_update_attendance_rpc.sql`
+> y `tests/integration/feat-006-attendance-rpc.test.ts`.
+> Si alguna documentación vieja contradice esos archivos, GANAN esos archivos.
+
 ---
 
 ## Referencias
@@ -235,6 +244,10 @@ const updateAttendanceSchema = z.object({
 ### Integration
 - Realtime actualiza la UI de otros Players conectados al mismo Event.
 - Cambios múltiples del mismo Player se sobrescriben correctamente.
+- RPC `update_attendance`:
+  - crea y actualiza asistencia para player aprobado
+  - rechaza `pending_approval`
+  - crea `someone_dropped` si la baja ocurre dentro de 6h
 
 ### RLS
 - Solo miembros del Group pueden hacer `update_attendance` para events del Group.
@@ -267,3 +280,127 @@ const updateAttendanceSchema = z.object({
 - [ ] Notif `someone_dropped` dispara con <6h y no antes.
 - [ ] Recordatorios 24h y 2h implementados via cronjob.
 - [ ] Tests pasan.
+
+---
+
+## Estado operativo actual
+
+- Implementado sobre el dominio canónico `going | not_going | maybe`.
+- La lista en vivo lee de `event_attendances` y filtra solo players `approved`.
+- El lock funcional hoy depende de `event.status in ('scheduled', 'confirming')`.
+- El test focal existente depende de DB local/Supabase levantada; si falla con `ECONNREFUSED 127.0.0.1:54322`, el problema es de entorno y no prueba regresión del feature.
+
+---
+
+## Diagnóstico operativo verificado — RPC `update_attendance` (2026-05-05)
+
+### Qué pasó
+
+Se observó un `call-error NOT_FOUND` al invocar `update_attendance` por el camino real de Supabase/PostgREST, aun cuando la función ya existía en PostgreSQL y las migraciones figuraban aplicadas.
+
+### Qué se verificó en código
+
+#### 1. La app usa `supabase.rpc`, no SQL directo
+
+En `src/lib/services/events.service.ts` la llamada real es:
+
+```ts
+await this.supabase.rpc('update_attendance', {
+  p_event_id: input.p_event_id,
+  p_status: input.p_status,
+});
+```
+
+#### 2. Los nombres de parámetros coinciden EXACTAMENTE
+
+La firma vigente de DB está en:
+
+- `supabase/migrations/20260504013000_feat_006_update_attendance_rpc.sql`
+
+Firma:
+
+```sql
+public.update_attendance(
+  p_event_id uuid,
+  p_status public.attendance_status
+)
+```
+
+Conclusión: el problema NO era mismatch de nombres.
+
+#### 3. El test focal no cubría PostgREST
+
+El archivo:
+
+- `tests/integration/feat-006-attendance-rpc.test.ts`
+
+llama la función con SQL directo:
+
+```sql
+select public.update_attendance($1::uuid, 'going'::public.attendance_status)
+```
+
+Eso valida la lógica SQL de la función, PERO NO valida que PostgREST/Supabase la esté resolviendo bien.
+
+### Qué se verificó en runtime
+
+#### 4. Grants efectivos
+
+Se consultó `pg_proc.proacl` de `public.update_attendance` y el resultado fue compatible con EXECUTE para:
+
+- `anon`
+- `authenticated`
+- `service_role`
+
+Conclusión: no hacía falta tocar grants para destrabar este caso.
+
+#### 5. Reproducción real + resolución
+
+Se ejecutó:
+
+```sql
+NOTIFY pgrst, 'reload schema';
+```
+
+Después se reprobo la llamada real por Supabase autenticado:
+
+```ts
+supabase.rpc('update_attendance', {
+  p_event_id,
+  p_status: 'going',
+});
+```
+
+Resultado verificado:
+
+- `rpc_error = null`
+- se insertó la fila correspondiente en `public.event_attendances`
+
+### Conclusión técnica
+
+El `NOT_FOUND` no estaba causado por:
+
+- ausencia de la función
+- nombres de parámetros incorrectos
+- falta de grants
+- necesidad de cambiar `attendance_status` a `text`
+
+La causa verificada fue:
+
+**schema cache stale de PostgREST** luego de migrar/actualizar la RPC.
+
+### Regla operativa para adelante
+
+Si una RPC nueva o recién actualizada devuelve `NOT_FOUND`:
+
+1. verificar catálogo + firma
+2. verificar nombres de parámetros en la app
+3. distinguir si el test usa SQL directo o `supabase.rpc`
+4. ejecutar `NOTIFY pgrst, 'reload schema'`
+5. reprobar por el camino real de Supabase
+
+### Qué NO hacer por reflejo
+
+- NO cambiar un parámetro enum a `text` sin prueba causal
+- NO asumir que “el test pasa” implica que PostgREST ve la función
+- NO meter grants a ciegas si el problema puede ser cache del API

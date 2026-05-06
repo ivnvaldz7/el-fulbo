@@ -277,18 +277,45 @@ const loadMatchResultSchema = z.object({
 
 ## Criterios de aceptación
 
-- [ ] Botón "Cargar resultado" solo visible para admin/owner después del sorteo.
-- [ ] Scoreboard con inputs 0-99 + botones +/-.
-- [ ] Selector de MVP con grid de players con participación en el event.
-- [ ] MVP obligatorio (no hay opción "sin MVP" en MVP).
-- [ ] Modal de confirmación antes de guardar.
-- [ ] RPC transaccional: events + players (boost) + notifications en 1 transacción.
-- [ ] Empate/derrota sin MVP no genera boost.
-- [ ] Victoria+MVP aplica +3 en principales, +1 en demás.
-- [ ] Boost reemplaza al anterior si gana nuevo.
-- [ ] Tier de cards puede cambiar post-boost.
-- [ ] Notif MVP con push al jugador.
-- [ ] Notif boost solo in-app.
-- [ ] Draft en localStorage.
-- [ ] Status 'played' impide re-carga.
-- [ ] Tests pasan.
+- [x] Botón "Cargar resultado" solo visible para admin/owner después del sorteo.
+- [x] Scoreboard con inputs 0-99 + botones +/-.
+- [x] Selector de MVP con grid de players con participación en el event.
+- [x] MVP obligatorio (no hay opción "sin MVP" en MVP).
+- [x] Modal de confirmación antes de guardar.
+- [x] RPC transaccional: events + players (boost) + notifications en 1 transacción.
+- [x] Empate/derrota sin MVP no genera boost.
+- [x] Victoria+MVP aplica +3 en principales, +1 en demás.
+- [x] Boost reemplaza al anterior si gana nuevo.
+- [x] Tier de cards puede cambiar post-boost.
+- [x] Notif MVP con push al jugador.
+- [x] Notif boost solo in-app.
+- [x] Draft en localStorage.
+- [x] Status 'played' impide re-carga.
+- [x] Tests pasan.
+
+---
+
+## Estado operativo real
+
+- RPC canónica implementada: `public.load_match_result(...)`.
+- Resumen de result loading visible:
+  - `/groups/[id]/events/[event_id]/result`
+  - `/groups/[id]/events/[event_id]` cuando el partido ya quedó en `played`
+- Cobertura real verificada:
+  - `src/lib/match-result.test.ts`
+  - `src/lib/services/events.load-match-result.test.ts`
+  - `tests/integration/feat-008-load-match-result-rpc.test.ts`
+- Se mantuvo y verificó el patrón real de Supabase RPC para:
+  - `update_attendance`
+  - `confirm_draw`
+  - `load_match_result`
+- La UI usa draft en `localStorage` con key `event-result-draft-{event_id}` y modal de confirmación antes de guardar.
+
+---
+
+## Notas de implementación real
+
+- El resultado se carga por `load_match_result` y no por updates sueltos desde UI.
+- El resumen post-partido muestra scoreboard, MVP, boosts y equipos, y expone “Compartir resumen”.
+- La validación de MVP es estricta: debe existir en participaciones del partido con team A/B.
+- El repo sigue teniendo ruido TypeScript legacy fuera del slice; no se usó como señal de cierre del feature.

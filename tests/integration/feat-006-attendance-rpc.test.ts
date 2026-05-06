@@ -1,6 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Client } from 'pg';
-import { asUser, createDbClient, seedGroup, seedUser } from './db';
+import {
+  asUser,
+  createDbClient,
+  seedAuthUser,
+  seedGroup,
+  seedUser,
+  signInAsAuthUser,
+} from './db';
 
 describe('feat-006 update_attendance RPC', () => {
   let client: Client;
@@ -10,7 +17,9 @@ describe('feat-006 update_attendance RPC', () => {
   });
 
   afterAll(async () => {
-    await client.end();
+    if (client) {
+      await client.end();
+    }
   });
 
   it('creates and updates attendance for an approved player', async () => {
@@ -143,5 +152,52 @@ describe('feat-006 update_attendance RPC', () => {
     expect(notifications).toHaveLength(1);
     expect(notifications[0]?.payload.player_id).toBe(playerId);
     expect(notifications[0]?.payload.event_id).toBe(eventId);
+  });
+
+  it('works through supabase.rpc after reloading the PostgREST schema cache', async () => {
+    const admin = await seedUser(client, 'rpc-cache-admin');
+    const playerUser = await seedAuthUser(client, 'rpc-cache-player');
+    const group = await seedGroup(client, admin.id);
+
+    const { rows: playerRows } = await client.query<{ id: string }>(
+      `
+        insert into public.players (user_id, group_id, display_name, primary_position, stats, stats_status)
+        values ($1, $2, $3, 'MED', '{"pac":5,"sho":5,"pas":5,"dri":5,"def":5,"phy":5}'::jsonb, 'approved')
+        returning id
+      `,
+      [playerUser.id, group.id, playerUser.displayName],
+    );
+
+    const playerId = playerRows[0]!.id;
+
+    const { rows: eventRows } = await client.query<{ id: string }>(
+      `
+        insert into public.events (group_id, modality, field_name, scheduled_at, created_by_user_id, status)
+        values ($1, 'F5', 'Cache RPC', now() + interval '2 day', $2, 'scheduled')
+        returning id
+      `,
+      [group.id, admin.id],
+    );
+
+    const eventId = eventRows[0]!.id;
+
+    await client.query(`notify pgrst, 'reload schema'`);
+
+    const supabase = await signInAsAuthUser(playerUser.email, playerUser.password);
+    const { error } = await supabase.rpc('update_attendance', {
+      p_event_id: eventId,
+      p_status: 'going',
+    });
+
+    expect(error).toBeNull();
+
+    const { rows } = await client.query(
+      `select player_id, status from public.event_attendances where event_id = $1`,
+      [eventId],
+    );
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.player_id).toBe(playerId);
+    expect(rows[0]?.status).toBe('going');
   });
 });

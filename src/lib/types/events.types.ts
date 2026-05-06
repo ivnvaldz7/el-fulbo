@@ -1,4 +1,11 @@
-import type { EventId, GroupId, Modality, UserId } from '@/lib/types';
+import type {
+  DrawAssignment,
+  EventId,
+  GroupId,
+  Modality,
+  PlayerId,
+  UserId,
+} from '@/lib/types';
 
 export type EventModality = Modality;
 
@@ -30,4 +37,26 @@ export interface RPC_UpdateEventPayload {
 export interface RPC_CancelEventPayload {
   p_event_id: EventId;
   p_motive?: string | null;
+}
+
+export interface UpdateCheckInPayload {
+  eventId: EventId;
+  playerId: PlayerId;
+  checkedIn: boolean;
+}
+
+export interface ConfirmDrawPayload {
+  eventId: EventId;
+  seed: string;
+  assignments: DrawAssignment[];
+  teamAName: string;
+  teamBName: string;
+}
+
+export interface LoadMatchResultPayload {
+  eventId: EventId;
+  teamAScore: number;
+  teamBScore: number;
+  mvpPlayerId: PlayerId;
+  notes: string | null;
 }

@@ -1,24 +1,4 @@
-
--- Start a new transaction
-CREATE OR REPLACE FUNCTION start_transaction()
-RETURNS text AS $$
-BEGIN
-  RETURN 'BEGIN;';
-END;
-$$ LANGUAGE plpgsql;
-
--- Commit the current transaction
-CREATE OR REPLACE FUNCTION commit_transaction()
-RETURNS text AS $$
-BEGIN
-  RETURN 'COMMIT;';
-END;
-$$ LANGUAGE plpgsql;
-
--- Rollback the current transaction
-CREATE OR REPLACE FUNCTION rollback_transaction()
-RETURNS text AS $$
-BEGIN
-  RETURN 'ROLLBACK;';
-END;
-$$ LANGUAGE plpgsql;
+-- No-op migration.
+-- Returning SQL strings from RPCs does not create real transactional boundaries
+-- for Supabase client calls. These helpers were only used by a legacy
+-- matchmaking service that has been removed.

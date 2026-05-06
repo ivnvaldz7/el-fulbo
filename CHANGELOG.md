@@ -2,6 +2,52 @@
 
 Registro de cambios importantes del proyecto. Formato: `[versión] - YYYY-MM-DD`.
 
+## [0.1.4] - 2026-05-06 — cierre de feat-008 + cobertura RPC real
+
+- Cerrada `feat-008-load-result-and-mvp` de punta a punta:
+  - RPC transaccional `load_match_result`
+  - cálculo de boosts y decremento de boosts activos
+  - notificaciones `mvp_awarded`, `boost_applied` y `match_result_loaded`
+  - UI de carga de resultado en `/groups/[id]/events/[event_id]/result`
+  - resumen post-partido en la página del evento
+- Agregados tests focalizados para el slice de resultado:
+  - `src/lib/match-result.test.ts`
+  - `src/lib/services/events.load-match-result.test.ts`
+  - `tests/integration/feat-008-load-match-result-rpc.test.ts`
+- Agregada cobertura real de `supabase.rpc(...)` para:
+  - `update_attendance`
+  - `confirm_draw`
+  - `load_match_result`
+- Corregidos helpers canónicos de permisos de grupo mediante migración compensatoria:
+  - `supabase/migrations/20260505232000_fix_is_group_owner_function.sql`
+- Documentación sincronizada con el estado real:
+  - `context/current-state.md`
+  - `context/handoff.md`
+  - `specs/03-features/feat-006-confirm-attendance.md`
+  - `specs/03-features/feat-008-load-result-and-mvp.md`
+
+## [0.1.3] - 2026-05-05 — saneamiento documental feat-006 + limpieza base feat-007
+
+- Documentado el estado operativo real de `feat-006` para transferencia en:
+  - `context/feat-006-transfer.md`
+- Actualizado `specs/03-features/feat-006-confirm-attendance.md` con nota explícita de source of truth y estado operativo actual.
+- Consolidado que `feat-006` usa:
+  - `going | not_going | maybe`
+  - `event_attendances`
+  - RPC `public.update_attendance`
+  - UI en `src/app/groups/[id]/events/[event_id]/page.tsx`
+- Dejado asentado que el último rerun focal de `feat-006` quedó bloqueado por entorno local (`ECONNREFUSED 127.0.0.1:54322`), no por regresión lógica.
+- Limpiados artefactos legacy/stale de `feat-007` que mezclaban un dominio falso (`matches`, `group_members`, `profiles`, `is_checked_in`, RPCs de transacción falsas) con el modelo canónico actual.
+- Implementado el slice canónico inicial de `feat-007`:
+  - ruta de check-in admin/owner
+  - ruta de sorteo cliente
+  - ruta de equipos confirmados
+  - algoritmo en `src/lib/draw.ts`
+  - RPC `confirm_draw`
+- Validaciones:
+  - `src/lib/draw.test.ts` ✅
+  - `tests/integration/feat-007-confirm-draw-rpc.test.ts` bloqueado por entorno local (`ECONNREFUSED 127.0.0.1:54322`)
+
 ## [0.1.2] - 2026-05-02 — corrección de estado + regla de registro
 
 - Iniciada la pasada de fundación visual mobile-first para bajar el mockup a UI real.

@@ -1,2 +1,1 @@
-
-alter type notification_type add value 'match_ready';
+alter type notification_type add value if not exists 'match_ready';

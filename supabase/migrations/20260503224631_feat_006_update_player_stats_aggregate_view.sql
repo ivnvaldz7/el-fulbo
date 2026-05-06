@@ -56,8 +56,8 @@ SELECT
     SELECT count(*)
     FROM public.event_attendances ea
     JOIN public.events ev ON ev.id = ea.event_id
-    WHERE ea.user_id = p.user_id -- Changed from player_id to user_id
-      AND ea.status = 'DECLINED' -- Changed from 'not_going' to 'DECLINED'
+    WHERE ea.player_id = p.id
+      AND ea.status = 'not_going'
       AND ea.updated_at > (ev.scheduled_at - INTERVAL '6 hours')
   )::INTEGER AS late_dropouts
 FROM public.players p

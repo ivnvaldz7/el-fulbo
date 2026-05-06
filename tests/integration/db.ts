@@ -1,13 +1,41 @@
 import { randomUUID } from 'node:crypto';
 import { Client } from 'pg';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 export const connectionString =
-  process.env.TEST_DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
+  process.env.TEST_DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:55432/postgres';
+export const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'http://127.0.0.1:55421';
+export const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+export const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+function requireEnv(value: string | undefined, name: string) {
+  if (!value) {
+    throw new Error(`Missing ${name} for integration test.`);
+  }
+
+  return value;
+}
 
 export async function createDbClient() {
   const client = new Client({ connectionString });
   await client.connect();
   return client;
+}
+
+export function createSupabaseAnonClient() {
+  return createClient(supabaseUrl, requireEnv(supabaseAnonKey, 'NEXT_PUBLIC_SUPABASE_ANON_KEY'), {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
+
+export function createSupabaseServiceRoleClient() {
+  return createClient(
+    supabaseUrl,
+    requireEnv(supabaseServiceRoleKey, 'SUPABASE_SERVICE_ROLE_KEY'),
+    {
+      auth: { autoRefreshToken: false, persistSession: false },
+    },
+  );
 }
 
 export async function seedUser(client: Client, label: string) {
@@ -38,6 +66,52 @@ export async function seedUser(client: Client, label: string) {
   }
 
   return { id, email, displayName };
+}
+
+export async function seedAuthUser(client: Client, label: string) {
+  const suffix = randomUUID().slice(0, 8);
+  const email = `${label}-${suffix}@example.com`;
+  const password = 'Codex123!';
+  const displayName = `Jugador ${label}`;
+  const admin = createSupabaseServiceRoleClient();
+
+  const created = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { display_name: displayName },
+  });
+
+  if (created.error || !created.data.user) {
+    throw created.error ?? new Error('No se pudo crear el usuario auth para el test.');
+  }
+
+  await client.query(
+    `
+      insert into public.users (id, email, display_name)
+      values ($1, $2, $3)
+      on conflict (id) do nothing
+    `,
+    [created.data.user.id, email, displayName],
+  );
+
+  return {
+    id: created.data.user.id,
+    email,
+    password,
+    displayName,
+  };
+}
+
+export async function signInAsAuthUser(email: string, password: string): Promise<SupabaseClient> {
+  const supabase = createSupabaseAnonClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    throw error;
+  }
+
+  return supabase;
 }
 
 export async function seedGroup(client: Client, adminUserId: string, inviteCode?: string) {

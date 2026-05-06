@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { EventsService } from './events.service';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { RPC_CreateEventPayload, RPC_UpdateEventPayload, RPC_CancelEventPayload } from '../types/events.types';
+import { RPC_CreateEventPayload, RPC_UpdateEventPayload } from '../types/events.types';
 import { Modality, UserId } from '../types';
 
 describe('EventsService', () => {

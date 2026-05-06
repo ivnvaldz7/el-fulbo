@@ -1,9 +1,7 @@
 -- Add new notification type
-COMMIT;
 ALTER TYPE public.notification_type ADD VALUE IF NOT EXISTS 'event_updated';
 ALTER TYPE public.notification_type ADD VALUE IF NOT EXISTS 'event_rescheduled';
 ALTER TYPE public.notification_type ADD VALUE IF NOT EXISTS 'event_cancelled';
-BEGIN;
 
 -- Drop existing functions to prevent signature conflicts during migration
 DROP FUNCTION IF EXISTS public.create_event(UUID, public.modality, TEXT, TEXT, TIMESTAMPTZ, TEXT);

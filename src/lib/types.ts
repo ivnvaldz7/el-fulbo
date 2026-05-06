@@ -23,6 +23,7 @@ export type GroupRole = 'admin' | 'owner';
 export type PlayerStatsStatus = 'pending_approval' | 'approved';
 export type StatsStatus = PlayerStatsStatus;
 export type PlayerPosition = 'ARQ' | 'DEF' | 'MED' | 'DEL';
+export type BoostReason = 'victory_mvp' | 'victory' | 'draw_mvp' | 'loss_mvp';
 
 export interface AppError {
   code: string;
@@ -148,6 +149,51 @@ export interface PlayerMatchAssignment {
 export interface TeamAssignment {
   name: string;
   players: PlayerMatchAssignment[];
+}
+
+export interface DrawAssignment {
+  playerId: PlayerId;
+  team: 'A' | 'B' | 'substitute';
+  assignedPosition: PlayerPosition | null;
+  playedPrimaryPosition: boolean;
+}
+
+export interface DrawWarning {
+  kind: 'imbalance' | 'out_of_position' | 'forced_goalkeeper' | 'not_enough_players' | 'not_enough_goalkeepers';
+  diff?: number;
+  playerId?: PlayerId;
+  primary?: PlayerPosition;
+  assigned?: PlayerPosition;
+  needed?: number;
+  got?: number;
+}
+
+export interface DrawResult {
+  assignments: DrawAssignment[];
+  teamAOverallAvg: number;
+  teamBOverallAvg: number;
+  ratingDiff: number;
+  warnings: DrawWarning[];
+}
+
+export interface CurrentBoost {
+  appliedAtEventId?: EventId;
+  applied_at_event_id?: EventId;
+  partidosRemaining?: number;
+  partidos_remaining?: number;
+  modifiers: Partial<Record<keyof FieldStats | keyof GoalkeeperStats, number>>;
+  reason?: BoostReason | null;
+}
+
+export interface PlayerForDraw {
+  id: PlayerId;
+  display_name: string;
+  primary_position: PlayerPosition;
+  secondary_position?: PlayerPosition | null;
+  stats: PlayerStats;
+  current_boost?: CurrentBoost | null;
+  is_phantom?: boolean;
+  joined_at?: string | null;
 }
 
 export interface Event {
