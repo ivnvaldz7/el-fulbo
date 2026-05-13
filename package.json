@@ -5,6 +5,7 @@
   "description": "PWA para organizar fulbito amateur con evento, confirmacion, sorteo, resultado y memoria.",
   "scripts": {
     "dev": "next dev",
+    "dev:clean": "rimraf .next && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -20,6 +21,8 @@
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
+    "jszip": "^3.10.1",
+    "web-push": "^3.6.7",
     "@supabase/supabase-js": "^2.104.1",
     "@tanstack/react-query": "^5.100.5",
     "framer-motion": "^12.38.0",
@@ -40,6 +43,8 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^20.19.39",
+    "@types/jszip": "^3.4.1",
+    "@types/web-push": "^3.6.4",
     "@types/pg": "^8.20.0",
     "@types/react": "^18.3.28",
     "@types/react-dom": "^18.3.7",

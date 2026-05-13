@@ -8,6 +8,8 @@ import { EventsService } from '@/lib/services/events.service';
 import { createEventSchema, CreateEventData } from '@/lib/validations/event';
 import toast from 'react-hot-toast';
 import { showEventNotification } from '@/lib/notifications';
+import { ImmersiveScreen } from '@/components/ui/immersive-screen';
+import { PageHeader } from '@/components/ui/page-header';
 
 const modalityOptions: Array<{ value: EventModality; label: string }> = [
   { value: 'F5', label: 'F5 - 5 vs 5' },
@@ -116,17 +118,15 @@ export default function NewEventPage() {
 
     try {
       // Concatenate date and time to form a valid ISO 8601 string for Supabase
-      const dateTime = `${parsed.data.date}T${parsed.data.time}:00`;
+      const dateTime = new Date(`${parsed.data.date}T${parsed.data.time}:00`).toISOString();
 
       await eventsService.createEvent({
         p_group_id: groupId,
-        p_title: `Partido en ${parsed.data.locationName}`, // Default title
+        p_title: `Partido en ${parsed.data.locationName}`,
         p_date_time: dateTime,
         p_location: parsed.data.locationName,
         p_modality: parsed.data.modality,
-        p_created_by: (await supabase.auth.getUser()).data.user?.id || '', // Get current user ID
-        delivery_strategy: 'auto-chain',
-        skip_local_db_environment_verification: true,
+        p_created_by: (await supabase.auth.getUser()).data.user?.id || '',
       });
 
       window.localStorage.removeItem(CREATE_EVENT_DRAFT_KEY);
@@ -145,10 +145,13 @@ export default function NewEventPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white p-4">
-      <h1 className="text-3xl font-bold mb-6 text-center">Nuevo Partido</h1>
-      <form onSubmit={submit} className="space-y-4 max-w-md mx-auto">
-        <div className="border border-white/10 bg-black/40 divide-y divide-white/5 rounded-lg">
+    <ImmersiveScreen align="center" contentClassName="max-w-md mx-auto w-full">
+      <PageHeader title="NUEVO PARTIDO" backHref={`/groups/${groupId}/dashboard`} />
+      <div className="mt-16">
+      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green mb-2">Nuevo Partido</p>
+      <h1 className="font-headline text-3xl font-black italic uppercase text-white mb-6">¿Cuándo jugamos?</h1>
+      <form onSubmit={submit} className="space-y-4">
+        <div className="border border-white/10 bg-concrete-overlay divide-y divide-white/5">
           <label className="block p-4">
             <span className="font-mono text-[10px] font-bold uppercase text-white/60">Fecha</span>
             <input
@@ -235,13 +238,14 @@ export default function NewEventPage() {
           </button>
         </footer>
       </form>
-    </div>
+      </div>
+    </ImmersiveScreen>
   );
 }
 
 function CreateEventLoadingScreen() {
   return (
-    <div className="flex min-h-[300px] flex-col justify-center text-center">
+    <ImmersiveScreen align="center" contentClassName="text-center">
       <div className="mx-auto h-12 w-12 animate-spin border-4 border-pitch-green border-t-transparent" />
       <p className="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Organizando partido</p>
       <h2 className="mt-2 font-headline text-2xl font-black italic uppercase text-white tracking-tight">Cargando los jugadores...</h2>
@@ -250,6 +254,6 @@ function CreateEventLoadingScreen() {
         <li className="text-pitch-green">[X] Confirmando horario</li>
         <li className="animate-pulse">[ ] Armado de equipos</li>
       </ul>
-    </div>
+    </ImmersiveScreen>
   );
 }

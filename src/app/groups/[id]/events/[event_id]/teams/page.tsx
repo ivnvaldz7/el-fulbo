@@ -6,6 +6,8 @@ import toast from 'react-hot-toast';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { type EventId, type GroupId } from '@/lib/types';
 import { EventsService, type DrawTeamSummary } from '@/lib/services/events.service';
+import { ImmersiveScreen } from '@/components/ui/immersive-screen';
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function EventTeamsPage() {
   const params = useParams();
@@ -29,23 +31,30 @@ export default function EventTeamsPage() {
   }, [eventId, eventsService]);
 
   if (loading) {
-    return <div className="p-6 text-white">Cargando equipos...</div>;
+    return (
+      <ImmersiveScreen align="center" contentClassName="text-center">
+        <div className="mx-auto h-12 w-12 animate-spin border-4 border-pitch-green border-t-transparent" />
+        <p className="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Equipos</p>
+        <h2 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">Cargando equipos...</h2>
+      </ImmersiveScreen>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black p-4 text-white">
-      <div className="mx-auto max-w-5xl space-y-4">
-        <header className="rounded-lg border border-white/10 bg-black/40 p-4">
+    <ImmersiveScreen contentClassName="max-w-5xl mx-auto space-y-4">
+      <PageHeader title="EQUIPOS" backHref={`/groups/${groupId}/events/${eventId}`} />
+      <div className="mt-16 space-y-4">
+        <header className="border border-white/10 bg-concrete-overlay p-5">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-pitch-green">Equipos confirmados</p>
         </header>
 
         <div className="grid gap-4 md:grid-cols-2">
           {teams.map((team) => (
-            <section key={team.name} className="rounded-lg border border-white/10 bg-black/40 p-4">
+            <section key={team.name} className="border border-white/10 bg-concrete-overlay p-5">
               <h2 className="font-headline text-2xl font-black italic uppercase">{team.name}</h2>
               <ul className="mt-4 space-y-3">
                 {team.players.map((player) => (
-                  <li key={player.playerId} className="rounded-lg border border-white/10 px-3 py-2">
+                  <li key={player.playerId} className="border border-white/10 px-3 py-2">
                     <p>{player.displayName}</p>
                     <p className="text-xs uppercase tracking-[0.18em] text-white/50">
                       {player.assignedPosition ?? 'SUP'} {player.playedPrimaryPosition ? '' : '· Fuera de posición'}
@@ -60,12 +69,12 @@ export default function EventTeamsPage() {
         <button
           type="button"
           onClick={() => router.push(`/groups/${groupId}/events/${eventId}`)}
-          className="rounded-lg border border-white/10 bg-white/[0.06] px-4 py-3 font-headline text-lg font-black italic uppercase"
+          className="border border-white/10 bg-white/[0.06] px-4 py-3 font-headline text-lg font-black italic uppercase"
         >
           Volver al evento
         </button>
       </div>
-    </div>
+    </ImmersiveScreen>
   );
 }
 

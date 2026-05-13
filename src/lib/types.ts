@@ -125,19 +125,19 @@ export interface GroupWithMemberships {
 
 export interface Player {
   id: PlayerId;
-  user_id: UserId | null;
-  group_id: GroupId;
-  display_name: string;
-  photo_url?: string | null;
-  primary_position: PlayerPosition;
-  secondary_position?: PlayerPosition | null;
-  stats_status: PlayerStatsStatus;
+  userId: UserId | null;
+  groupId: GroupId;
+  displayName: string;
+  photoUrl?: string | null;
+  primaryPosition: PlayerPosition;
+  secondaryPosition?: PlayerPosition | null;
+  statsStatus: PlayerStatsStatus;
   stats?: PlayerStats;
-  current_boost?: unknown;
-  joined_at?: string;
-  archived_at?: string | null;
-  is_phantom?: boolean;
-  is_expelled?: boolean;
+  currentBoost?: CurrentBoost | null;
+  joinedAt?: string;
+  archivedAt?: string | null;
+  isPhantom?: boolean;
+  isExpelled?: boolean;
 }
 
 export interface PlayerMatchAssignment {
@@ -265,4 +265,20 @@ interface SocketWithIo extends Socket {
 
 export interface NextApiResponseServerIO extends NextApiResponse {
   socket: SocketWithIo;
+}
+
+export interface PlayerStatsAggregate {
+  playerId: PlayerId;
+  groupId: GroupId;
+  userId: UserId | null;
+  displayName: string;
+  matchesPlayed: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  winPercentage: number | null;
+  mvpCount: number;
+  lastMvpAt: string | null;
+  attendanceRate: number | null;
+  lateDropouts: number;
 }

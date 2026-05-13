@@ -13,40 +13,45 @@ describe('EventsService', () => {
   it('calls create_event RPC with correct payload and returns event ID', async () => {
     mockRpc.mockResolvedValueOnce({ data: 'event-123', error: null });
 
-    const payload: RPC_CreateEventPayload = {
+    const service = new EventsService(mockSupabase);
+    const result = await service.createEvent({
       p_group_id: 'group-1',
-      p_title: 'Test Event',
       p_date_time: '2026-05-10T20:00:00Z',
       p_location: 'Cancha 1',
       p_modality: 'F5',
-      p_created_by: 'user-1',
-    };
+    });
 
-    const service = new EventsService(mockSupabase);
-    const result = await service.createEvent(payload);
-
-    expect(mockRpc).toHaveBeenCalledWith('create_event', payload);
+    expect(mockRpc).toHaveBeenCalledWith('create_event', {
+      p_group_id: 'group-1',
+      p_modality: 'F5',
+      p_field_name: 'Cancha 1',
+      p_field_maps_url: null,
+      p_scheduled_at: '2026-05-10T20:00:00Z',
+      p_notes: null,
+    });
     expect(result).toBe('event-123');
   });
 
-  it('handles optional google_maps_link and notes in create_event RPC', async () => {
+  it('handles optional notes in create_event RPC', async () => {
     mockRpc.mockResolvedValueOnce({ data: 'event-456', error: null });
 
-    const payload: RPC_CreateEventPayload = {
+    const service = new EventsService(mockSupabase);
+    const result = await service.createEvent({
       p_group_id: 'group-2',
-      p_title: 'Event with Optional Fields',
       p_date_time: '2026-06-01T10:00:00Z',
       p_location: 'Online',
-      p_modality: 'Virtual' as Modality,
-      p_created_by: 'user-2' as UserId,
-      p_google_maps_link: 'https://maps.app.goo.gl/abcdefg',
+      p_modality: 'F11',
       p_notes: 'Some additional notes for the event.',
-    };
+    });
 
-    const service = new EventsService(mockSupabase);
-    const result = await service.createEvent(payload);
-
-    expect(mockRpc).toHaveBeenCalledWith('create_event', payload);
+    expect(mockRpc).toHaveBeenCalledWith('create_event', {
+      p_group_id: 'group-2',
+      p_modality: 'F11',
+      p_field_name: 'Online',
+      p_field_maps_url: null,
+      p_scheduled_at: '2026-06-01T10:00:00Z',
+      p_notes: 'Some additional notes for the event.',
+    });
     expect(result).toBe('event-456');
   });
 
@@ -89,21 +94,24 @@ describe('EventsService', () => {
     mockRpc.mockResolvedValueOnce({ data: 'event-789', error: null });
 
     const futureDate = new Date();
-    futureDate.setFullYear(futureDate.getFullYear() + 1); // Set to one year from now
-
-    const payload: RPC_CreateEventPayload = {
-      p_group_id: 'group-5',
-      p_title: 'Future Event',
-      p_date_time: futureDate.toISOString(),
-      p_location: 'Future Stadium',
-      p_modality: 'Indoor' as Modality,
-      p_created_by: 'user-5' as UserId,
-    };
+    futureDate.setFullYear(futureDate.getFullYear() + 1);
 
     const service = new EventsService(mockSupabase);
-    const result = await service.createEvent(payload);
+    const result = await service.createEvent({
+      p_group_id: 'group-5',
+      p_date_time: futureDate.toISOString(),
+      p_location: 'Future Stadium',
+      p_modality: 'F8',
+    });
 
-    expect(mockRpc).toHaveBeenCalledWith('create_event', payload);
+    expect(mockRpc).toHaveBeenCalledWith('create_event', {
+      p_group_id: 'group-5',
+      p_modality: 'F8',
+      p_field_name: 'Future Stadium',
+      p_field_maps_url: null,
+      p_scheduled_at: futureDate.toISOString(),
+      p_notes: null,
+    });
     expect(result).toBe('event-789');
   });
 
@@ -115,9 +123,9 @@ describe('EventsService', () => {
       p_title: 'Event with Bad Map Link',
       p_date_time: '2026-08-01T18:00:00Z',
       p_location: 'Invalid Link Location',
-      p_modality: 'Beach' as Modality,
+      p_modality: 'F8' as Modality,
       p_created_by: 'user-6' as UserId,
-      p_google_maps_link: 'not-a-valid-url',
+      p_field_maps_url: 'not-a-valid-url',
     };
 
     const service = new EventsService(mockSupabase);
@@ -140,50 +148,63 @@ describe('EventsService', () => {
     await expect(service.createEvent(payload)).rejects.toThrow('Database error');
   });
 
-  it('calls update_event RPC with correct payload', async () => {
+  it('calls update_event RPC with correct transformed payload', async () => {
     mockRpc.mockResolvedValueOnce({ data: null, error: null });
 
-    const payload: RPC_UpdateEventPayload = {
+    const service = new EventsService(mockSupabase);
+    await service.updateEvent({
       p_event_id: 'event-123',
-      p_title: 'Updated Event',
       p_date_time: '2026-05-11T20:00:00Z',
       p_location: 'Cancha 2',
       p_modality: 'F5',
-    };
+    });
 
-    const service = new EventsService(mockSupabase);
-    await service.updateEvent(payload);
-
-    expect(mockRpc).toHaveBeenCalledWith('update_event', payload);
+    expect(mockRpc).toHaveBeenCalledWith('update_event', {
+      p_event_id: 'event-123',
+      p_modality: 'F5',
+      p_field_name: 'Cancha 2',
+      p_field_maps_url: null,
+      p_scheduled_at: '2026-05-11T20:00:00Z',
+      p_notes: null,
+    });
   });
 
-  it('updates only p_title when other fields are omitted', async () => {
+  it('updates only field_name when other fields are omitted', async () => {
     mockRpc.mockResolvedValueOnce({ data: null, error: null });
-
-    const payload: RPC_UpdateEventPayload = {
-      p_event_id: 'event-123',
-      p_title: 'Updated Title Only',
-    };
 
     const service = new EventsService(mockSupabase);
-    await service.updateEvent(payload);
+    await service.updateEvent({
+      p_event_id: 'event-123',
+      p_field_name: 'Updated Title Only',
+    });
 
-    expect(mockRpc).toHaveBeenCalledWith('update_event', payload);
+    expect(mockRpc).toHaveBeenCalledWith('update_event', {
+      p_event_id: 'event-123',
+      p_modality: null,
+      p_field_name: 'Updated Title Only',
+      p_field_maps_url: null,
+      p_scheduled_at: null,
+      p_notes: null,
+    });
   });
 
-  it('updates p_title and p_location when other fields are omitted', async () => {
+  it('updates field_name with p_location when p_field_name is omitted', async () => {
     mockRpc.mockResolvedValueOnce({ data: null, error: null });
 
-    const payload: RPC_UpdateEventPayload = {
+    const service = new EventsService(mockSupabase);
+    await service.updateEvent({
       p_event_id: 'event-123',
-      p_title: 'Updated Title and Location',
       p_location: 'New Location Address',
-    };
+    });
 
-    const service = new EventsService(mockSupabase);
-    await service.updateEvent(payload);
-
-    expect(mockRpc).toHaveBeenCalledWith('update_event', payload);
+    expect(mockRpc).toHaveBeenCalledWith('update_event', {
+      p_event_id: 'event-123',
+      p_modality: null,
+      p_field_name: 'New Location Address',
+      p_field_maps_url: null,
+      p_scheduled_at: null,
+      p_notes: null,
+    });
   });
 
   // Note on delivery_strategy and local database environment verification:

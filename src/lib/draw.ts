@@ -2,7 +2,6 @@ import {
   calculateOverall,
   FORMATIONS,
   getTeamSize,
-  type CurrentBoost,
   type DrawAssignment,
   type DrawResult,
   type DrawWarning,
@@ -10,6 +9,7 @@ import {
   type PlayerForDraw,
   type PlayerPosition,
 } from '@/lib/types';
+import { applyBoostToStats, getActiveBoost } from '@/lib/boost';
 
 type PlayerSlot = {
   player: PlayerForDraw;
@@ -50,33 +50,9 @@ function shuffle<T>(items: T[], rng: () => number) {
   return output;
 }
 
-function getBoostMeta(boost: CurrentBoost | null | undefined) {
-  if (!boost) {
-    return null;
-  }
-
-  const remaining = boost.partidosRemaining ?? boost.partidos_remaining ?? 0;
-  return remaining > 0 ? boost : null;
-}
-
-function applyBoost(stats: PlayerForDraw['stats'], boost: CurrentBoost | null) {
-  if (!boost) {
-    return stats;
-  }
-
-  const output = { ...stats } as Record<string, number>;
-  for (const [key, delta] of Object.entries(boost.modifiers ?? {})) {
-    if (output[key] !== undefined) {
-      output[key] = Math.min(10, output[key] + delta / 10);
-    }
-  }
-
-  return output as PlayerForDraw['stats'];
-}
-
 function getOverall(player: PlayerForDraw) {
-  const boost = getBoostMeta(player.current_boost);
-  const stats = applyBoost(player.stats, boost ?? null);
+  const boost = getActiveBoost(player.current_boost);
+  const stats = applyBoostToStats(player.stats, boost ?? null);
   return calculateOverall(stats, player.primary_position);
 }
 
@@ -158,9 +134,10 @@ function swapBest(teamA: TeamBuckets, teamB: TeamBuckets) {
     return false;
   }
 
-  const temp = teamA[best.position][best.leftIndex]!;
-  teamA[best.position][best.leftIndex] = teamB[best.position][best.rightIndex]!;
-  teamB[best.position][best.rightIndex] = temp;
+  const { position, leftIndex, rightIndex } = best;
+  const temp = teamA[position][leftIndex]!;
+  teamA[position][leftIndex] = teamB[position][rightIndex]!;
+  teamB[position][rightIndex] = temp;
   return true;
 }
 

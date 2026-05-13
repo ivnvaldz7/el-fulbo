@@ -7,6 +7,8 @@ import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { EventsService, type DrawTeamSummary } from '@/lib/services/events.service';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import type { Event, EventId, GroupId, PlayerId } from '@/lib/types';
+import { ImmersiveScreen } from '@/components/ui/immersive-screen';
+import { PageHeader } from '@/components/ui/page-header';
 
 type DraftState = {
   teamAScore: number;
@@ -164,19 +166,27 @@ export default function EventResultPage() {
   }
 
   if (loading) {
-    return <div className="p-6 text-white">Cargando resultado...</div>;
+    return (
+      <ImmersiveScreen align="center" contentClassName="text-center">
+        <div className="mx-auto h-12 w-12 animate-spin border-4 border-pitch-green border-t-transparent" />
+        <p className="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Resultado</p>
+        <h2 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">Cargando datos del partido...</h2>
+      </ImmersiveScreen>
+    );
   }
 
   if (!event || !isAdminOrOwner || event.status !== 'drawn') {
     return (
-      <div className="p-6 text-white">
-        <p>No tenés acceso a esta pantalla o el partido todavía no está listo para resultado.</p>
-      </div>
+      <ImmersiveScreen align="center" contentClassName="max-w-md mx-auto text-center">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Sin acceso</p>
+        <h2 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">No tenés acceso o el partido todavía no está listo para resultado.</h2>
+      </ImmersiveScreen>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black p-4 text-white">
+    <ImmersiveScreen contentClassName="max-w-3xl mx-auto space-y-4">
+      <PageHeader title="RESULTADO" backHref={`/groups/${groupId}/events/${eventId}`} />
       {showConfirmModal ? (
         <ConfirmationModal
           title="¿Confirmás el resultado?"
@@ -187,8 +197,8 @@ export default function EventResultPage() {
         />
       ) : null}
 
-      <div className="mx-auto max-w-3xl space-y-4">
-        <header className="rounded-lg border border-white/10 bg-black/40 p-4">
+      <div className="mt-16 space-y-4">
+        <header className="border border-white/10 bg-concrete-overlay p-5">
           <button
             type="button"
             onClick={() => router.push(`/groups/${groupId}/events/${eventId}`)}
@@ -201,7 +211,7 @@ export default function EventResultPage() {
           <p className="mt-2 text-sm text-white/70">{new Date(event.scheduled_at).toLocaleString('es-AR')}</p>
         </header>
 
-        <section className="rounded-lg border border-white/10 bg-black/40 p-4">
+        <section className="border border-white/10 bg-concrete-overlay p-5">
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
             <div>
               <p className="font-headline text-xl font-black italic uppercase">{event.team_a_name ?? 'Equipo A'}</p>
@@ -213,7 +223,7 @@ export default function EventResultPage() {
                 max={99}
                 value={teamAScore}
                 onChange={(eventChange) => setTeamAScore(Number(eventChange.target.value || 0))}
-                className="w-20 rounded-lg border border-white/10 bg-white/5 p-3 text-center text-3xl font-black text-white"
+                className="w-20 border border-white/10 bg-white/5 p-3 text-center text-3xl font-black text-white"
               />
               <span className="text-2xl font-black text-white/70">-</span>
               <input
@@ -222,7 +232,7 @@ export default function EventResultPage() {
                 max={99}
                 value={teamBScore}
                 onChange={(eventChange) => setTeamBScore(Number(eventChange.target.value || 0))}
-                className="w-20 rounded-lg border border-white/10 bg-white/5 p-3 text-center text-3xl font-black text-white"
+                className="w-20 border border-white/10 bg-white/5 p-3 text-center text-3xl font-black text-white"
               />
             </div>
             <div className="text-right">
@@ -231,7 +241,7 @@ export default function EventResultPage() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-white/10 bg-black/40 p-4">
+        <section className="border border-white/10 bg-concrete-overlay p-5">
           <h2 className="font-headline text-2xl font-black italic uppercase">¿Quién fue la figura?</h2>
           <p className="mt-1 text-sm text-white/60">Elegí un jugador de cualquier equipo.</p>
 
@@ -243,7 +253,7 @@ export default function EventResultPage() {
                   key={player.playerId}
                   type="button"
                   onClick={() => setMvpPlayerId(player.playerId)}
-                  className={`rounded-lg border px-4 py-3 text-left ${
+                  className={`border px-4 py-3 text-left ${
                     selected ? 'border-amber-400 bg-amber-400/15' : 'border-white/10 bg-white/[0.04]'
                   }`}
                 >
@@ -257,7 +267,7 @@ export default function EventResultPage() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-white/10 bg-black/40 p-4">
+        <section className="border border-white/10 bg-concrete-overlay p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-headline text-2xl font-black italic uppercase">Notas</h2>
             <span className="text-xs text-white/45">{notes.length}/300</span>
@@ -267,7 +277,7 @@ export default function EventResultPage() {
             onChange={(eventChange) => setNotes(eventChange.target.value.slice(0, 300))}
             rows={4}
             placeholder="Algo memorable del partido (opcional)"
-            className="mt-3 w-full rounded-lg border border-white/10 bg-white/5 p-3 text-white placeholder-white/30"
+            className="mt-3 w-full border border-white/10 bg-white/5 p-3 text-white placeholder-white/30"
           />
         </section>
 
@@ -275,7 +285,7 @@ export default function EventResultPage() {
           <button
             type="button"
             onClick={() => router.push(`/groups/${groupId}/events/${eventId}`)}
-            className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-4 font-headline text-xl font-black italic uppercase"
+            className="border border-white/10 bg-white/[0.04] px-4 py-4 font-headline text-xl font-black italic uppercase"
           >
             Cancelar
           </button>
@@ -283,12 +293,12 @@ export default function EventResultPage() {
             type="button"
             onClick={() => setShowConfirmModal(true)}
             disabled={saving}
-            className="rounded-lg bg-emerald-500 px-4 py-4 font-headline text-xl font-black italic uppercase text-black disabled:opacity-60"
+            className="bg-emerald-500 px-4 py-4 font-headline text-xl font-black italic uppercase text-black disabled:opacity-60"
           >
             Confirmar resultado
           </button>
         </div>
       </div>
-    </div>
+    </ImmersiveScreen>
   );
 }

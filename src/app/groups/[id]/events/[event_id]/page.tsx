@@ -4,7 +4,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import EventAttendeesList from '@/components/EventAttendeesList/EventAttendeesList';
+import { ShareMatchSummaryButton } from '@/components/share/share-match-summary-button';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { ImmersiveScreen } from '@/components/ui/immersive-screen';
+import { PageHeader } from '@/components/ui/page-header';
 import { showEventNotification } from '@/lib/notifications';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import type { AttendanceStatus, Event, EventId, EventStatus, GroupId } from '@/lib/types';
@@ -86,6 +89,7 @@ export default function EventViewPage() {
   const eventsService = useMemo(() => new EventsService(supabase), [supabase]);
 
   const [event, setEvent] = useState<Event | null>(null);
+  const [groupName, setGroupName] = useState('El Fulbo');
   const [attendees, setAttendees] = useState<EventAttendee[]>([]);
   const [currentPlayer, setCurrentPlayer] = useState<CurrentPlayerAttendanceContext | null>(null);
   const [playedSummary, setPlayedSummary] = useState<PlayedMatchSummaryItem[]>([]);
@@ -107,13 +111,15 @@ export default function EventViewPage() {
 
     try {
       const eventData = await eventsService.getEventById(eventId);
-      const [nextAttendees, nextCurrentPlayer, nextIsAdminOrOwner] = await Promise.all([
+      const [nextAttendees, nextCurrentPlayer, nextIsAdminOrOwner, groupResponse] = await Promise.all([
         eventsService.getEventAttendees(eventId),
         eventsService.getCurrentPlayerAttendanceContext(eventData.group_id, eventId),
         eventsService.isCurrentUserAdminOrOwner(eventData.group_id),
+        supabase.from('groups').select('name').eq('id', eventData.group_id).single(),
       ]);
 
       setEvent(eventData);
+      setGroupName(groupResponse.data?.name ?? 'El Fulbo');
       setAttendees(nextAttendees);
       setCurrentPlayer(nextCurrentPlayer);
       setSelectedStatus(nextCurrentPlayer?.attendanceStatus ?? null);
@@ -184,6 +190,7 @@ export default function EventViewPage() {
       checkedIn: false,
       checkedInAt: null,
       statsStatus: currentPlayer.statsStatus,
+      isPhantom: false,
     };
 
     setSavingAttendance(true);
@@ -251,7 +258,7 @@ export default function EventViewPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[300px] flex-col justify-center text-center">
+      <ImmersiveScreen align="center" contentClassName="text-center">
         <div className="mx-auto h-12 w-12 animate-spin border-4 border-pitch-green border-t-transparent" />
         <p className="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
           Cargando evento
@@ -259,17 +266,17 @@ export default function EventViewPage() {
         <h2 className="mt-2 font-headline text-2xl font-black italic uppercase tracking-tight text-white">
           Recuperando detalles del partido...
         </h2>
-      </div>
+      </ImmersiveScreen>
     );
   }
 
   if (error || !event) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black p-4 text-white">
-        <div className="mx-auto max-w-md rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-center text-red-100">
+      <ImmersiveScreen align="center" contentClassName="max-w-md mx-auto">
+        <div className="border border-red-500/30 bg-red-500/10 p-5 text-center text-red-100">
           {error ?? 'No se pudo cargar el partido.'}
         </div>
-      </div>
+      </ImmersiveScreen>
     );
   }
 
@@ -282,44 +289,9 @@ export default function EventViewPage() {
   const mvp = playedSummary.find((item) => item.isMvp) ?? null;
   const boostsApplied = playedSummary.filter((item) => item.boostApplied);
 
-  async function handleShareSummary() {
-    const scoreLine = `${event.team_a_name ?? 'Equipo A'} ${event.team_a_score ?? 0} - ${event.team_b_score ?? 0} ${event.team_b_name ?? 'Equipo B'}`;
-    const mvpLine = mvp ? `MVP: ${mvp.displayName}` : null;
-    const boostsLine =
-      boostsApplied.length > 0
-        ? `Boosts: ${boostsApplied
-            .map((item) =>
-              `${item.displayName} ${
-                item.boostApplied
-                  ? Object.entries(item.boostApplied)
-                      .map(([stat, delta]) => `${stat.toUpperCase()} +${delta}`)
-                      .join(', ')
-                  : ''
-              }`,
-            )
-            .join(' · ')}`
-        : null;
-
-    const shareText = [event.field_name, scoreLine, mvpLine, boostsLine].filter(Boolean).join('\n');
-
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: `Resumen ${event.field_name}`,
-          text: shareText,
-        });
-      } else {
-        await navigator.clipboard.writeText(shareText);
-        toast.success('Resumen copiado al portapapeles.');
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error('No pudimos compartir el resumen.');
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black p-4 text-white">
+    <ImmersiveScreen contentClassName="max-w-md mx-auto space-y-4">
+      <PageHeader title="PARTIDO" backHref={`/groups/${groupId}/dashboard`} />
       {showCancelModal ? (
         <ConfirmationModal
           title="Confirmar cancelación"
@@ -331,8 +303,8 @@ export default function EventViewPage() {
         />
       ) : null}
 
-      <div className="mx-auto max-w-md space-y-4">
-        <header className="rounded-lg border border-white/10 bg-black/40 p-4">
+      <div className="mt-16 space-y-4">
+        <header className="border border-white/10 bg-concrete-overlay p-5">
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
             Partido
           </p>
@@ -354,7 +326,7 @@ export default function EventViewPage() {
             </p>
             <p>
               <span className="font-mono text-[10px] font-bold uppercase text-white/50">Estado:</span>{' '}
-              {event.status}
+              {({ scheduled: 'Agendado', confirming: 'Confirmando', checked_in: 'Check-in abierto', drawn: 'Equipos sorteados', played: 'Jugado', cancelled: 'Cancelado' } as Record<string, string>)[event.status] ?? event.status}
             </p>
             {event.field_maps_url ? (
               <p>
@@ -378,7 +350,7 @@ export default function EventViewPage() {
           </div>
         </header>
 
-        <section className="rounded-lg border border-white/10 bg-black/40 p-4">
+        <section className="border border-white/10 bg-concrete-overlay p-5">
           <div className="mb-4">
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
               Confirmación
@@ -414,7 +386,7 @@ export default function EventViewPage() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-white/10 bg-black/40 p-4">
+        <section className="border border-white/10 bg-concrete-overlay p-5">
           <div className="mb-4">
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
               Lista en vivo
@@ -449,7 +421,7 @@ export default function EventViewPage() {
         ) : null}
 
         {event.status === 'played' ? (
-          <section className="space-y-4 rounded-lg border border-white/10 bg-black/40 p-4">
+          <section className="space-y-4 border border-white/10 bg-concrete-overlay p-5">
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Resultado final</p>
             <div className="mt-3 flex items-center justify-between gap-4">
               <div>
@@ -475,13 +447,13 @@ export default function EventViewPage() {
             ) : null}
 
             {boostsApplied.length > 0 ? (
-              <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
+              <div className="border border-white/10 bg-white/[0.03] p-4">
                 <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
                   Boosts aplicados
                 </p>
                 <ul className="mt-3 space-y-3">
                   {boostsApplied.map((item) => (
-                    <li key={item.playerId} className="rounded-lg border border-white/10 px-3 py-3">
+                    <li key={item.playerId} className="border border-white/10 px-3 py-3">
                       <p className="font-semibold text-white">{item.displayName}</p>
                       <p className="mt-1 text-sm text-white/70">
                         {Object.entries(item.boostApplied ?? {})
@@ -500,7 +472,7 @@ export default function EventViewPage() {
                   const teamName = teamKey === 'A' ? event.team_a_name ?? 'Equipo A' : event.team_b_name ?? 'Equipo B';
                   const players = playedSummary.filter((item) => item.team === teamKey);
                   return (
-                    <div key={teamKey} className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
+                    <div key={teamKey} className="border border-white/10 bg-white/[0.03] p-4">
                       <p className="font-headline text-xl font-black italic uppercase text-white">{teamName}</p>
                       <ul className="mt-3 space-y-2 text-sm text-white/75">
                         {players.map((item) => (
@@ -515,13 +487,17 @@ export default function EventViewPage() {
               </div>
             ) : null}
 
-            <button
-              type="button"
-              onClick={() => void handleShareSummary()}
-              className="w-full rounded-lg bg-white/[0.08] px-4 py-4 font-headline text-xl font-black italic uppercase"
-            >
-              Compartir resumen
-            </button>
+            <ShareMatchSummaryButton
+              groupName={groupName}
+              fieldName={event.field_name}
+              playedAtLabel={formatEventDate(event.played_at ?? event.scheduled_at)}
+              teamAName={event.team_a_name ?? 'Equipo A'}
+              teamBName={event.team_b_name ?? 'Equipo B'}
+              teamAScore={event.team_a_score ?? 0}
+              teamBScore={event.team_b_score ?? 0}
+              mvpName={mvp?.displayName ?? null}
+              boostsApplied={boostsApplied}
+            />
           </section>
         ) : null}
 
@@ -553,6 +529,7 @@ export default function EventViewPage() {
           </div>
         ) : null}
       </div>
-    </div>
+    </ImmersiveScreen>
   );
 }
+

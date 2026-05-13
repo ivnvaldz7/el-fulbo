@@ -6,6 +6,9 @@ import toast from 'react-hot-toast';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { getTeamSize, type Event, type EventId, type GroupId } from '@/lib/types';
 import { EventsService, type EventAttendee } from '@/lib/services/events.service';
+import { AddPhantomModal } from '@/components/phantom/add-phantom-modal';
+import { ImmersiveScreen } from '@/components/ui/immersive-screen';
+import { PageHeader } from '@/components/ui/page-header';
 
 function canOpenCheckIn(event: Event) {
   const hoursToEvent = (new Date(event.scheduled_at).getTime() - Date.now()) / 36e5;
@@ -25,6 +28,7 @@ export default function EventCheckInPage() {
   const [isAdminOrOwner, setIsAdminOrOwner] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showPhantomModal, setShowPhantomModal] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -117,14 +121,21 @@ export default function EventCheckInPage() {
   }
 
   if (loading) {
-    return <div className="p-6 text-white">Cargando check-in...</div>;
+    return (
+      <ImmersiveScreen align="center" contentClassName="text-center">
+        <div className="mx-auto h-12 w-12 animate-spin border-4 border-pitch-green border-t-transparent" />
+        <p className="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Check-in</p>
+        <h2 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">Cargando jugadores...</h2>
+      </ImmersiveScreen>
+    );
   }
 
   if (!event || !isAdminOrOwner || !canOpenCheckIn(event)) {
     return (
-      <div className="p-6 text-white">
-        <p>No tenés acceso a este check-in o todavía no está habilitado.</p>
-      </div>
+      <ImmersiveScreen align="center" contentClassName="max-w-md mx-auto text-center">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Check-in no disponible</p>
+        <h2 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">No tenés acceso o todavía no está habilitado.</h2>
+      </ImmersiveScreen>
     );
   }
 
@@ -132,9 +143,10 @@ export default function EventCheckInPage() {
   const maybe = attendees.filter((attendee) => attendee.status === 'maybe');
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black p-4 text-white">
-      <div className="mx-auto max-w-2xl space-y-4">
-        <header className="rounded-lg border border-white/10 bg-black/40 p-4">
+    <ImmersiveScreen contentClassName="max-w-2xl mx-auto space-y-4">
+      <PageHeader title="CHECK-IN" backHref={`/groups/${groupId}/events/${eventId}`} />
+      <div className="mt-16 space-y-4">
+        <header className="border border-white/10 bg-concrete-overlay p-5">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-pitch-green">Check-in</p>
           <h1 className="mt-2 font-headline text-3xl font-black italic uppercase">{event.field_name}</h1>
           <p className="mt-3 text-sm text-white/70">
@@ -142,7 +154,7 @@ export default function EventCheckInPage() {
           </p>
         </header>
 
-        <section className="rounded-lg border border-white/10 bg-black/40 p-4">
+        <section className="border border-white/10 bg-concrete-overlay p-5 space-y-3">
           <button
             type="button"
             onClick={() => void handleMarkAll()}
@@ -151,10 +163,28 @@ export default function EventCheckInPage() {
           >
             Marcar todos los &quot;voy&quot;
           </button>
+          {isAdminOrOwner && (
+            <button
+              type="button"
+              onClick={() => setShowPhantomModal(true)}
+              className="w-full rounded-lg border border-dashed border-white/20 px-4 py-2.5 text-sm font-semibold text-white/60 hover:border-white/40 hover:text-white"
+            >
+              + Agregar jugador fantasma
+            </button>
+          )}
         </section>
 
+        {showPhantomModal && event && (
+          <AddPhantomModal
+            groupId={groupId}
+            eventId={eventId}
+            onClose={() => setShowPhantomModal(false)}
+            onCreated={() => { setShowPhantomModal(false); void load(); }}
+          />
+        )}
+
         {[{ title: 'Van', items: going }, { title: 'Tal vez', items: maybe }].map((section) => (
-          <section key={section.title} className="rounded-lg border border-white/10 bg-black/40 p-4">
+          <section key={section.title} className="border border-white/10 bg-concrete-overlay p-5">
             <h2 className="font-headline text-2xl font-black italic uppercase">{section.title}</h2>
             <div className="mt-4 space-y-3">
               {section.items.length === 0 ? (
@@ -163,10 +193,17 @@ export default function EventCheckInPage() {
                 section.items.map((attendee) => (
                   <div
                     key={attendee.playerId}
-                    className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3"
+                    className="flex items-center justify-between border border-white/10 bg-white/[0.04] px-4 py-3"
                   >
                     <div>
-                      <p className="font-medium text-white">{attendee.displayName}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-white">{attendee.displayName}</p>
+                        {attendee.isPhantom && (
+                          <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                            FANTASMA
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs uppercase tracking-[0.18em] text-white/45">
                         {attendee.primaryPosition ?? 'SIN POS'}
                       </p>
@@ -198,6 +235,6 @@ export default function EventCheckInPage() {
           {canProceed ? 'Ir al sorteo' : `Faltan ${Math.max(minimumPlayers - checkedCount, 0)} jugadores`}
         </button>
       </div>
-    </div>
+    </ImmersiveScreen>
   );
 }

@@ -18,7 +18,7 @@ Permitir al jugador compartir su card FIFA como imagen (PNG) vía Web Share API 
 
 ### Incluye
 
-- Botón "Compartir" en la pantalla de la card del Player (acceso global).
+- Botón "Compartir" en la pantalla canónica donde hoy se renderiza la card propia del Player.
 - Botón "Compartir resumen" en la pantalla post-resultado.
 - Generación de imagen PNG con `html-to-image`.
 - Uso de Web Share API si disponible, fallback a descarga.
@@ -40,7 +40,7 @@ Permitir al jugador compartir su card FIFA como imagen (PNG) vía Web Share API 
 
 **Desde la carta del Player:**
 
-- En `/groups/{id}/players/{player_id}` (o equivalente), si es el propio Player, botón **"Compartir mi card"** arriba a la derecha.
+- En la superficie canónica donde hoy se muestra la propia card (dashboard del grupo o equivalente), botón **"Compartir mi card"**.
 - Si es card de otro player, **no hay botón de compartir** (respeta privacidad; no podés compartir la card ajena).
 
 **Desde el post-resultado del partido:**
@@ -131,6 +131,8 @@ await navigator.share({
 ### Unit
 - `<ShareableCard />` renderiza con datos de un Player.
 - Incluye badges si hay boost activo.
+- `shareImageBlob` usa Web Share API con files cuando está disponible.
+- `shareImageBlob` hace fallback a descarga cuando no hay file share.
 
 ### Integration
 - Click en "Compartir" genera PNG válido.
@@ -142,13 +144,21 @@ await navigator.share({
 
 ---
 
+## Estado de implementación real
+
+- `src/components/share/shareable-card.tsx` genera la card exportable con watermark, boost badges y chip de duración.
+- `src/components/share/player-card-share-panel.tsx` muestra la propia card y el botón **"Compartir mi card"** en el dashboard del grupo, usando `html-to-image`.
+- `src/components/share/shareable-match-summary.tsx` y `src/components/share/share-match-summary-button.tsx` generan la imagen del resumen post-partido con scoreboard, MVP y boosts aplicados.
+- `src/lib/share.ts` centraliza el uso de Web Share API con files y el fallback a descarga.
+- `/groups/[id]/events/[event_id]` dejó de compartir texto plano y ahora comparte imagen del resumen.
+
 ## Criterios de aceptación
 
-- [ ] Botón compartir visible en la propia card, no en ajenas.
-- [ ] Imagen generada tiene la estética FIFA correcta según tier.
-- [ ] Boost badges visibles en la imagen.
-- [ ] Web Share API usada si disponible, con file.
-- [ ] Fallback a descarga en desktop.
-- [ ] Watermark "El Fulbo" visible pero discreto.
-- [ ] Resumen de partido también compartible.
-- [ ] Tests pasan.
+- [x] Botón compartir visible en la propia card, no en ajenas.
+- [x] Imagen generada tiene la estética FIFA correcta según tier.
+- [x] Boost badges visibles en la imagen.
+- [x] Web Share API usada si disponible, con file.
+- [x] Fallback a descarga en desktop.
+- [x] Watermark "El Fulbo" visible pero discreto.
+- [x] Resumen de partido también compartible.
+- [x] Tests pasan.

@@ -7,6 +7,8 @@ import EventForm from '@/components/EventForm';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import type { Event } from '@/lib/types';
 import { EventsService } from '@/lib/services/events.service';
+import { ImmersiveScreen } from '@/components/ui/immersive-screen';
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function EditEventPage() {
   const router = useRouter();
@@ -55,26 +57,39 @@ export default function EditEventPage() {
   }
 
   if (loading) {
-    return <div className="p-6 text-white">Cargando evento...</div>;
+    return (
+      <ImmersiveScreen align="center" contentClassName="text-center">
+        <div className="mx-auto h-12 w-12 animate-spin border-4 border-pitch-green border-t-transparent" />
+        <p className="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Editar partido</p>
+        <h2 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">Cargando evento...</h2>
+      </ImmersiveScreen>
+    );
   }
 
   if (!eventData) {
-    return <div className="p-6 text-white">No se encontró el evento.</div>;
+    return (
+      <ImmersiveScreen align="center" contentClassName="max-w-md mx-auto text-center">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Error</p>
+        <h2 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">No se encontró el evento.</h2>
+      </ImmersiveScreen>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black p-4 text-white">
-      <div className="mx-auto max-w-3xl">
-        <h1 className="mb-6 font-headline text-3xl font-black italic uppercase tracking-tight">
-          Editar partido
-        </h1>
-        <EventForm
-          initialData={eventData}
-          onSubmit={handleSubmit}
-          submitButtonText="Guardar cambios"
-          readOnly={eventData.status === 'checked_in' || eventData.status === 'played'}
-        />
+    <ImmersiveScreen contentClassName="max-w-3xl mx-auto">
+      <PageHeader title="EDITAR" backHref={`/groups/${groupId}/events/${eventId}`} />
+      <div className="mt-16">
+      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green mb-2">Editar partido</p>
+      <h1 className="mb-6 font-headline text-3xl font-black italic uppercase tracking-tight text-white">
+        ¿Qué cambió?
+      </h1>
+      <EventForm
+        initialData={eventData}
+        onSubmit={handleSubmit}
+        submitButtonText="Guardar cambios"
+        readOnly={eventData.status === 'checked_in' || eventData.status === 'played'}
+      />
       </div>
-    </div>
+    </ImmersiveScreen>
   );
 }

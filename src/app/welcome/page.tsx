@@ -21,6 +21,23 @@ export default function WelcomePage() {
           UNIRME A UN GRUPO
         </Link>
 
+        <div className="mt-4 w-full border-t border-white/10 pt-4">
+          <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">¿Sos el que organiza?</p>
+          <Link
+            href="/groups/new"
+            className="flex min-h-12 w-full items-center justify-center border border-white/20 px-8 font-headline text-base font-bold italic uppercase text-white/70 transition-colors hover:border-white/40 hover:text-white active:scale-95"
+          >
+            CREAR UN GRUPO
+          </Link>
+        </div>
+
+        <Link
+          href="/login"
+          className="mt-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 hover:text-white/60 transition-colors"
+        >
+          Ya tengo cuenta → Entrar
+        </Link>
+
         <footer className="mt-10">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/30">
             EL FULBO — STREET SOCCER CULTURE

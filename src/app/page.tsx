@@ -46,16 +46,22 @@ export default async function HomePage() {
         {/* Primary Actions / Bottom Area */}
         <section className="flex flex-col gap-4">
           <Link
-            href="/welcome"
+            href="/groups/new"
             className="flex h-16 w-full items-center justify-center bg-pitch-green font-headline text-2xl font-bold text-black transition-transform active:scale-95"
           >
-            CREAR PARTIDO ⚽
+            CREAR GRUPO ⚽
           </Link>
           <Link
             href="/join"
             className="flex h-16 w-full items-center justify-center border-2 border-pitch-green/50 bg-black/40 font-headline text-sm font-bold uppercase tracking-[0.2em] text-white transition-colors active:bg-pitch-green/20"
           >
             UNIRME A UN GRUPO
+          </Link>
+          <Link
+            href="/login"
+            className="text-center font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 hover:text-white/60 transition-colors"
+          >
+            Ya tengo cuenta → Entrar
           </Link>
           
           <footer className="mt-6 text-center">

@@ -1,32 +1,52 @@
-import { calculateOverall, type PlayerPosition, type PlayerStats } from '@/lib/types';
+import { applyBoostToStats, calculateBoostedOverall, getActiveBoost, getBoostRemainingLabel, isMvpBoost } from '@/lib/boost';
+import type { CurrentBoost, PlayerPosition, PlayerStats } from '@/lib/types';
 
 export function PlayerCardPreview({
   name,
   position,
   stats,
+  currentBoost = null,
   pending = false,
+  showBoostIndicator = true,
 }: {
   name: string;
   position: PlayerPosition;
   stats: PlayerStats;
+  currentBoost?: CurrentBoost | null;
   pending?: boolean;
+  showBoostIndicator?: boolean;
 }) {
-  const overall = calculateOverall(stats, position);
+  const activeBoost = getActiveBoost(currentBoost);
+  const boostedStats = applyBoostToStats(stats, activeBoost);
+  const overall = calculateBoostedOverall(stats, position, activeBoost);
   const statEntries = Object.entries(stats);
+  const remainingLabel = getBoostRemainingLabel(activeBoost);
+  const highlightMvp = isMvpBoost(activeBoost);
 
   return (
     <article
       aria-live="polite"
-      className="relative mx-auto aspect-[2/3] w-full max-w-[280px] border-2 border-[#D4AF37]/40 bg-concrete-overlay flex flex-col shadow-[0_0_20px_rgba(212,175,55,0.15)]"
+      className={`relative mx-auto flex aspect-[2/3] w-full max-w-[280px] flex-col border-2 bg-concrete-overlay shadow-[0_0_20px_rgba(212,175,55,0.15)] ${
+        highlightMvp
+          ? 'border-amber-300/70 shadow-[0_0_28px_rgba(251,191,36,0.28)]'
+          : 'border-[#D4AF37]/40'
+      }`}
     >
       {/* Card Texture/Overlay */}
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.1),transparent_70%)] opacity-30"></div>
       
-      {pending ? (
-        <span className="absolute right-2 top-2 z-20 bg-pitch-green px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-black">
-          PENDIENTE
-        </span>
-      ) : null}
+      <div className="absolute right-2 top-2 z-20 flex flex-col items-end gap-1">
+        {pending ? (
+          <span className="bg-pitch-green px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-black">
+            PENDIENTE
+          </span>
+        ) : null}
+        {highlightMvp ? (
+          <span className="bg-amber-300 px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-black">
+            MVP BOOST
+          </span>
+        ) : null}
+      </div>
 
       {/* Card Header */}
       <div className="relative z-10 flex p-5 pb-0">
@@ -55,13 +75,37 @@ export function PlayerCardPreview({
 
       {/* Stats Grid */}
       <div className="relative z-10 mt-auto grid grid-cols-3 gap-x-4 gap-y-2 border-t border-white/10 bg-black/40 px-4 py-5">
-        {statEntries.map(([key, value]) => (
+        {statEntries.map(([key, value]) => {
+          const boostDelta = activeBoost?.modifiers?.[key as keyof CurrentBoost['modifiers']] ?? 0;
+          const boostedValue = boostedStats[key as keyof PlayerStats];
+
+          return (
           <div key={key} className="flex flex-col items-center">
-            <span className="font-mono text-base font-bold text-white">{value * 10}</span>
+            <div className="flex items-center gap-1">
+              <span className="font-mono text-base font-bold text-white">{Math.round(Number(boostedValue ?? value) * 10)}</span>
+              {showBoostIndicator && boostDelta > 0 ? (
+                <span
+                  className={`font-mono text-[10px] font-bold ${
+                    boostDelta >= 3 ? 'text-amber-300' : 'text-emerald-300'
+                  }`}
+                >
+                  +{boostDelta}
+                </span>
+              ) : null}
+            </div>
             <span className="font-mono text-[10px] font-bold uppercase text-white/40">{key}</span>
           </div>
-        ))}
+          );
+        })}
       </div>
+
+      {remainingLabel ? (
+        <div className="relative z-10 border-t border-white/10 bg-black/50 px-4 py-2 text-center">
+          <span className={`font-mono text-[10px] font-bold uppercase ${activeBoost?.partidos_remaining === 1 || activeBoost?.partidosRemaining === 1 ? 'text-amber-300' : 'text-emerald-300'}`}>
+            {remainingLabel}
+          </span>
+        </div>
+      ) : null}
     </article>
   );
 }

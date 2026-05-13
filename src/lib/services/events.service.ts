@@ -31,6 +31,7 @@ export interface EventAttendee {
   checkedIn: boolean;
   checkedInAt: string | null;
   statsStatus: PlayerStatsStatus;
+  isPhantom: boolean;
 }
 
 export interface CurrentPlayerAttendanceContext {
@@ -115,6 +116,7 @@ export class EventsService {
       checkedIn: Boolean(row.checked_in),
       checkedInAt: row.checked_in_at ?? null,
       statsStatus: player.stats_status as PlayerStatsStatus,
+      isPhantom: Boolean(player.is_phantom),
     };
   }
 
@@ -192,7 +194,8 @@ export class EventsService {
             photo_url,
             joined_at,
             primary_position,
-            stats_status
+            stats_status,
+            is_phantom
           )
         `,
       )
@@ -257,9 +260,9 @@ export class EventsService {
           current_boost: player.current_boost ?? null,
           is_phantom: Boolean(player.is_phantom),
           joined_at: player.joined_at ?? null,
-        } satisfies PlayerForDraw;
+        } as PlayerForDraw;
       })
-      .filter((player): player is PlayerForDraw => Boolean(player));
+      .filter(Boolean) as PlayerForDraw[];
   }
 
   async getCurrentPlayerAttendanceContext(
@@ -285,6 +288,8 @@ export class EventsService {
       }
       this.throwIfError(playerError);
     }
+
+    if (!player) return null;
 
     const { data: attendance, error: attendanceError } = await this.supabase
       .from('event_attendances')

@@ -11,6 +11,13 @@ export interface CreateGroupOutput {
 
 export const CREATE_GROUP_DRAFT_KEY = 'create-group-draft';
 
+export async function createGroup(
+  supabase: SupabaseClient,
+  input: CreateGroupInput,
+): Promise<Result<CreateGroupOutput>> {
+  return new GroupsService(supabase).createGroup(input);
+}
+
 export class GroupsService { // Convert to class
   constructor(private supabase: SupabaseClient) {}
 

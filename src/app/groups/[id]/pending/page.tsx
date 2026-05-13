@@ -24,7 +24,8 @@ export default async function PendingPage({ params }: { params: { id: string } }
         <PlayerCardPreview
           name={player.data.displayName}
           position={player.data.primaryPosition}
-          stats={player.data.stats}
+          stats={player.data.stats!}
+          currentBoost={player.data.currentBoost}
           pending
         />
       </div>

@@ -303,13 +303,21 @@ Equipo A 3 — 1 Equipo B
 
 ---
 
+## Estado de implementación real
+
+- `src/lib/match-result.ts` implementa el cálculo y decremento del boost para el slice transaccional de `load_match_result`.
+- `supabase/migrations/20260505234500_feat_008_load_match_result_rpc.sql` aplica, reemplaza y decrementa boosts dentro de la RPC canónica.
+- `src/lib/boost.ts` concentra la lectura del boost activo, la aplicación visual sobre stats, el clamp del overall visible a 99 y el copy de partidos restantes.
+- `src/components/cards/player-card-preview.tsx` actúa hoy como la card canónica con badges `+N`, highlight de MVP boost y chip de partidos restantes.
+- `src/app/groups/[id]/dashboard/page.tsx` y `src/components/groups/group-dashboard-initial-state.tsx` muestran el feed de “Últimos partidos” sobre `events`, no sobre el modelo legacy `matches`.
+
 ## Criterios de aceptación
 
-- [ ] `calculateBoost` retorna valores correctos para todas las combinaciones.
-- [ ] Boost nunca es negativo.
-- [ ] Clamp overall a 99 aplicado consistentemente.
-- [ ] Decremento solo al JUGAR (match_participation con team ≠ substitute).
-- [ ] Reemplazo completo del boost al ganar uno nuevo.
-- [ ] Componente `<CardWithBoost />` renderiza con badges visibles.
-- [ ] Feed del grupo muestra resumen del partido post-load.
-- [ ] Tests unit e integration pasan.
+- [x] `calculateBoost` retorna valores correctos para las combinaciones relevantes del MVP slice.
+- [x] Boost nunca es negativo.
+- [x] Clamp overall a 99 aplicado consistentemente.
+- [x] Decremento solo al JUGAR (match_participation con team ≠ substitute).
+- [x] Reemplazo completo del boost al ganar uno nuevo.
+- [x] Componente `<CardWithBoost />` renderiza con badges visibles.
+- [x] Feed del grupo muestra resumen del partido post-load.
+- [x] Tests unit e integration pasan en el slice verificado.

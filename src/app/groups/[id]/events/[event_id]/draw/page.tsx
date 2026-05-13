@@ -7,6 +7,8 @@ import { drawTeams } from '@/lib/draw';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { type DrawResult, type Event, type EventId, type GroupId } from '@/lib/types';
 import { EventsService } from '@/lib/services/events.service';
+import { ImmersiveScreen } from '@/components/ui/immersive-screen';
+import { PageHeader } from '@/components/ui/page-header';
 
 function buildSeed() {
   return crypto.randomUUID();
@@ -82,14 +84,21 @@ export default function EventDrawPage() {
   }
 
   if (loading) {
-    return <div className="p-6 text-white">Preparando sorteo...</div>;
+    return (
+      <ImmersiveScreen align="center" contentClassName="text-center">
+        <div className="mx-auto h-12 w-12 animate-spin border-4 border-pitch-green border-t-transparent" />
+        <p className="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Sorteo</p>
+        <h2 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">Preparando equipos...</h2>
+      </ImmersiveScreen>
+    );
   }
 
   if (!event || !result || result.assignments.length === 0) {
     return (
-      <div className="p-6 text-white">
-        <p>No hay suficientes jugadores checkeados para sortear.</p>
-      </div>
+      <ImmersiveScreen align="center" contentClassName="max-w-md mx-auto text-center">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Sorteo no disponible</p>
+        <h2 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">No hay suficientes jugadores para sortear.</h2>
+      </ImmersiveScreen>
     );
   }
 
@@ -98,9 +107,10 @@ export default function EventDrawPage() {
   const substitutes = result.assignments.filter((assignment) => assignment.team === 'substitute');
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black p-4 text-white">
-      <div className="mx-auto max-w-5xl space-y-4">
-        <header className="rounded-lg border border-white/10 bg-black/40 p-4">
+    <ImmersiveScreen contentClassName="max-w-5xl mx-auto space-y-4">
+      <PageHeader title="SORTEO" backHref={`/groups/${groupId}/events/${eventId}`} />
+      <div className="mt-16 space-y-4">
+        <header className="border border-white/10 bg-concrete-overlay p-5">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-pitch-green">Sorteo</p>
           <h1 className="mt-2 font-headline text-3xl font-black italic uppercase">{event.field_name}</h1>
           <p className="mt-2 text-sm text-white/70">
@@ -109,14 +119,20 @@ export default function EventDrawPage() {
           {result.warnings.length > 0 ? (
             <ul className="mt-3 space-y-1 text-sm text-amber-300">
               {result.warnings.map((warning, index) => (
-                <li key={`${warning.kind}-${index}`}>{warning.kind === 'imbalance' ? `Imbalance ${warning.diff}` : warning.kind}</li>
+                <li key={`${warning.kind}-${index}`}>
+                  {warning.kind === 'imbalance'
+                    ? `Diferencia de nivel: ${warning.diff}`
+                    : warning.kind === 'out_of_position'
+                    ? 'Algunos jugadores juegan fuera de posición'
+                    : warning.kind}
+                </li>
               ))}
             </ul>
           ) : null}
         </header>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <section className="rounded-lg border border-white/10 bg-black/40 p-4">
+          <section className="border border-white/10 bg-concrete-overlay p-5">
             <input
               value={teamAName}
               onChange={(eventChange) => setTeamAName(eventChange.target.value)}
@@ -125,7 +141,7 @@ export default function EventDrawPage() {
             <p className="mt-1 text-sm text-white/60">Overall {result.teamAOverallAvg}</p>
             <ul className="mt-4 space-y-3">
               {teamA.map((assignment) => (
-                <li key={assignment.playerId} className="rounded-lg border border-white/10 px-3 py-2">
+                <li key={assignment.playerId} className="border border-white/10 px-3 py-2">
                   <p>{playerNames[assignment.playerId] ?? assignment.playerId}</p>
                   <p className="text-xs uppercase tracking-[0.18em] text-white/50">{assignment.assignedPosition}</p>
                 </li>
@@ -133,7 +149,7 @@ export default function EventDrawPage() {
             </ul>
           </section>
 
-          <section className="rounded-lg border border-white/10 bg-black/40 p-4">
+          <section className="border border-white/10 bg-concrete-overlay p-5">
             <input
               value={teamBName}
               onChange={(eventChange) => setTeamBName(eventChange.target.value)}
@@ -142,7 +158,7 @@ export default function EventDrawPage() {
             <p className="mt-1 text-sm text-white/60">Overall {result.teamBOverallAvg}</p>
             <ul className="mt-4 space-y-3">
               {teamB.map((assignment) => (
-                <li key={assignment.playerId} className="rounded-lg border border-white/10 px-3 py-2">
+                <li key={assignment.playerId} className="border border-white/10 px-3 py-2">
                   <p>{playerNames[assignment.playerId] ?? assignment.playerId}</p>
                   <p className="text-xs uppercase tracking-[0.18em] text-white/50">{assignment.assignedPosition}</p>
                 </li>
@@ -152,7 +168,7 @@ export default function EventDrawPage() {
         </div>
 
         {substitutes.length > 0 ? (
-          <section className="rounded-lg border border-white/10 bg-black/40 p-4">
+          <section className="border border-white/10 bg-concrete-overlay p-5">
             <h2 className="font-headline text-2xl font-black italic uppercase">Suplentes</h2>
             <ul className="mt-3 space-y-2 text-sm text-white/70">
               {substitutes.map((assignment) => (
@@ -167,7 +183,7 @@ export default function EventDrawPage() {
             type="button"
             onClick={() => void runDraw()}
             disabled={saving}
-            className="rounded-lg border border-white/10 bg-white/[0.06] px-4 py-4 font-headline text-xl font-black italic uppercase"
+            className="border border-white/10 bg-white/[0.06] px-4 py-4 font-headline text-xl font-black italic uppercase"
           >
             Re-sortear
           </button>
@@ -175,12 +191,12 @@ export default function EventDrawPage() {
             type="button"
             onClick={() => void handleConfirm()}
             disabled={saving}
-            className="rounded-lg bg-emerald-500 px-4 py-4 font-headline text-xl font-black italic uppercase text-black"
+            className="bg-emerald-500 px-4 py-4 font-headline text-xl font-black italic uppercase text-black"
           >
             Confirmar sorteo
           </button>
         </div>
       </div>
-    </div>
+    </ImmersiveScreen>
   );
 }
