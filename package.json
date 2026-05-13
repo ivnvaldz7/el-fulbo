@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run",
+    "test": "vitest run --dir src",
     "test:unit": "vitest run --dir src",
     "test:integration": "npm run supabase db reset && vitest run --dir tests/integration",
     "test:e2e": "playwright test",
