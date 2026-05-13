@@ -42,7 +42,7 @@ export default async function InviteCooldownPage({ params }: { params: { code: s
         {cooldown.lastRejectionNote ? (
           <div className="mb-6 border border-white/10 bg-absolute-dark p-4 text-left">
             <p className="font-mono text-[9px] font-bold uppercase tracking-widest text-white/40">Mensaje del admin</p>
-            <p className="mt-2 font-headline text-sm font-medium text-white/80 italic">"{cooldown.lastRejectionNote}"</p>
+            <p className="mt-2 font-headline text-sm font-medium text-white/80 italic">&ldquo;{cooldown.lastRejectionNote}&rdquo;</p>
           </div>
         ) : null}
 

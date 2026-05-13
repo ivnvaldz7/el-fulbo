@@ -58,6 +58,8 @@ export default function EventDrawPage() {
       toast.error('No pudimos preparar el sorteo.');
       setLoading(false);
     });
+    // runDraw se define inline y cambia en cada render — incluirla causaría loop infinito
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, eventsService]);
 
   async function handleConfirm() {

@@ -140,7 +140,7 @@ export default function EventViewPage() {
     } finally {
       setLoading(false);
     }
-  }, [eventId, eventsService]);
+  }, [eventId, eventsService, supabase]);
 
   useEffect(() => {
     void loadEvent();

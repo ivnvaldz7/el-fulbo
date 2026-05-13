@@ -46,6 +46,7 @@ function statusClasses(attendee: EventAttendee) {
 function Avatar({ attendee }: { attendee: EventAttendee }) {
   if (attendee.photoUrl) {
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={attendee.photoUrl}
         alt={attendee.displayName}

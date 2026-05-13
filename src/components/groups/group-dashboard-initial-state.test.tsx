@@ -2,10 +2,17 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { GroupDashboardInitialState } from './group-dashboard-initial-state';
 
+const BASE_PROPS = {
+  groupId: 'group-1',
+  inviteCode: 'FULBO-ABC123',
+  currentPlayerId: null,
+};
+
 describe('GroupDashboardInitialState', () => {
   it('renders the invite banner with 0 players', () => {
     render(
       <GroupDashboardInitialState
+        {...BASE_PROPS}
         groupName="Fulbito"
         modality="F5"
         activePlayers={0}
@@ -25,6 +32,7 @@ describe('GroupDashboardInitialState', () => {
   it('renders the invite banner with 1 player', () => {
     render(
       <GroupDashboardInitialState
+        {...BASE_PROPS}
         groupName="Fulbito"
         modality="F5"
         activePlayers={1}
@@ -40,6 +48,7 @@ describe('GroupDashboardInitialState', () => {
   it('does not render the invite banner with 2 players', () => {
     render(
       <GroupDashboardInitialState
+        {...BASE_PROPS}
         groupName="Fulbito"
         modality="F5"
         activePlayers={2}
@@ -55,6 +64,7 @@ describe('GroupDashboardInitialState', () => {
   it('renders the admin pending widget when there are tasks to resolve', () => {
     render(
       <GroupDashboardInitialState
+        {...BASE_PROPS}
         groupName="Fulbito"
         modality="F5"
         activePlayers={3}
@@ -71,6 +81,7 @@ describe('GroupDashboardInitialState', () => {
   it('renders the recent played matches feed with mvp and boosts', () => {
     render(
       <GroupDashboardInitialState
+        {...BASE_PROPS}
         groupName="Fulbito"
         modality="F5"
         activePlayers={10}
@@ -101,6 +112,7 @@ describe('GroupDashboardInitialState', () => {
   it('renders the own card share button when shareable player exists', () => {
     render(
       <GroupDashboardInitialState
+        {...BASE_PROPS}
         groupName="Fulbito"
         modality="F5"
         activePlayers={10}

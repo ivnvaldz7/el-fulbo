@@ -3,10 +3,8 @@ import { runTemporaryOwnerJobs } from '@/lib/services/temporary-owners.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get('authorization');
-  const expected = process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : null;
-
-  if (expected && authHeader !== expected) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret || request.headers.get('authorization') !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ ok: false, error: { code: 'FORBIDDEN', message: 'No tenés permisos para hacer eso.' } }, { status: 403 });
   }
 

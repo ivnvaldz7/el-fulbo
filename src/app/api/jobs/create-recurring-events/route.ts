@@ -2,10 +2,8 @@ import { NextResponse } from 'next/server';
 import { createServiceSupabaseClient } from '@/lib/supabase/service';
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get('authorization');
-  const expected = process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : null;
-
-  if (expected && authHeader !== expected) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret || request.headers.get('authorization') !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ ok: false, error: { code: 'FORBIDDEN' } }, { status: 403 });
   }
 
@@ -25,7 +23,9 @@ export async function GET(request: Request) {
 
   for (const schedule of schedules) {
     const dayOfWeek = schedule.day_of_week as number;
-    const [hours, minutes] = (schedule.scheduled_time as string).split(':').map(Number);
+    const parts = (schedule.scheduled_time as string).split(':').map(Number);
+    const hours = parts[0] ?? 0;
+    const minutes = parts[1] ?? 0;
 
     const daysUntil = (dayOfWeek - now.getDay() + 7) % 7 || 7;
     const nextOccurrence = new Date(now);
