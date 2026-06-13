@@ -9,6 +9,7 @@ interface EventAttendeesListProps {
 
 const SECTIONS: Array<{ status: AttendanceStatus; label: string; empty: string }> = [
   { status: 'going', label: 'Van', empty: 'Todavía nadie confirmó que va.' },
+  { status: 'waitlist', label: 'Lista de Espera', empty: 'No hay nadie en espera por ahora.' },
   { status: 'not_going', label: 'No van', empty: 'Todavía nadie avisó que no va.' },
   { status: 'maybe', label: 'Tal vez', empty: 'No hay respuestas en duda por ahora.' },
 ];
@@ -25,6 +26,8 @@ function statusLabel(attendee: EventAttendee) {
       return 'No voy';
     case 'maybe':
       return 'Tal vez';
+    case 'waitlist':
+      return 'En Espera';
   }
 }
 
@@ -40,6 +43,8 @@ function statusClasses(attendee: EventAttendee) {
       return 'bg-zinc-500/20 text-zinc-200 border-zinc-400/30';
     case 'maybe':
       return 'bg-amber-500/20 text-amber-200 border-amber-400/30';
+    case 'waitlist':
+      return 'bg-purple-500/20 text-purple-200 border-purple-400/30';
   }
 }
 

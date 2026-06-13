@@ -1,19 +1,15 @@
-import type { NextApiRequest } from 'next';
-import { NextApiResponseServerIO } from '@/lib/types';
-import { initSocketServer } from '@/lib/socket';
+import { NextResponse } from 'next/server';
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+export async function GET() {
+  return NextResponse.json(
+    { message: 'Socket.io endpoint. Use Supabase Realtime for realtime features.' },
+    { status: 200 }
+  );
+}
 
-const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIO) => {
-  if (!res.socket.server.io) {
-    // adapt Next's internal http server to the socket.io server
-    initSocketServer(res.socket.server);
-  }
-  res.end();
-};
-
-export default ioHandler;
+export async function POST() {
+  return NextResponse.json(
+    { message: 'Socket.io endpoint. Use Supabase Realtime for realtime features.' },
+    { status: 200 }
+  );
+}

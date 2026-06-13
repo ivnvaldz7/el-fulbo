@@ -48,3 +48,21 @@ export async function getCurrentUserPlayerInGroup(
 
   return { ok: true, data: mapPlayer(data) };
 }
+
+export async function getPlayersInGroup(
+  supabase: SupabaseClient,
+  groupId: GroupId | string,
+): Promise<Result<Player[]>> {
+  const { data, error } = await supabase
+    .from('players')
+    .select('*')
+    .eq('group_id', groupId)
+    .is('archived_at', null)
+    .order('display_name', { ascending: true });
+
+  if (error) {
+    return { ok: false, error: mapSupabaseError(error) };
+  }
+
+  return { ok: true, data: data.map(mapPlayer) };
+}

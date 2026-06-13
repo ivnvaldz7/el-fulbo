@@ -57,6 +57,6 @@ export interface LoadMatchResultPayload {
   eventId: EventId;
   teamAScore: number;
   teamBScore: number;
-  mvpPlayerId: PlayerId;
+  mvpPlayerId: PlayerId | null;
   notes: string | null;
 }

@@ -12,7 +12,7 @@ export type InviteCode = string;
 
 export type Modality = 'F5' | 'F6' | 'F7' | 'F8' | 'F11';
 export type EventStatus = 'scheduled' | 'confirming' | 'checked_in' | 'drawn' | 'played' | 'cancelled';
-export type AttendanceStatus = 'going' | 'not_going' | 'maybe';
+export type AttendanceStatus = 'going' | 'not_going' | 'maybe' | 'waitlist';
 export type EventAttendeeStatus =
   | AttendanceStatus
   | 'PENDING'

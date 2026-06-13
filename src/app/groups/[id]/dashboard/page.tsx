@@ -139,6 +139,7 @@ export default async function GroupDashboardPage({ params }: { params: { id: str
               primaryPosition: currentPlayerResult.data.primaryPosition,
               stats: currentPlayerResult.data.stats,
               currentBoost: currentPlayerResult.data.currentBoost ?? null,
+              photoUrl: currentPlayerResult.data.photoUrl ?? null,
             }
           : null
       }

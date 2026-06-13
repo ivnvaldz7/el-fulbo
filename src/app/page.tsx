@@ -10,19 +10,7 @@ export default async function HomePage() {
   } = await supabase.auth.getUser();
 
   if (user) {
-    const { data: player } = await supabase
-      .from('players')
-      .select('group_id')
-      .eq('user_id', user.id)
-      .is('archived_at', null)
-      .limit(1)
-      .maybeSingle();
-
-    if (player?.group_id) {
-      redirect(`/groups/${player.group_id}/dashboard`);
-    }
-
-    redirect('/welcome');
+    redirect('/groups');
   }
 
   const backgroundUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDlNS1eDv_IzL2vGpHKRro1Le2YdbLxFnMGcdG1awPpsfkVLA-RaRKpJ_c1QxaWJUyq-OM0ycjWV2GfvZbo9jWllP2RKDnMVW_nI7Gaex2TMRcjodIwx5tWRyQBccpSDqTehFArtzbVpcicOGrlq5l9GChuqI1gmXvlbybrqAMb77Euld3_aaXTnQTYYrCYPtlWWt438IlAq5-VPPGfzEdHuWXtqFC9SGXuZF28ykdTLeyI7aAJ4RtsgcgrWqNxayMg1uwvFg9KUX0";
@@ -50,12 +38,6 @@ export default async function HomePage() {
             className="flex h-16 w-full items-center justify-center bg-pitch-green font-headline text-2xl font-bold text-black transition-transform active:scale-95"
           >
             CREAR GRUPO ⚽
-          </Link>
-          <Link
-            href="/join"
-            className="flex h-16 w-full items-center justify-center border-2 border-pitch-green/50 bg-black/40 font-headline text-sm font-bold uppercase tracking-[0.2em] text-white transition-colors active:bg-pitch-green/20"
-          >
-            UNIRME A UN GRUPO
           </Link>
           <Link
             href="/login"

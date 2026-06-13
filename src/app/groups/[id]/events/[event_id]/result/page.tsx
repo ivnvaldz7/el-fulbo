@@ -122,7 +122,7 @@ export default function EventResultPage() {
       return false;
     }
 
-    if (!mvpPlayerId || !participants.some((player) => player.playerId === mvpPlayerId)) {
+    if (mvpPlayerId && !participants.some((player) => player.playerId === mvpPlayerId)) {
       toast.error('Elegí un MVP que haya jugado.');
       return false;
     }
@@ -136,7 +136,7 @@ export default function EventResultPage() {
   }
 
   async function handleConfirmResult() {
-    if (!validateBeforeConfirm() || !mvpPlayerId) {
+    if (!validateBeforeConfirm()) {
       return;
     }
 
@@ -243,7 +243,7 @@ export default function EventResultPage() {
 
         <section className="border border-white/10 bg-concrete-overlay p-5">
           <h2 className="font-headline text-2xl font-black italic uppercase">¿Quién fue la figura?</h2>
-          <p className="mt-1 text-sm text-white/60">Elegí un jugador de cualquier equipo.</p>
+          <p className="mt-1 text-sm text-white/60">Elegí un jugador de cualquier equipo o no elijas a nadie para abrir la votación automática (los jugadores votarán desde la app).</p>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {participants.map((player) => {

@@ -14,12 +14,7 @@ export default function WelcomePage() {
           Por ahora, la app está en fase de invitación. Necesitás un código o link para entrar a la cancha.
         </p>
         
-        <Link
-          href="/join"
-          className="mt-8 flex min-h-14 w-full items-center justify-center bg-pitch-green px-8 font-headline text-xl font-bold italic uppercase text-black transition-transform active:scale-95"
-        >
-          UNIRME A UN GRUPO
-        </Link>
+
 
         <div className="mt-4 w-full border-t border-white/10 pt-4">
           <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">¿Sos el que organiza?</p>

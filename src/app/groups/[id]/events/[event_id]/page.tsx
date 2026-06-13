@@ -8,6 +8,7 @@ import { ShareMatchSummaryButton } from '@/components/share/share-match-summary-
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
+import { MvpVotingPanel } from '@/components/events/mvp-voting-panel';
 import { showEventNotification } from '@/lib/notifications';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import type { AttendanceStatus, Event, EventId, EventStatus, GroupId } from '@/lib/types';
@@ -61,6 +62,8 @@ function helperCopy(
       return 'Avisaste que no llegás al partido.';
     case 'maybe':
       return 'Quedaste en duda. Podés cambiarlo cuando quieras antes del check-in.';
+    case 'waitlist':
+      return 'Estás en lista de espera. Si se baja alguien, entrás.';
   }
 }
 
@@ -101,9 +104,19 @@ export default function EventViewPage() {
   const [showCancelModal, setShowCancelModal] = useState(false);
 
   const refreshAttendees = useCallback(async () => {
-    const nextAttendees = await eventsService.getEventAttendees(eventId);
+    if (!event) return;
+    const [nextAttendees, nextCurrentPlayer] = await Promise.all([
+      eventsService.getEventAttendees(eventId),
+      eventsService.getCurrentPlayerAttendanceContext(event.group_id, eventId),
+    ]);
     setAttendees(nextAttendees);
-  }, [eventId, eventsService]);
+    setCurrentPlayer(nextCurrentPlayer);
+    if (nextCurrentPlayer) {
+      setSelectedStatus(nextCurrentPlayer.attendanceStatus);
+    }
+  }, [eventId, eventsService, event]);
+
+  const [hasVotedForMvp, setHasVotedForMvp] = useState(false);
 
   const loadEvent = useCallback(async () => {
     setLoading(true);
@@ -130,6 +143,16 @@ export default function EventViewPage() {
       if (eventData.status === 'played') {
         const summary = await eventsService.getPlayedMatchSummary(eventId);
         setPlayedSummary(summary);
+        
+        if (nextCurrentPlayer && !eventData.mvp_player_id) {
+          const { data: vote } = await supabase
+            .from('event_mvp_votes')
+            .select('voter_player_id')
+            .eq('event_id', eventId)
+            .eq('voter_player_id', nextCurrentPlayer.playerId)
+            .maybeSingle();
+          setHasVotedForMvp(!!vote);
+        }
       } else {
         setPlayedSummary([]);
       }
@@ -365,21 +388,24 @@ export default function EventViewPage() {
 
           <div className="grid grid-cols-3 gap-2">
             {ATTENDANCE_OPTIONS.map((option) => {
-              const selected = selectedStatus === option.value;
+              const isGoingButton = option.value === 'going';
+              const selected = selectedStatus === option.value || (isGoingButton && selectedStatus === 'waitlist');
+              const accentClass = selectedStatus === 'waitlist' && isGoingButton ? 'bg-purple-500 text-white' : option.accent;
+              const label = selectedStatus === 'waitlist' && isGoingButton ? 'En Espera' : option.label;
 
               return (
                 <button
                   key={option.value}
                   type="button"
                   onClick={() => void handleAttendanceChange(option.value)}
-                  disabled={attendanceDisabled}
+                  disabled={attendanceDisabled || (selectedStatus === 'waitlist' && isGoingButton)}
                   className={`rounded-lg border px-3 py-4 font-headline text-lg font-bold italic uppercase tracking-tight transition ${
                     selected
-                      ? `${option.accent} border-transparent`
+                      ? `${accentClass} border-transparent`
                       : 'border-white/10 bg-white/[0.04] text-white hover:border-white/20'
                   } disabled:cursor-not-allowed disabled:opacity-50`}
                 >
-                  {option.label}
+                  {label}
                 </button>
               );
             })}
@@ -444,6 +470,24 @@ export default function EventViewPage() {
                   {mvp.assignedPosition ?? 'SIN POS'}
                 </p>
               </div>
+            ) : event.status === 'played' && !event.mvp_player_id ? (
+              hasVotedForMvp ? (
+                <div className="rounded-lg border border-amber-400/40 bg-amber-400/5 p-4 text-center">
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">Ya votaste</p>
+                  <p className="mt-2 text-sm text-white/60">Esperando al resto de los jugadores para revelar la figura del partido...</p>
+                </div>
+              ) : (
+                <MvpVotingPanel
+                  eventId={event.id}
+                  currentPlayerId={currentPlayer?.playerId ?? null}
+                  playedSummary={playedSummary}
+                  onVoteSubmitted={() => {
+                    setHasVotedForMvp(true);
+                    // Also reload to check if voting closed
+                    void loadEvent();
+                  }}
+                />
+              )
             ) : null}
 
             {boostsApplied.length > 0 ? (

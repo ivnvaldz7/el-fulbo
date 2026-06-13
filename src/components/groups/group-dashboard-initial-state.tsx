@@ -1,9 +1,10 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Home } from 'lucide-react';
 import { FloatingPanel } from '@/components/ui/floating-panel';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PlayerCardSharePanel } from '@/components/share/player-card-share-panel';
 import { InviteShareButton } from '@/components/groups/invite-share-button';
+import { CopyAliasButton } from '@/components/groups/copy-alias-button';
 import type { CurrentBoost, PlayerPosition, PlayerStats } from '@/lib/types';
 
 type UpcomingEvent = {
@@ -40,6 +41,7 @@ type GroupDashboardInitialStateProps = {
     primaryPosition: PlayerPosition;
     stats: PlayerStats;
     currentBoost?: CurrentBoost | null;
+    photoUrl?: string | null;
   } | null;
 };
 
@@ -57,7 +59,6 @@ export function GroupDashboardInitialState({
   currentPlayerId,
   shareablePlayer = null,
 }: GroupDashboardInitialStateProps) {
-  const showInviteBanner = activePlayers < 2;
   const showAdminPendingBanner = adminPendingTotal > 0;
   const isAdminOrOwner = userRole === 'admin' || userRole === 'owner';
   const hasClosestMatch = closestMatch !== undefined;
@@ -65,6 +66,11 @@ export function GroupDashboardInitialState({
   return (
     <ImmersiveScreen contentClassName="mx-auto max-w-xl">
       <FloatingPanel className="w-full border-2 border-white/10">
+        <div className="mb-6 flex items-center justify-between">
+          <Link href="/groups" className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors active:scale-95">
+            <Home className="h-4 w-4" /> Volver a mis equipos
+          </Link>
+        </div>
         <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-pitch-green">{modality}</p>
         <h1 className="mt-2 font-headline text-4xl font-black italic uppercase leading-none text-white">{groupName}</h1>
 
@@ -81,8 +87,8 @@ export function GroupDashboardInitialState({
           </div>
         ) : null}
 
-        {userRole === 'admin' ? (
-          <div className="mt-4 grid grid-cols-3 gap-3">
+        {userRole === 'admin' || userRole === 'owner' ? (
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Link
               href={`/groups/${groupId}/admin-tasks`}
               className="flex min-h-12 items-center justify-center border border-white/10 bg-black/30 px-4 font-headline text-sm font-bold uppercase italic text-white transition-transform active:scale-95"
@@ -100,6 +106,12 @@ export function GroupDashboardInitialState({
               className="flex min-h-12 items-center justify-center border border-white/10 bg-black/30 px-4 font-headline text-sm font-bold uppercase italic text-white transition-transform active:scale-95"
             >
               Fijo
+            </Link>
+            <Link
+              href={`/groups/${groupId}/players`}
+              className="flex min-h-12 items-center justify-center border border-white/10 bg-black/30 px-4 font-headline text-sm font-bold uppercase italic text-white transition-transform active:scale-95"
+            >
+              Jugadores
             </Link>
           </div>
         ) : null}
@@ -199,19 +211,25 @@ export function GroupDashboardInitialState({
           </>
         ) : null}
 
-        {showInviteBanner ? (
-          <div className="mt-10">
-            <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Sumá a tus jugadores</h2>
-            <p className="mt-3 font-headline text-base font-medium leading-relaxed text-white/60">
-              Compartí este link en el grupo de WhatsApp y los que entren ya están adentro.
-            </p>
+        <div className="mt-10 border-t border-white/10 pt-8">
+          <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Sumá a tus jugadores</h2>
+          <p className="mt-3 font-headline text-base font-medium leading-relaxed text-white/60">
+            Compartí este link en el grupo de WhatsApp y los que entren ya están adentro.
+          </p>
+          <div className="mt-4">
             <InviteShareButton inviteCode={inviteCode} />
           </div>
-        ) : (
-          <p className="mt-10 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
-            El grupo ya tiene jugadores para empezar el fulbito.
+        </div>
+
+        <div className="mt-12 border-t border-white/10 pt-8">
+          <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Bancá la parada</h2>
+          <p className="mt-3 font-mono text-xs text-white/50 leading-relaxed">
+            Si la app te sirve para organizar los partidos sin el quilombo de WhatsApp, bancá los servidores con lo que puedas.
           </p>
-        )}
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <CopyAliasButton />
+          </div>
+        </div>
       </FloatingPanel>
     </ImmersiveScreen>
   );

@@ -18,6 +18,7 @@ export function PlayerCardSharePanel({
     primaryPosition: PlayerPosition;
     stats: PlayerStats;
     currentBoost?: CurrentBoost | null;
+    photoUrl?: string | null;
   };
 }) {
   const [sharing, setSharing] = useState(false);
@@ -70,6 +71,7 @@ export function PlayerCardSharePanel({
               position={player.primaryPosition}
               stats={player.stats}
               currentBoost={player.currentBoost}
+              photoUrl={player.photoUrl}
             />
           </div>
           <button
@@ -90,6 +92,7 @@ export function PlayerCardSharePanel({
             position={player.primaryPosition}
             stats={player.stats}
             currentBoost={player.currentBoost}
+            photoUrl={player.photoUrl}
             groupName={groupName}
           />
         </div>
