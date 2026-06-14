@@ -22,9 +22,10 @@ export interface InvitePreview {
 
 export interface AcceptInviteOutput {
   groupId: GroupId;
-  playerId: PlayerId;
+  playerId: PlayerId | null;
   alreadyMember: boolean;
-  status: StatsStatus;
+  needsOnboarding: boolean;
+  status: StatsStatus | null;
 }
 
 export interface ArchivedPlayerPreview {
@@ -272,6 +273,7 @@ export async function acceptInviteForUser(
       groupId: row.group_id,
       playerId: row.player_id,
       alreadyMember: row.already_member,
+      needsOnboarding: row.needs_onboarding,
       status: row.status,
     },
   };

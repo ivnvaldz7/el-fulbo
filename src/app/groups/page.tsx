@@ -4,6 +4,7 @@ import { LogOut, Plus, Search, ShieldAlert, User } from 'lucide-react';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { FloatingPanel } from '@/components/ui/floating-panel';
+import { DeleteGroupButton } from '@/components/groups/delete-group-button';
 
 export default async function GroupsHubPage() {
   const supabase = createServerSupabaseClient();
@@ -49,27 +50,36 @@ export default async function GroupsHubPage() {
               const group = membership.groups as unknown as { name: string; default_modality: string };
               const isAdmin = membership.role === 'admin' || membership.role === 'owner';
               return (
-                <Link
+                <div
                   key={membership.group_id}
-                  href={`/groups/${membership.group_id}/dashboard`}
-                  className="group relative flex flex-col justify-between overflow-hidden border-2 border-white/10 bg-absolute-dark p-5 transition-all hover:border-pitch-green/50 active:scale-[0.98]"
+                  className="group relative flex flex-col justify-between overflow-hidden border-2 border-white/10 bg-absolute-dark p-5 transition-all hover:border-pitch-green/50"
                 >
-                  <div className="flex items-start justify-between">
+                  <Link
+                    href={`/groups/${membership.group_id}/dashboard`}
+                    className="absolute inset-0 z-0"
+                    aria-label={`Ir al dashboard de ${group.name}`}
+                  />
+                  <div className="relative z-10 flex items-start justify-between pointer-events-none">
                     <div>
-                      <h2 className="font-headline text-xl font-black uppercase italic text-white group-hover:text-pitch-green transition-colors">
+                      <h2 className="font-headline text-xl font-black uppercase italic text-white transition-colors group-hover:text-pitch-green">
                         {group.name}
                       </h2>
                       <p className="mt-1 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">
                         {group.default_modality}
                       </p>
                     </div>
-                    {isAdmin && (
-                      <div className="flex h-6 items-center rounded-full bg-pitch-green/10 px-2 font-mono text-[9px] font-bold uppercase tracking-wider text-pitch-green">
-                        Admin
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2 pointer-events-auto">
+                      {isAdmin && (
+                        <>
+                          <div className="flex h-8 items-center rounded-full bg-pitch-green/10 px-3 font-mono text-[9px] font-bold uppercase tracking-wider text-pitch-green">
+                            Admin
+                          </div>
+                          <DeleteGroupButton groupId={membership.group_id} groupName={group.name} />
+                        </>
+                      )}
+                    </div>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>
