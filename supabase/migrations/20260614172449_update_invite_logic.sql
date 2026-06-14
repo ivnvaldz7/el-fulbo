@@ -1,3 +1,5 @@
+drop function if exists public.accept_invite_for_user(text);
+
 create or replace function public.accept_invite_for_user(p_invite_code text)
 returns table (
   group_id uuid,

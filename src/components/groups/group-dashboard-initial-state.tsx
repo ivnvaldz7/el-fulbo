@@ -5,6 +5,7 @@ import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PlayerCardSharePanel } from '@/components/share/player-card-share-panel';
 import { InviteShareButton } from '@/components/groups/invite-share-button';
 import { CopyAliasButton } from '@/components/groups/copy-alias-button';
+import { AppShareButton } from '@/components/share/app-share-button';
 import type { CurrentBoost, PlayerPosition, PlayerStats } from '@/lib/types';
 
 type UpcomingEvent = {
@@ -216,8 +217,9 @@ export function GroupDashboardInitialState({
           <p className="mt-3 font-headline text-base font-medium leading-relaxed text-white/60">
             Compartí este link en el grupo de WhatsApp y los que entren ya están adentro.
           </p>
-          <div className="mt-4">
+          <div className="mt-4 space-y-3">
             <InviteShareButton inviteCode={inviteCode} />
+            <AppShareButton />
           </div>
         </div>
 
