@@ -29,11 +29,7 @@ export function AcceptInviteButton({ inviteCode }: { inviteCode: string }) {
       return;
     }
 
-    router.push(
-      body.data.alreadyMember
-        ? `/groups/${body.data.groupId}/dashboard`
-        : `/groups/${body.data.groupId}/onboarding-stats`,
-    );
+    router.push(`/groups/${body.data.groupId}/dashboard`);
   }
 
   return (

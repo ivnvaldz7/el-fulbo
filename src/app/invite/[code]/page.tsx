@@ -8,6 +8,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { AcceptInviteButton } from './accept-invite-button';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { FloatingPanel } from '@/components/ui/floating-panel';
+import { AppShareButton } from '@/components/share/app-share-button';
 
 export default async function InvitePage({ params }: { params: { code: string } }) {
   const inviteCode = decodeURIComponent(params.code).toUpperCase();
@@ -107,6 +108,7 @@ export default async function InvitePage({ params }: { params: { code: string } 
           ) : (
             <AcceptInviteButton inviteCode={inviteCode} />
           )}
+          <AppShareButton />
         </div>
       </FloatingPanel>
     </ImmersiveScreen>
