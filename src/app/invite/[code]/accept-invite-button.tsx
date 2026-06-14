@@ -19,7 +19,7 @@ export function AcceptInviteButton({ inviteCode }: { inviteCode: string }) {
     });
     const body = (await response.json()) as {
       ok: boolean;
-      data?: { groupId: string; alreadyMember: boolean };
+      data?: { groupId: string; alreadyMember: boolean; needsOnboarding: boolean };
       error?: { message: string };
     };
 
