@@ -201,4 +201,18 @@ textarea {
     transition-duration: var(--duration-normal);
     transition-timing-function: var(--ease-out-expo);
   }
+
+  /* Prevent orphan words in headings */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Cap body text line length for readability */
+  .max-ch-65 {
+    max-width: 65ch;
+  }
+
+  .max-ch-75 {
+    max-width: 75ch;
+  }
 }

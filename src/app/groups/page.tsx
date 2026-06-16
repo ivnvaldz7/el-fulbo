@@ -83,45 +83,40 @@ export default async function GroupsHubPage() {
       <FloatingPanel className="border-2 border-white/10 p-6">
         <header className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="font-headline text-3xl font-black italic uppercase leading-none text-white">Mis Equipos</h1>
+            <h1 className="font-headline text-3xl font-black italic uppercase leading-none text-white text-balance">Mis Equipos</h1>
             <p className="mt-1 font-mono text-[10px] font-bold uppercase tracking-widest text-pitch-green">Hub Principal</p>
           </div>
         </header>
 
         {hasGroups ? (
           <div className="flex flex-col gap-4">
-            {userGroups.map((group) => {
+              {userGroups.map((group) => {
               return (
-                <div
+                <article
                   key={group.group_id}
-                  className="group relative flex flex-col justify-between overflow-hidden border-2 border-white/10 bg-absolute-dark p-5 transition-all duration-150 hover:border-pitch-green/50 hover:bg-white/5"
+                  className="group relative border-2 border-white/10 bg-absolute-dark transition-all duration-150 hover:border-pitch-green/50 hover:bg-white/5"
                 >
                   <Link
                     href={`/groups/${group.group_id}/dashboard`}
-                    className="absolute inset-0 z-0"
+                    className="flex flex-col justify-between p-5"
                     aria-label={`Ir al dashboard de ${group.name}`}
-                  />
-                  <div className="relative z-10 flex items-start justify-between pointer-events-none">
-                    <div>
-                      <h2 className="font-headline text-xl font-black uppercase italic text-white transition-colors duration-150 group-hover:text-pitch-green">
-                        {group.name}
-                      </h2>
-                      <p className="mt-1 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">
-                        {group.default_modality}
-                      </p>
+                  >
+                    <h2 className="font-headline text-xl font-black uppercase italic text-white transition-colors duration-150 group-hover:text-pitch-green">
+                      {group.name}
+                    </h2>
+                    <p className="mt-1 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">
+                      {group.default_modality}
+                    </p>
+                  </Link>
+                  {group.isAdmin && (
+                    <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
+                      <div className="flex h-8 items-center rounded-full bg-pitch-green/10 px-3 font-mono text-[9px] font-bold uppercase tracking-wider text-pitch-green pointer-events-none select-none">
+                        Admin
+                      </div>
+                      <DeleteGroupButton groupId={group.group_id} groupName={group.name} />
                     </div>
-                    <div className="flex items-center gap-2 pointer-events-auto">
-                      {group.isAdmin && (
-                        <>
-                          <div className="flex h-8 items-center rounded-full bg-pitch-green/10 px-3 font-mono text-[9px] font-bold uppercase tracking-wider text-pitch-green">
-                            Admin
-                          </div>
-                          <DeleteGroupButton groupId={group.group_id} groupName={group.name} />
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                  )}
+                </article>
               );
             })}
           </div>

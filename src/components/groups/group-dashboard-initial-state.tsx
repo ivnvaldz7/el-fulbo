@@ -73,7 +73,7 @@ export function GroupDashboardInitialState({
           </Link>
         </div>
         <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-pitch-green">{modality}</p>
-        <h1 className="mt-2 font-headline text-4xl font-black italic uppercase leading-none text-white text-glow-green">{groupName}</h1>
+        <h1 className="mt-2 font-headline text-4xl font-black italic uppercase leading-none text-white text-glow-green text-balance">{groupName}</h1>
 
         {showAdminPendingBanner ? (
           <div className="mt-8 border border-amber-400/20 bg-amber-400/5 p-5">
@@ -161,7 +161,7 @@ export function GroupDashboardInitialState({
           {isAdminOrOwner ? (
             <Link
               href={`/groups/${groupId}/events/new`}
-              className="btn-interactive mt-4 flex min-h-12 w-full items-center justify-center border border-pitch-green/40 px-6 font-headline text-sm font-bold italic uppercase text-pitch-green hover:border-pitch-green hover:bg-pitch-green/10"
+              className="btn-interactive mt-4 flex min-h-14 w-full items-center justify-center bg-pitch-green px-6 font-headline text-sm font-black italic uppercase text-white hover:brightness-110"
             >
               + Crear partido
             </Link>

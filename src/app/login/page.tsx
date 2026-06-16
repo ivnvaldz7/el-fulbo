@@ -32,10 +32,10 @@ function LoginContent() {
       <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green text-glow-green">
         El Fulbo
       </p>
-      <h1 className="mt-2 font-headline text-3xl font-black italic uppercase leading-none text-white">
+      <h1 className="mt-2 font-headline text-3xl font-black italic uppercase leading-none text-white text-balance">
         Entrá a la cancha.
       </h1>
-      <p className="mt-4 font-mono text-sm text-white/50">
+      <p className="mt-4 font-mono text-sm text-white/50 max-ch-75 mx-auto">
         Usamos tu cuenta de Google para guardar tu carta y tus partidos.
       </p>
 
