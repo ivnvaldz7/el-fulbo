@@ -16,7 +16,8 @@ export default async function GroupsHubPage() {
     redirect('/login');
   }
 
-  const { data: memberships, error } = await supabase
+  // 1. Obtener grupos donde el usuario es Admin u Owner (group_memberships)
+  const { data: memberships, error: memError } = await supabase
     .from('group_memberships')
     .select(`
       role,
@@ -28,11 +29,53 @@ export default async function GroupsHubPage() {
     `)
     .eq('user_id', user.id);
 
-  if (error) {
-    console.error('Error fetching memberships:', error);
+  // 2. Obtener grupos donde el usuario es un Jugador regular (players)
+  const { data: playerCards, error: playError } = await supabase
+    .from('players')
+    .select(`
+      group_id,
+      groups!inner (
+        name,
+        default_modality
+      )
+    `)
+    .eq('user_id', user.id)
+    .is('archived_at', null);
+
+  if (memError) console.error('Error fetching memberships:', memError);
+  if (playError) console.error('Error fetching player cards:', playError);
+
+  // Unificar y eliminar duplicados (por si el admin también tiene una ficha de jugador)
+  const mergedGroups = new Map<string, { group_id: string; name: string; default_modality: string; isAdmin: boolean }>();
+
+  if (memberships) {
+    memberships.forEach((m) => {
+      const g = m.groups as unknown as { name: string; default_modality: string };
+      mergedGroups.set(m.group_id, {
+        group_id: m.group_id,
+        name: g.name,
+        default_modality: g.default_modality,
+        isAdmin: m.role === 'admin' || m.role === 'owner',
+      });
+    });
   }
 
-  const hasGroups = memberships && memberships.length > 0;
+  if (playerCards) {
+    playerCards.forEach((p) => {
+      if (!mergedGroups.has(p.group_id)) {
+        const g = p.groups as unknown as { name: string; default_modality: string };
+        mergedGroups.set(p.group_id, {
+          group_id: p.group_id,
+          name: g.name,
+          default_modality: g.default_modality,
+          isAdmin: false,
+        });
+      }
+    });
+  }
+
+  const userGroups = Array.from(mergedGroups.values());
+  const hasGroups = userGroups.length > 0;
 
   return (
     <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] w-full py-8 px-4">
@@ -46,16 +89,14 @@ export default async function GroupsHubPage() {
 
         {hasGroups ? (
           <div className="flex flex-col gap-4">
-            {memberships.map((membership) => {
-              const group = membership.groups as unknown as { name: string; default_modality: string };
-              const isAdmin = membership.role === 'admin' || membership.role === 'owner';
+            {userGroups.map((group) => {
               return (
                 <div
-                  key={membership.group_id}
+                  key={group.group_id}
                   className="group relative flex flex-col justify-between overflow-hidden border-2 border-white/10 bg-absolute-dark p-5 transition-all hover:border-pitch-green/50"
                 >
                   <Link
-                    href={`/groups/${membership.group_id}/dashboard`}
+                    href={`/groups/${group.group_id}/dashboard`}
                     className="absolute inset-0 z-0"
                     aria-label={`Ir al dashboard de ${group.name}`}
                   />
@@ -69,12 +110,12 @@ export default async function GroupsHubPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2 pointer-events-auto">
-                      {isAdmin && (
+                      {group.isAdmin && (
                         <>
                           <div className="flex h-8 items-center rounded-full bg-pitch-green/10 px-3 font-mono text-[9px] font-bold uppercase tracking-wider text-pitch-green">
                             Admin
                           </div>
-                          <DeleteGroupButton groupId={membership.group_id} groupName={group.name} />
+                          <DeleteGroupButton groupId={group.group_id} groupName={group.name} />
                         </>
                       )}
                     </div>
@@ -110,3 +151,4 @@ export default async function GroupsHubPage() {
     </ImmersiveScreen>
   );
 }
+

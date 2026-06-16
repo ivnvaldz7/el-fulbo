@@ -38,15 +38,16 @@ export default async function GroupDashboardPage({ params }: { params: { id: str
     .select('role')
     .eq('group_id', params.id)
     .eq('user_id', user.id)
-    .single();
-
-  if (!membership) {
-    redirect('/join');
-  }
+    .maybeSingle();
 
   const currentPlayerResult = await getCurrentUserPlayerInGroup(supabase, params.id);
 
-  const userRole = membership.role;
+  if (!membership && !currentPlayerResult.ok) {
+    redirect('/join');
+  }
+
+  // Si no tiene membership (admin/owner) pero es jugador, su rol es 'player'
+  const userRole = membership ? membership.role : 'player';
   const isAdminOrOwner = userRole === 'admin' || userRole === 'owner';
 
   const startOfToday = new Date();

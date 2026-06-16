@@ -31,7 +31,7 @@ export default async function PlayerProfilePage({
     .select('role')
     .eq('group_id', params.id)
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
 
   const userRole = membership?.role;
   const isAdminOrOwner = userRole === 'admin' || userRole === 'owner';

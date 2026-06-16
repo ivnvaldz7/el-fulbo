@@ -22,19 +22,22 @@ export default async function PlayerProfileLayout({
     .select('role')
     .eq('group_id', params.id)
     .eq('user_id', user.id)
-    .single();
-
-  if (!membership) redirect(`/groups/${params.id}/dashboard`);
+    .maybeSingle();
 
   const { data: player } = await supabase
     .from('players')
-    .select('display_name')
+    .select('display_name, user_id')
     .eq('id', params.player_id)
     .eq('group_id', params.id)
     .is('archived_at', null)
     .single();
 
   if (!player) redirect(`/groups/${params.id}/dashboard`);
+
+  const isAdminOrOwner = membership && (membership.role === 'admin' || membership.role === 'owner');
+  const isSelf = player.user_id === user.id;
+
+  if (!isAdminOrOwner && !isSelf) redirect(`/groups/${params.id}/dashboard`);
 
   return (
     <ImmersiveScreen contentClassName="max-w-md mx-auto w-full">

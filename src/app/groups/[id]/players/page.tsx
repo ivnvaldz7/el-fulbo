@@ -22,14 +22,9 @@ export default async function GroupPlayersPage({ params }: { params: { id: strin
     .select('role')
     .eq('group_id', params.id)
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
 
-  if (!membership) {
-    redirect('/join');
-  }
-
-  const userRole = membership.role;
-  const isAdminOrOwner = userRole === 'admin' || userRole === 'owner';
+  const isAdminOrOwner = membership && (membership.role === 'admin' || membership.role === 'owner');
 
   if (!isAdminOrOwner) {
     redirect(`/groups/${params.id}/dashboard`);

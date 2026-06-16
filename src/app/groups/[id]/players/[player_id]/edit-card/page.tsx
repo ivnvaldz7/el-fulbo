@@ -21,7 +21,7 @@ export default async function EditPlayerCardPage({
     .select('role')
     .eq('group_id', params.id)
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
 
   const isAdminOrOwner = membership?.role === 'admin' || membership?.role === 'owner';
 
