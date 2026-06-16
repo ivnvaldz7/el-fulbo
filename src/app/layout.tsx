@@ -17,7 +17,14 @@ export default function RootLayout({
   return (
     <html lang="es-AR">
       <body>
-        <AppProviders>{children}</AppProviders>
+        <a href="#main-content" className="skip-link">
+          Ir al contenido principal
+        </a>
+        <AppProviders>
+          <div id="main-content" tabIndex={-1} className="outline-none">
+            {children}
+          </div>
+        </AppProviders>
         <Toaster />
       </body>
     </html>

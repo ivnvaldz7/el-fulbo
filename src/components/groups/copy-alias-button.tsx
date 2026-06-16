@@ -7,7 +7,7 @@ export function CopyAliasButton() {
         navigator.clipboard.writeText('0000177509553009633357');
         alert('Alias/CBU copiado: 0000177509553009633357');
       }}
-      className="flex min-h-12 flex-1 items-center justify-center bg-[#009EE3] px-4 font-headline text-sm font-bold uppercase italic text-white transition-transform active:scale-95 hover:bg-[#008DD0]"
+      className="btn-interactive flex min-h-12 flex-1 items-center justify-center bg-[#009EE3] px-4 font-headline text-sm font-bold uppercase italic text-white hover:brightness-110"
     >
       Copiar Alias MP
     </button>

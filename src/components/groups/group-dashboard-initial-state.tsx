@@ -68,7 +68,7 @@ export function GroupDashboardInitialState({
     <ImmersiveScreen contentClassName="mx-auto max-w-xl">
       <FloatingPanel className="w-full border-2 border-white/10">
         <div className="mb-6 flex items-center justify-between">
-          <Link href="/groups" className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors active:scale-95">
+          <Link href="/groups" className="link-interactive flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white">
             <Home className="h-4 w-4" /> Volver a mis equipos
           </Link>
         </div>
@@ -81,7 +81,7 @@ export function GroupDashboardInitialState({
             <h2 className="mt-1 font-headline text-xl font-black italic uppercase text-white">Tenés {adminPendingTotal} pendientes</h2>
             <a
               href="./admin-tasks"
-              className="mt-4 inline-flex min-h-12 items-center justify-center bg-amber-400 px-6 py-2 font-headline text-sm font-bold uppercase text-black transition-transform active:scale-95"
+              className="btn-interactive mt-4 inline-flex min-h-12 items-center justify-center bg-amber-400 px-6 py-2 font-headline text-sm font-bold uppercase text-black hover:bg-amber-300"
             >
               Ver ahora
             </a>
@@ -92,25 +92,25 @@ export function GroupDashboardInitialState({
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Link
               href={`/groups/${groupId}/admin-tasks`}
-              className="flex min-h-12 items-center justify-center border border-white/10 bg-black/30 px-4 font-headline text-sm font-bold uppercase italic text-white transition-transform active:scale-95"
+              className="btn-interactive flex min-h-12 items-center justify-center border border-white/10 bg-black/30 px-4 font-headline text-sm font-bold uppercase italic text-white hover:border-white/30 hover:bg-white/10"
             >
               Pendientes
             </Link>
             <Link
               href={`/groups/${groupId}/settings/owners`}
-              className="flex min-h-12 items-center justify-center bg-pitch-green px-4 font-headline text-sm font-bold uppercase italic text-black transition-transform active:scale-95"
+              className="btn-interactive flex min-h-12 items-center justify-center bg-pitch-green px-4 font-headline text-sm font-bold uppercase italic text-black hover:brightness-110"
             >
               Owners
             </Link>
             <Link
               href={`/groups/${groupId}/settings/recurring`}
-              className="flex min-h-12 items-center justify-center border border-white/10 bg-black/30 px-4 font-headline text-sm font-bold uppercase italic text-white transition-transform active:scale-95"
+              className="btn-interactive flex min-h-12 items-center justify-center border border-white/10 bg-black/30 px-4 font-headline text-sm font-bold uppercase italic text-white hover:border-white/30 hover:bg-white/10"
             >
               Fijo
             </Link>
             <Link
               href={`/groups/${groupId}/players`}
-              className="flex min-h-12 items-center justify-center border border-white/10 bg-black/30 px-4 font-headline text-sm font-bold uppercase italic text-white transition-transform active:scale-95"
+              className="btn-interactive flex min-h-12 items-center justify-center border border-white/10 bg-black/30 px-4 font-headline text-sm font-bold uppercase italic text-white hover:border-white/30 hover:bg-white/10"
             >
               Jugadores
             </Link>
@@ -123,7 +123,7 @@ export function GroupDashboardInitialState({
               <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Próximo partido</p>
               <Link
                 href={`/groups/${groupId}/events/${closestMatch.id}`}
-                className="mt-3 flex min-h-14 w-full items-center justify-between border border-white/10 bg-black/30 px-5 py-4 transition-colors active:scale-95"
+                className="btn-interactive mt-3 flex min-h-14 w-full items-center justify-between border border-white/10 bg-black/30 px-5 py-4 hover:border-white/30 hover:bg-white/5"
               >
                 <div>
                   <p className="font-headline text-lg font-black italic uppercase leading-none text-white">
@@ -137,15 +137,31 @@ export function GroupDashboardInitialState({
               </Link>
             </>
           ) : (
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">
-              No hay partidos programados.
-            </p>
+            <div className="flex flex-col items-center gap-3 border border-dashed border-white/10 bg-white/[0.02] py-8">
+              <div className="flex h-10 w-10 items-center justify-center border border-white/10 bg-white/5">
+                <span className="font-headline text-lg font-black italic text-white/30">!</span>
+              </div>
+              <div className="text-center">
+                <p className="font-headline text-lg font-black italic uppercase text-white/40">
+                  No hay partidos programados
+                </p>
+                {isAdminOrOwner ? (
+                  <p className="mt-1 font-mono text-[10px] text-white/30">
+                    Creá el primero para arrancar la temporada
+                  </p>
+                ) : (
+                  <p className="mt-1 font-mono text-[10px] text-white/30">
+                    Esperá a que el dueño del grupo cree un partido
+                  </p>
+                )}
+              </div>
+            </div>
           )}
 
           {isAdminOrOwner ? (
             <Link
               href={`/groups/${groupId}/events/new`}
-              className="mt-4 flex min-h-12 w-full items-center justify-center border border-pitch-green/40 px-6 font-headline text-sm font-bold italic uppercase text-pitch-green transition-colors hover:border-pitch-green active:scale-95"
+              className="btn-interactive mt-4 flex min-h-12 w-full items-center justify-center border border-pitch-green/40 px-6 font-headline text-sm font-bold italic uppercase text-pitch-green hover:border-pitch-green hover:bg-pitch-green/10"
             >
               + Crear partido
             </Link>
@@ -160,7 +176,7 @@ export function GroupDashboardInitialState({
                 <li key={match.id}>
                   <Link
                     href={`/groups/${groupId}/events/${match.id}`}
-                    className="flex items-center justify-between border border-white/10 bg-black/20 px-4 py-3 text-white/60 active:scale-95"
+                    className="btn-interactive flex min-h-11 items-center justify-between border border-white/10 bg-black/20 px-4 py-3 text-white/60 hover:border-white/30 hover:bg-white/5 hover:text-white/80"
                   >
                     <p className="font-headline text-base font-medium leading-relaxed">
                       A las{' '}
@@ -196,7 +212,16 @@ export function GroupDashboardInitialState({
               ))}
             </ul>
           </div>
-        ) : null}
+        ) : (
+          <div className="mt-10">
+            <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Últimos partidos</h2>
+            <div className="mt-4 flex flex-col items-center gap-3 border border-dashed border-white/5 bg-white/[0.01] py-8">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">
+                Todavía no se jugó ningún partido
+              </p>
+            </div>
+          </div>
+        )}
 
         {shareablePlayer ? (
           <>
@@ -204,7 +229,7 @@ export function GroupDashboardInitialState({
             {currentPlayerId ? (
               <Link
                 href={`/groups/${groupId}/players/${currentPlayerId}`}
-                className="mt-3 flex min-h-12 w-full items-center justify-center border border-white/20 px-6 font-headline text-sm font-bold italic uppercase text-white/70 transition-colors hover:border-white/40 hover:text-white active:scale-95"
+                className="btn-interactive mt-3 flex min-h-12 w-full items-center justify-center border border-white/20 px-6 font-headline text-sm font-bold italic uppercase text-white/70 hover:border-white/40 hover:bg-white/5 hover:text-white"
               >
                 Ver / editar mi carta
               </Link>

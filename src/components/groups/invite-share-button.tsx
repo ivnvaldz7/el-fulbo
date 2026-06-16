@@ -36,7 +36,7 @@ export function InviteShareButton({ inviteCode }: { inviteCode: string }) {
     <button
       type="button"
       onClick={handleShare}
-      className={`mt-8 flex min-h-14 w-full items-center justify-center bg-pitch-green px-6 py-3 font-headline text-lg font-bold italic uppercase text-black transition-transform active:scale-95 ${copied ? 'animate-success-pulse' : ''}`}
+      className={`btn-interactive mt-8 flex min-h-14 w-full items-center justify-center bg-pitch-green px-6 py-3 font-headline text-lg font-bold italic uppercase text-black hover:brightness-110 ${copied ? 'animate-success-pulse' : ''}`}
     >
       {copied ? '✓ Link copiado!' : 'Invitar jugadores'}
     </button>

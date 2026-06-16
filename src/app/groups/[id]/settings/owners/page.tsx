@@ -1,7 +1,6 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
+import { PageHeader } from '@/components/ui/page-header';
 import { OwnersSettingsClient } from './owners-settings-client';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getOwnersSettingsData } from '@/lib/services/owners.service';
@@ -16,13 +15,7 @@ export default async function OwnersSettingsPage({ params }: { params: { id: str
 
   return (
     <ImmersiveScreen align="center" className="flex-col">
-      <header className="fixed top-0 z-30 flex h-16 w-full max-w-[390px] items-center justify-between border-b-2 border-white/10 bg-absolute-dark px-4">
-        <Link href={`/groups/${params.id}/dashboard`} className="text-pitch-green active:scale-95 transition-transform">
-          <ArrowLeft className="h-6 w-6" />
-        </Link>
-        <h1 className="font-headline text-xl font-black italic uppercase tracking-tighter text-white">OWNERS</h1>
-        <div className="w-6"></div>
-      </header>
+      <PageHeader title="OWNERS" backHref={`/groups/${params.id}/dashboard`} />
 
       <main className="mt-16 flex w-full max-w-[390px] flex-col px-6">
         <section className="py-6">

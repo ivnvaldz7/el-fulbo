@@ -1,12 +1,11 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
 import { getAdminTasksDetail } from '@/lib/services/admin-tasks.service';
 import { getPendingPhantoms } from '@/lib/services/phantom-player.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { TaskActions } from './task-actions';
 import { PhantomResolutionWidget } from '@/components/phantom/phantom-resolution-widget';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
+import { PageHeader } from '@/components/ui/page-header';
 
 function formatRelative(dateIso: string) {
   const diffDays = Math.max(
@@ -82,13 +81,7 @@ export default async function AdminTasksPage({ params }: { params: { id: string 
 
   return (
     <ImmersiveScreen align="center" className="flex-col">
-      <header className="fixed top-0 z-30 flex h-16 w-full max-w-[390px] items-center justify-between border-b-2 border-white/10 bg-absolute-dark px-4">
-        <Link href={`/groups/${params.id}/dashboard`} className="text-pitch-green active:scale-95 transition-transform">
-          <ArrowLeft className="h-6 w-6" />
-        </Link>
-        <h1 className="font-headline text-xl font-black italic uppercase tracking-tighter text-white">ADMIN</h1>
-        <div className="w-6"></div>
-      </header>
+      <PageHeader title="ADMIN" backHref={`/groups/${params.id}/dashboard`} />
 
       <main className="mt-16 flex w-full max-w-[390px] flex-col px-6">
         <section className="py-6">

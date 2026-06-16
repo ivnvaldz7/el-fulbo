@@ -47,7 +47,7 @@ function LoginContent() {
         type="button"
         onClick={handleGoogleLogin}
         disabled={loading}
-        className="mt-8 flex h-14 w-full items-center justify-center gap-3 bg-white font-headline text-lg font-bold uppercase text-black transition-transform active:scale-95 disabled:opacity-60"
+        className="btn-interactive mt-8 flex h-14 w-full items-center justify-center gap-3 bg-white font-headline text-lg font-bold uppercase text-black hover:brightness-110 disabled:opacity-60"
       >
         <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

@@ -20,7 +20,7 @@ export default function WelcomePage() {
           <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">¿Sos el que organiza?</p>
           <Link
             href="/groups/new"
-            className="flex min-h-12 w-full items-center justify-center border border-white/20 px-8 font-headline text-base font-bold italic uppercase text-white/70 transition-colors hover:border-white/40 hover:text-white active:scale-95"
+            className="btn-interactive flex min-h-12 w-full items-center justify-center border border-white/20 px-8 font-headline text-base font-bold italic uppercase text-white/70 hover:border-white/40 hover:bg-white/5 hover:text-white"
           >
             CREAR UN GRUPO
           </Link>

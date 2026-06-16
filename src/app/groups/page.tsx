@@ -94,7 +94,7 @@ export default async function GroupsHubPage() {
               return (
                 <div
                   key={group.group_id}
-                  className="group relative flex flex-col justify-between overflow-hidden border-2 border-white/10 bg-absolute-dark p-5 transition-all hover:border-pitch-green/50"
+                  className="group relative flex flex-col justify-between overflow-hidden border-2 border-white/10 bg-absolute-dark p-5 transition-all duration-150 hover:border-pitch-green/50 hover:bg-white/5"
                 >
                   <Link
                     href={`/groups/${group.group_id}/dashboard`}
@@ -103,7 +103,7 @@ export default async function GroupsHubPage() {
                   />
                   <div className="relative z-10 flex items-start justify-between pointer-events-none">
                     <div>
-                      <h2 className="font-headline text-xl font-black uppercase italic text-white transition-colors group-hover:text-pitch-green">
+                      <h2 className="font-headline text-xl font-black uppercase italic text-white transition-colors duration-150 group-hover:text-pitch-green">
                         {group.name}
                       </h2>
                       <p className="mt-1 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">
@@ -142,7 +142,7 @@ export default async function GroupsHubPage() {
         <div className="mt-10 flex flex-col gap-3">
           <Link
             href="/groups/new"
-            className="flex h-14 w-full items-center justify-center gap-2 bg-pitch-green px-4 font-headline text-sm font-bold uppercase tracking-widest text-black transition-transform active:scale-95"
+            className="btn-interactive flex h-14 w-full items-center justify-center gap-2 bg-pitch-green px-4 font-headline text-sm font-bold uppercase tracking-widest text-black hover:brightness-110"
           >
             <Plus className="h-5 w-5" />
             Crear Nuevo Equipo
