@@ -73,7 +73,7 @@ export function GroupDashboardInitialState({
           </Link>
         </div>
         <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-pitch-green">{modality}</p>
-        <h1 className="mt-2 font-headline text-4xl font-black italic uppercase leading-none text-white">{groupName}</h1>
+        <h1 className="mt-2 font-headline text-4xl font-black italic uppercase leading-none text-white text-glow-green">{groupName}</h1>
 
         {showAdminPendingBanner ? (
           <div className="mt-8 border border-amber-400/20 bg-amber-400/5 p-5">
@@ -89,7 +89,7 @@ export function GroupDashboardInitialState({
         ) : null}
 
         {userRole === 'admin' || userRole === 'owner' ? (
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="animate-stagger mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Link
               href={`/groups/${groupId}/admin-tasks`}
               className="btn-interactive flex min-h-12 items-center justify-center border border-white/10 bg-black/30 px-4 font-headline text-sm font-bold uppercase italic text-white hover:border-white/30 hover:bg-white/10"

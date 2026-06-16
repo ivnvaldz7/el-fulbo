@@ -9,7 +9,7 @@ export function FloatingPanel({
 }) {
   return (
     <section
-      className={`border border-white/10 bg-concrete-overlay p-5 text-fulbo-text sm:p-6 ${className}`}
+      className={`animate-fade-slide-up border border-white/10 bg-concrete-overlay p-5 text-fulbo-text sm:p-6 ${className}`}
     >
       {children}
     </section>

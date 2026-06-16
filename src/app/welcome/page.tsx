@@ -6,7 +6,7 @@ export default function WelcomePage() {
   return (
     <ImmersiveScreen align="center" contentClassName="mx-auto max-w-lg">
       <FloatingPanel className="flex flex-col items-center text-center border-2 border-pitch-green/20">
-        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Bienvenido</p>
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green text-glow-green">Bienvenido</p>
         <h1 className="mt-2 font-headline text-3xl font-black italic uppercase leading-none text-white">
           Arrancá uniéndote a un grupo.
         </h1>
