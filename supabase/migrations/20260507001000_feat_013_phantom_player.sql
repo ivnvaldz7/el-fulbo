@@ -194,23 +194,20 @@ as $$
 declare
   archived_count integer;
 begin
-  with updated as (
-    update public.players
-    set archived_at = now()
-    where is_phantom = true
-      and archived_at is null
-      and joined_at < now() - interval '7 days'
-      and not exists (
-        select 1 from public.event_attendances ea
-        join public.events e on e.id = ea.event_id
-        where ea.player_id = players.id
-          and e.scheduled_at > now()
-          and e.status not in ('cancelled', 'played')
-      )
-    returning id
-  )
-  select count(*) into archived_count from updated;
+  update public.players
+  set archived_at = now()
+  where is_phantom = true
+    and archived_at is null
+    and joined_at < now() - interval '7 days'
+    and not exists (
+      select 1 from public.event_attendances ea
+      join public.events e on e.id = ea.event_id
+      where ea.player_id = players.id
+        and e.scheduled_at > now()
+        and e.status not in ('cancelled', 'played')
+    );
 
+  get diagnostics archived_count = row_count;
   return archived_count;
 end;
 $$;
