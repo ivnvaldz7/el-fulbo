@@ -13,21 +13,21 @@ export const createEventSchema = z.object({
 }).superRefine((data, ctx) => {
   const scheduledAt = new Date(`${data.date}T${data.time}:00`);
   const now = new Date();
-  const oneYearFromNow = new Date();
-  oneYearFromNow.setFullYear(now.getFullYear() + 1);
+  const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
+  const ninetyDaysFromNow = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
 
-  if (scheduledAt < now) {
+  if (scheduledAt < oneHourFromNow) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: 'La fecha y hora no pueden ser en el pasado.',
+      message: 'El partido debe programarse con al menos 1 hora de anticipación.',
       path: ['date'],
     });
   }
 
-  if (scheduledAt > oneYearFromNow) {
+  if (scheduledAt > ninetyDaysFromNow) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: 'La fecha no puede ser más de un año en el futuro.',
+      message: 'La fecha no puede ser más de 90 días en el futuro.',
       path: ['date'],
     });
   }

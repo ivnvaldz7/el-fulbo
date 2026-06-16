@@ -7,22 +7,18 @@ export async function getRecurringSchedules(
   supabase: SupabaseClient,
   groupId: string,
 ): Promise<{ data: any[] | null; error: AppError | null }> {
-  try {
-    const { data, error } = await supabase
-      .from('group_recurring_schedules')
-      .select('*')
-      .eq('group_id', groupId)
-      .eq('active', true)
-      .order('day_of_week', { ascending: true });
+  const { data, error } = await supabase
+    .from('group_recurring_schedules')
+    .select('*')
+    .eq('group_id', groupId)
+    .eq('active', true)
+    .order('day_of_week', { ascending: true });
 
-    if (error) {
-      return { data: null, error: mapSupabaseError(error) };
-    }
-
-    return { data: data ?? [], error: null };
-  } catch (err) {
-    return { data: null, error: mapSupabaseError(err) };
+  if (error) {
+    return { data: null, error: mapSupabaseError(error) };
   }
+
+  return { data: data ?? [], error: null };
 }
 
 export async function createRecurringSchedule(
@@ -42,34 +38,30 @@ export async function createRecurringSchedule(
     };
   }
 
-  try {
-    const { data, error } = await supabase
-      .from('group_recurring_schedules')
-      .upsert(
-        {
-          group_id: groupId,
-          day_of_week: validation.data.day_of_week,
-          scheduled_time: validation.data.scheduled_time,
-          field_name: validation.data.field_name,
-          field_maps_url: validation.data.field_maps_url ?? null,
-          modality: validation.data.modality,
-          notes: validation.data.notes ?? null,
-          days_ahead: validation.data.days_ahead,
-          active: true,
-        },
-        { onConflict: 'group_id,day_of_week' },
-      )
-      .select()
-      .single();
+  const { data, error } = await supabase
+    .from('group_recurring_schedules')
+    .upsert(
+      {
+        group_id: groupId,
+        day_of_week: validation.data.day_of_week,
+        scheduled_time: validation.data.scheduled_time,
+        field_name: validation.data.field_name,
+        field_maps_url: validation.data.field_maps_url ?? null,
+        modality: validation.data.modality,
+        notes: validation.data.notes ?? null,
+        days_ahead: validation.data.days_ahead,
+        active: true,
+      },
+      { onConflict: 'group_id,day_of_week' },
+    )
+    .select()
+    .single();
 
-    if (error) {
-      return { data: null, error: mapSupabaseError(error) };
-    }
-
-    return { data, error: null };
-  } catch (err) {
-    return { data: null, error: mapSupabaseError(err) };
+  if (error) {
+    return { data: null, error: mapSupabaseError(error) };
   }
+
+  return { data, error: null };
 }
 
 export async function deleteRecurringSchedule(
@@ -86,19 +78,15 @@ export async function deleteRecurringSchedule(
     };
   }
 
-  try {
-    const { error } = await supabase
-      .from('group_recurring_schedules')
-      .update({ active: false })
-      .eq('id', scheduleId)
-      .eq('group_id', groupId);
+  const { error } = await supabase
+    .from('group_recurring_schedules')
+    .update({ active: false })
+    .eq('id', scheduleId)
+    .eq('group_id', groupId);
 
-    if (error) {
-      return { error: mapSupabaseError(error) };
-    }
-
-    return { error: null };
-  } catch (err) {
-    return { error: mapSupabaseError(err) };
+  if (error) {
+    return { error: mapSupabaseError(error) };
   }
+
+  return { error: null };
 }

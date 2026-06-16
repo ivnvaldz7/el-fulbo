@@ -27,7 +27,6 @@
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": [
     "node_modules",
-    "tests/integration/cancel-event-flow.test.ts",
-    "tests/integration/create-event-flow.test.ts"
+    "tests/integration/cancel-event-flow.test.ts"
   ]
 }

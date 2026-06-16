@@ -42,8 +42,9 @@ export default async function GroupsHubPage() {
     .eq('user_id', user.id)
     .is('archived_at', null);
 
-  if (memError) console.error('Error fetching memberships:', memError);
-  if (playError) console.error('Error fetching player cards:', playError);
+  if (memError || playError) {
+    console.error('[groups] Error fetching data:', { memError: memError?.message, playError: playError?.message });
+  }
 
   // Unificar y eliminar duplicados (por si el admin también tiene una ficha de jugador)
   const mergedGroups = new Map<string, { group_id: string; name: string; default_modality: string; isAdmin: boolean }>();

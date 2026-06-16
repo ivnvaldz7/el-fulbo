@@ -1,8 +1,3 @@
-import type { NextApiResponse } from 'next';
-import type { Server as NetServer } from 'http';
-import type { Socket } from 'net';
-import type { Server as SocketIOServer } from 'socket.io';
-
 export type UserId = string;
 export type PlayerId = string;
 export type MatchId = EventId;
@@ -217,13 +212,6 @@ export interface Event {
   cancellation_motive?: string | null;
   cancelled_at?: string | null;
   team_assignments?: { teams: TeamAssignment[] } | null;
-  title?: string;
-  date_time?: string;
-  location?: string;
-  google_maps_link?: string | null;
-  name?: string;
-  description?: string;
-  date?: string;
 }
 
 export interface EventDetails extends Event {
@@ -253,18 +241,6 @@ export interface UpdateAttendanceInput {
   p_event_id: EventId;
   p_user_id?: UserId;
   p_status: AttendanceStatus;
-}
-
-interface SocketServer extends NetServer {
-  io?: SocketIOServer | undefined;
-}
-
-interface SocketWithIo extends Socket {
-  server: SocketServer;
-}
-
-export interface NextApiResponseServerIO extends NextApiResponse {
-  socket: SocketWithIo;
 }
 
 export interface PlayerStatsAggregate {

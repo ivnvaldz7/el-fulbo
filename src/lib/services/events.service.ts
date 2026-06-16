@@ -95,10 +95,6 @@ export class EventsService {
       cancellation_motive: row.cancellation_motive ?? null,
       cancelled_at: row.cancelled_at ?? null,
       team_assignments: row.team_assignments ?? null,
-      title: row.field_name,
-      date_time: row.scheduled_at,
-      location: row.field_name,
-      google_maps_link: row.field_maps_url ?? null,
     };
   }
 
@@ -338,7 +334,7 @@ export class EventsService {
       .update(payload)
       .eq('event_id', input.eventId)
       .eq('player_id', input.playerId)
-      .in('status', ['going', 'maybe']);
+      .eq('status', 'going');
 
     this.throwIfError(error);
   }

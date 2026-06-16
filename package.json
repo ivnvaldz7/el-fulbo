@@ -24,7 +24,6 @@
     "@supabase/supabase-js": "^2.104.1",
     "@tanstack/react-query": "^5.100.5",
     "browser-image-compression": "^2.0.2",
-    "framer-motion": "^12.38.0",
     "html-to-image": "^1.11.13",
     "jszip": "^3.10.1",
     "lucide-react": "^1.11.0",
@@ -33,10 +32,8 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.6.0",
-    "socket.io": "^4.8.3",
-    "socket.io-client": "^4.8.3",
     "web-push": "^3.6.7",
-    "zod": "^4.3.6",
+    "zod": "^3.23.8",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
