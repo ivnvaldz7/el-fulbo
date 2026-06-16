@@ -237,18 +237,16 @@ export function GroupDashboardInitialState({
           </>
         ) : null}
 
-        {activePlayers < 2 ? (
-          <div className="mt-10 border-t border-white/10 pt-8">
-            <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Sumá a tus jugadores</h2>
-            <p className="mt-3 font-headline text-base font-medium leading-relaxed text-white/60">
-              Compartí este link en el grupo de WhatsApp y los que entren ya están adentro.
-            </p>
-            <div className="mt-4 space-y-3">
-              <InviteShareButton inviteCode={inviteCode} />
-              <AppShareButton />
-            </div>
+        <div className="mt-10 border-t border-white/10 pt-8">
+          <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Sumá a tus jugadores</h2>
+          <p className="mt-3 font-headline text-base font-medium leading-relaxed text-white/60">
+            Compartí este link en el grupo de WhatsApp y los que entren ya están adentro.
+          </p>
+          <div className="mt-4 space-y-3">
+            <InviteShareButton inviteCode={inviteCode} />
+            <AppShareButton />
           </div>
-        ) : null}
+        </div>
 
         <div className="mt-12 border-t border-white/10 pt-8">
           <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Bancá la parada</h2>

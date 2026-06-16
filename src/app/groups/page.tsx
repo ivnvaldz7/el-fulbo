@@ -98,7 +98,7 @@ export default async function GroupsHubPage() {
                 >
                   <Link
                     href={`/groups/${group.group_id}/dashboard`}
-                    className="flex flex-col justify-between p-5"
+                    className={`flex flex-col justify-between p-5 ${group.isAdmin ? 'pr-28' : ''}`}
                     aria-label={`Ir al dashboard de ${group.name}`}
                   >
                     <h2 className="font-headline text-xl font-black uppercase italic text-white transition-colors duration-150 group-hover:text-pitch-green">
