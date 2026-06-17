@@ -15,7 +15,7 @@ export type EventAttendeeStatus =
   | 'DECLINED'
   | 'CHECKED_IN';
 export type GroupRole = 'admin' | 'owner';
-export type PlayerStatsStatus = 'pending_approval' | 'approved';
+export type PlayerStatsStatus = 'pending_approval' | 'approved' | 'rejected';
 export type StatsStatus = PlayerStatsStatus;
 export type PlayerPosition = 'ARQ' | 'DEF' | 'MED' | 'DEL';
 export type BoostReason = 'victory_mvp' | 'victory' | 'draw_mvp' | 'loss_mvp';

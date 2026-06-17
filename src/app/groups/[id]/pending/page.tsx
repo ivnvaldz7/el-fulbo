@@ -18,6 +18,8 @@ export default async function PendingPage({ params }: { params: { id: string } }
     redirect(`/groups/${params.id}/dashboard`);
   }
 
+  const isRejected = player.data.statsStatus === 'rejected';
+
   return (
     <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px]">
       <div className="mb-8 flex justify-center">
@@ -30,21 +32,35 @@ export default async function PendingPage({ params }: { params: { id: string } }
         />
       </div>
 
-      <FloatingPanel className="text-center border-2 border-pitch-green/20">
-        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Estado: Pendiente</p>
+      <FloatingPanel className={`text-center border-2 ${isRejected ? 'border-amber-400/30' : 'border-pitch-green/20'}`}>
+        <p className={`font-mono text-[10px] font-bold uppercase tracking-[0.2em] ${isRejected ? 'text-amber-400' : 'text-pitch-green'}`}>
+          {isRejected ? 'Estado: Rechazado' : 'Estado: Pendiente'}
+        </p>
         <h1 className="mt-2 font-headline text-2xl font-black italic uppercase leading-none text-white">
-          ESPERANDO APROBACIÓN
+          {isRejected ? 'CARTA RECHAZADA' : 'ESPERANDO APROBACIÓN'}
         </h1>
         <p className="mt-4 font-headline text-sm font-medium text-white/60">
-          El admin tiene que darte el visto bueno para que puedas confirmar asistencia a los partidos.
+          {isRejected
+            ? 'El admin rechazó tu carta. Ajustá tus stats y volvé a mandarla.'
+            : 'El admin tiene que darte el visto bueno para que puedas confirmar asistencia a los partidos.'}
         </p>
-        
-        <Link
-          href={`/groups/${params.id}/dashboard`}
-          className="mt-8 flex min-h-14 w-full items-center justify-center bg-pitch-green px-8 font-headline text-lg font-bold italic uppercase text-black transition-transform active:scale-95"
-        >
-          EXPLORAR EL GRUPO
-        </Link>
+
+        <div className="mt-8 flex flex-col gap-3">
+          {isRejected ? (
+            <Link
+              href={`/groups/${params.id}/onboarding-stats`}
+              className="btn-interactive flex min-h-14 w-full items-center justify-center bg-pitch-green px-8 font-headline text-lg font-bold italic uppercase text-black transition-transform active:scale-95"
+            >
+              VOLVER A CARGAR
+            </Link>
+          ) : null}
+          <Link
+            href={`/groups/${params.id}/dashboard`}
+            className="btn-interactive flex min-h-14 w-full items-center justify-center border-2 border-white/10 bg-transparent px-8 font-headline text-sm font-bold italic uppercase text-white hover:bg-white/10 hover:border-white/30"
+          >
+            EXPLORAR EL GRUPO
+          </Link>
+        </div>
       </FloatingPanel>
     </ImmersiveScreen>
   );

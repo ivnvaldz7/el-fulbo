@@ -15,6 +15,7 @@ export type NotificationType =
   | 'stats_approved'
   | 'stats_revision_requested'
   | 'stats_revision_resolved'
+  | 'stats_rejected'
   | 'stats_changed_log'
   | 'player_returned'
   | 'reintegration_request'
@@ -61,6 +62,9 @@ export function getNotificationDeepLink(
     case 'stats_revision_resolved':
     case 'boost_applied':
       return group_id && player_id ? `/groups/${group_id}/players/${player_id}` : '/';
+
+    case 'stats_rejected':
+      return group_id ? `/groups/${group_id}/pending` : '/';
 
     case 'stats_revision_requested':
       return group_id && request_id
@@ -126,6 +130,8 @@ export function getNotificationCopy(
       return { title: 'Carta para aprobar', body: `${name} cargó sus stats. Revisala.` };
     case 'stats_approved':
       return { title: 'Carta aprobada', body: 'El admin aprobó tus stats.' };
+    case 'stats_rejected':
+      return { title: 'Carta rechazada', body: 'El admin rechazó tu carta. Volvé a cargar tus stats.' };
     case 'stats_revision_requested':
       return { title: 'Pedido de revisión', body: `${name} pidió revisar sus stats.` };
     case 'stats_revision_resolved':
