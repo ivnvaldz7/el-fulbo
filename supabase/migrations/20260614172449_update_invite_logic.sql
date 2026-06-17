@@ -81,7 +81,7 @@ begin
     select * into v_player
     from public.players
     where user_id = auth.uid() and archived_at is null
-    order by p.joined_at desc
+    order by joined_at desc
     limit 1;
 
     insert into public.players (
