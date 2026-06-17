@@ -27,6 +27,26 @@ type RecentPlayedEvent = {
   playedAtLabel: string;
 };
 
+type CurrentMvpPlayer = {
+  id: string;
+  displayName: string;
+  primaryPosition: PlayerPosition;
+  stats: PlayerStats;
+  currentBoost: CurrentBoost | null;
+  photoUrl: string | null;
+};
+
+type CurrentMvp = {
+  eventId: string;
+  fieldName: string;
+  playedAt: string;
+  teamAName: string;
+  teamBName: string;
+  teamAScore: number;
+  teamBScore: number;
+  mvpPlayer: CurrentMvpPlayer | null;
+} | null;
+
 type GroupDashboardInitialStateProps = {
   groupId: string;
   groupName: string;
@@ -37,6 +57,7 @@ type GroupDashboardInitialStateProps = {
   closestMatch?: UpcomingEvent;
   matchesToday: UpcomingEvent[];
   recentPlayedEvents?: RecentPlayedEvent[];
+  currentMvp?: CurrentMvp;
   inviteCode: string;
   currentPlayerId: string | null;
   shareablePlayer?: {
@@ -58,6 +79,7 @@ export function GroupDashboardInitialState({
   closestMatch,
   matchesToday,
   recentPlayedEvents = [],
+  currentMvp,
   inviteCode,
   currentPlayerId,
   shareablePlayer = null,
@@ -76,6 +98,48 @@ export function GroupDashboardInitialState({
         </div>
         <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-pitch-green">{modality}</p>
         <h1 className="mt-2 font-headline text-4xl font-black italic uppercase leading-none text-white text-glow-green text-balance">{groupName}</h1>
+
+        {currentMvp?.mvpPlayer ? (
+          <div className="mt-8 border border-amber-300/30 bg-gradient-to-br from-amber-300/10 via-black/40 to-amber-300/5 p-5 shadow-[0_0_30px_rgba(251,191,36,0.12)]">
+            <p className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">
+              <span className="inline-block h-px w-4 bg-amber-300/50" />
+              MVP de la fecha
+              <span className="inline-block h-px w-4 bg-amber-300/50" />
+            </p>
+
+            <div className="mt-4 flex items-center gap-5">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center border-2 border-amber-300/50 bg-amber-300/10 text-2xl font-black text-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.2)]">
+                {currentMvp.mvpPlayer.photoUrl ? (
+                  <img
+                    src={currentMvp.mvpPlayer.photoUrl}
+                    alt={currentMvp.mvpPlayer.displayName}
+                    className="h-full w-full object-cover grayscale brightness-90 contrast-125"
+                    crossOrigin="anonymous"
+                  />
+                ) : (
+                  currentMvp.mvpPlayer.displayName.slice(0, 1).toUpperCase()
+                )}
+              </div>
+              <div className="min-w-0">
+                <h2 className="truncate font-headline text-2xl font-black italic uppercase leading-none text-white">
+                  {currentMvp.mvpPlayer.displayName}
+                </h2>
+                <p className="mt-1 font-mono text-xs font-bold uppercase text-amber-300/80">
+                  {currentMvp.mvpPlayer.primaryPosition} · Overall {Math.round(
+                    Object.values(currentMvp.mvpPlayer.stats).reduce((a, b) => a + Number(b), 0) / 6 * 10
+                  )}
+                </p>
+                <Link
+                  href={`/groups/${groupId}/events/${currentMvp.eventId}`}
+                  className="link-interactive mt-2 inline-flex items-center gap-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white/50 hover:text-amber-300"
+                >
+                  {currentMvp.teamAName} {currentMvp.teamAScore} — {currentMvp.teamBScore} {currentMvp.teamBName}
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         {showAdminPendingBanner ? (
           <div className="mt-8 border border-amber-400/20 bg-amber-400/5 p-5">
@@ -239,44 +303,46 @@ export function GroupDashboardInitialState({
           </>
         ) : null}
 
-        <div className="mt-10 border-t border-white/10 pt-8">
-          <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Sumá a tus jugadores</h2>
-          <p className="mt-3 font-headline text-base font-medium leading-relaxed text-white/60">
-            Compartí el link o el código para que entren al grupo.
-          </p>
-          <div className="mt-6 space-y-3">
-            <InviteShareButton inviteCode={inviteCode} />
+        {isAdminOrOwner ? (
+          <div className="mt-10 border-t border-white/10 pt-8">
+            <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Sumá a tus jugadores</h2>
+            <p className="mt-3 font-headline text-base font-medium leading-relaxed text-white/60">
+              Compartí el link o el código para que entren al grupo.
+            </p>
+            <div className="mt-6 space-y-3">
+              <InviteShareButton inviteCode={inviteCode} />
 
-            <div className="flex items-center gap-3 border border-white/10 bg-black/30 px-4 py-3">
-              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 shrink-0">
-                Código
-              </span>
-              <code className="font-mono text-sm font-bold tracking-wider text-pitch-green select-all">
-                {inviteCode}
-              </code>
-              <button
-                type="button"
-                onClick={() => {
-                  void navigator.clipboard.writeText(inviteCode);
-                  toast.success('Código copiado', {
-                    icon: '📋',
-                    duration: 2000,
-                    style: {
-                      background: '#1A1A1A',
-                      color: '#fff',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                    },
-                  });
-                }}
-                className="btn-interactive ml-auto shrink-0 font-mono text-[10px] font-bold uppercase text-white/40 hover:text-white"
-              >
-                Copiar
-              </button>
+              <div className="flex items-center gap-3 border border-white/10 bg-black/30 px-4 py-3">
+                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 shrink-0">
+                  Código
+                </span>
+                <code className="font-mono text-sm font-bold tracking-wider text-pitch-green select-all">
+                  {inviteCode}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(inviteCode);
+                    toast.success('Código copiado', {
+                      icon: '📋',
+                      duration: 2000,
+                      style: {
+                        background: '#1A1A1A',
+                        color: '#fff',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                      },
+                    });
+                  }}
+                  className="btn-interactive ml-auto shrink-0 font-mono text-[10px] font-bold uppercase text-white/40 hover:text-white"
+                >
+                  Copiar
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
 
         <div className="mt-12 border-t border-white/10 pt-8">
           <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Bancá la parada</h2>

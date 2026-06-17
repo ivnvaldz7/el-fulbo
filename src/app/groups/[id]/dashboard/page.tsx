@@ -3,6 +3,7 @@ import { GroupDashboardInitialState } from '@/components/groups/group-dashboard-
 import { getPendingTasksSummary } from '@/lib/services/admin-tasks.service';
 import { getCurrentUserPlayerInGroup } from '@/lib/services/player.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import type { CurrentBoost, PlayerPosition, PlayerStats } from '@/lib/types';
 
 export default async function GroupDashboardPage({ params }: { params: { id: string } }) {
   const supabase = createServerSupabaseClient();
@@ -95,7 +96,59 @@ export default async function GroupDashboardPage({ params }: { params: { id: str
     );
   });
 
-  // 3. Recent matches — batch query instead of N individual queries
+  // 3. Current MVP — last played event with an MVP
+  const { data: currentMvpRaw } = await supabase
+    .from('events')
+    .select(`
+      id,
+      field_name,
+      played_at,
+      team_a_name,
+      team_b_name,
+      team_a_score,
+      team_b_score,
+      mvp_player:players!events_mvp_player_id_fkey(
+        id,
+        display_name,
+        primary_position,
+        stats,
+        current_boost,
+        photo_url
+      )
+    `)
+    .eq('group_id', params.id)
+    .eq('status', 'played')
+    .not('mvp_player_id', 'is', null)
+    .order('played_at', { ascending: false, nullsFirst: false })
+    .order('scheduled_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const currentMvp = currentMvpRaw
+    ? {
+        eventId: currentMvpRaw.id as string,
+        fieldName: (currentMvpRaw.field_name as string) ?? 'Partido',
+        playedAt: (currentMvpRaw.played_at as string) ?? '',
+        teamAName: (currentMvpRaw.team_a_name as string) ?? 'Equipo A',
+        teamBName: (currentMvpRaw.team_b_name as string) ?? 'Equipo B',
+        teamAScore: Number(currentMvpRaw.team_a_score ?? 0),
+        teamBScore: Number(currentMvpRaw.team_b_score ?? 0),
+        mvpPlayer: (() => {
+          const p = currentMvpRaw.mvp_player as any;
+          if (!p) return null;
+          return {
+            id: p.id as string,
+            displayName: p.display_name as string,
+            primaryPosition: p.primary_position as PlayerPosition,
+            stats: p.stats as PlayerStats,
+            currentBoost: p.current_boost as CurrentBoost | null,
+            photoUrl: (p.photo_url as string | null) ?? null,
+          };
+        })(),
+      }
+    : null;
+
+  // 4. Recent matches — batch query instead of N individual queries
   const recentPlayedEvents = playedEvents?.length
     ? await getBatchRecentEvents(supabase, playedEvents)
     : [];
@@ -111,6 +164,7 @@ export default async function GroupDashboardPage({ params }: { params: { id: str
       matchesToday={otherMatchesToday}
       closestMatch={closestMatch}
       recentPlayedEvents={recentPlayedEvents}
+      currentMvp={currentMvp}
       inviteCode={group.invite_code as string}
       currentPlayerId={currentPlayerResult.ok ? currentPlayerResult.data.id : null}
       shareablePlayer={
