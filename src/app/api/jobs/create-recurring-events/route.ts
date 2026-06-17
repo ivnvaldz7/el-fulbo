@@ -33,13 +33,26 @@ export async function GET(request: Request) {
     try {
       const dayOfWeek = schedule.day_of_week as number;
       const parts = (schedule.scheduled_time as string).split(':').map(Number);
-      const hours = parts[0] ?? 0;
+      const argHours = parts[0] ?? 0;
       const minutes = parts[1] ?? 0;
 
-      const daysUntil = (dayOfWeek - now.getDay() + 7) % 7 || 7;
-      const nextOccurrence = new Date(now);
-      nextOccurrence.setDate(now.getDate() + daysUntil);
-      nextOccurrence.setHours(hours, minutes, 0, 0);
+      // scheduled_time se guarda en hora Argentina (UTC-3).
+      // El cron corre en UTC, así que convertimos sumando 3h.
+      const utcHours = (argHours + 3) % 24;
+      const extraDays = argHours + 3 >= 24 ? 1 : 0;
+
+      const daysUntil = (dayOfWeek - now.getUTCDay() + 7) % 7 || 7;
+
+      const nextOccurrence = new Date(
+        Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate() + daysUntil + extraDays,
+          utcHours,
+          minutes,
+          0,
+        ),
+      );
 
       const daysUntilEvent = (nextOccurrence.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
 
