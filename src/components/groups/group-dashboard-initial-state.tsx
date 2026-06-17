@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { ArrowRight, Home } from 'lucide-react';
 import { FloatingPanel } from '@/components/ui/floating-panel';
@@ -5,8 +7,8 @@ import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PlayerCardSharePanel } from '@/components/share/player-card-share-panel';
 import { InviteShareButton } from '@/components/groups/invite-share-button';
 import { CopyAliasButton } from '@/components/groups/copy-alias-button';
-import { AppShareButton } from '@/components/share/app-share-button';
 import type { CurrentBoost, PlayerPosition, PlayerStats } from '@/lib/types';
+import toast from 'react-hot-toast';
 
 type UpcomingEvent = {
   id: string;
@@ -240,11 +242,39 @@ export function GroupDashboardInitialState({
         <div className="mt-10 border-t border-white/10 pt-8">
           <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Sumá a tus jugadores</h2>
           <p className="mt-3 font-headline text-base font-medium leading-relaxed text-white/60">
-            Compartí este link en el grupo de WhatsApp y los que entren ya están adentro.
+            Compartí el link o el código para que entren al grupo.
           </p>
-          <div className="mt-4 space-y-3">
+          <div className="mt-6 space-y-3">
             <InviteShareButton inviteCode={inviteCode} />
-            <AppShareButton />
+
+            <div className="flex items-center gap-3 border border-white/10 bg-black/30 px-4 py-3">
+              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 shrink-0">
+                Código
+              </span>
+              <code className="font-mono text-sm font-bold tracking-wider text-pitch-green select-all">
+                {inviteCode}
+              </code>
+              <button
+                type="button"
+                onClick={() => {
+                  void navigator.clipboard.writeText(inviteCode);
+                  toast.success('Código copiado', {
+                    icon: '📋',
+                    duration: 2000,
+                    style: {
+                      background: '#1A1A1A',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                    },
+                  });
+                }}
+                className="btn-interactive ml-auto shrink-0 font-mono text-[10px] font-bold uppercase text-white/40 hover:text-white"
+              >
+                Copiar
+              </button>
+            </div>
           </div>
         </div>
 

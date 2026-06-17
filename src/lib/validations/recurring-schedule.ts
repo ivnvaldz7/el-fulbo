@@ -9,7 +9,7 @@ export const recurringScheduleSchema = z.object({
     .optional()
     .transform((val) => (val === '' || !val ? null : val))
     .nullable(),
-  modality: z.enum(['F5', 'F6', 'F7', 'F8', 'F11']),
+  modality: z.enum(['F5', 'F6', 'F7', 'F8', 'F9', 'F11']),
   notes: z.string().trim().max(500).nullable().optional(),
   days_ahead: z.number().int().min(1).max(14).optional().default(4),
 });

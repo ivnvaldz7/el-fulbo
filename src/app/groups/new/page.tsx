@@ -1,8 +1,13 @@
+import { redirect } from 'next/navigation';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { CreateGroupForm } from '@/components/groups/create-group-form';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { FloatingPanel } from '@/components/ui/floating-panel';
 
-export default function NewGroupPage() {
+export default async function NewGroupPage() {
+  const supabase = createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
   return (
     <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px]">
       <FloatingPanel className="border-2 border-white/10">

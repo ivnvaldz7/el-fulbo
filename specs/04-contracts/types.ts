@@ -8,7 +8,7 @@
 // ENUMS
 // =========================================================================
 
-export type Modality = 'F5' | 'F6' | 'F8' | 'F11';
+export type Modality = 'F5' | 'F6' | 'F7' | 'F8' | 'F9' | 'F11';
 
 export type PlayerPosition = 'ARQ' | 'DEF' | 'MED' | 'DEL';
 
@@ -269,7 +269,9 @@ export interface FormationSlots {
 export const FORMATIONS: Record<Modality, FormationSlots> = {
   F5: { ARQ: 1, DEF: 1, MED: 2, DEL: 1 },
   F6: { ARQ: 1, DEF: 2, MED: 2, DEL: 1 },
-  F8: { ARQ: 1, DEF: 3, MED: 3, DEL: 1 },
+  F7: { ARQ: 1, DEF: 2, MED: 3, DEL: 1 },
+  F8: { ARQ: 1, DEF: 2, MED: 3, DEL: 2 },
+  F9: { ARQ: 1, DEF: 3, MED: 3, DEL: 2 },
   F11: { ARQ: 1, DEF: 4, MED: 3, DEL: 3 },
 };
 

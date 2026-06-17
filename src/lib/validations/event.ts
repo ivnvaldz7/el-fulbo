@@ -4,7 +4,7 @@ import { EventModality } from '@/lib/types/events.types';
 export const createEventSchema = z.object({
   date: z.string().min(1, 'La fecha es obligatoria'),
   time: z.string().min(1, 'La hora es obligatoria'),
-  modality: z.enum(['F5', 'F6', 'F7', 'F8', 'F11'], {
+  modality: z.enum(['F5', 'F6', 'F7', 'F8', 'F9', 'F11'], {
     message: 'Modalidad inválida',
   }),
   locationName: z.string().trim().min(1, 'El nombre de la cancha no puede estar vacío.').max(100, 'Máximo 100 caracteres'),

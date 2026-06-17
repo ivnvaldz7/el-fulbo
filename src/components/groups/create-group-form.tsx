@@ -10,7 +10,9 @@ import { createGroupSchema } from '@/lib/validations/group';
 const modalityOptions: Array<{ value: Modality; label: string }> = [
   { value: 'F5', label: 'F5 - 5 vs 5' },
   { value: 'F6', label: 'F6 - 6 vs 6' },
+  { value: 'F7', label: 'F7 - 7 vs 7' },
   { value: 'F8', label: 'F8 - 8 vs 8' },
+  { value: 'F9', label: 'F9 - 9 vs 9' },
   { value: 'F11', label: 'F11 - 11 vs 11' },
 ];
 

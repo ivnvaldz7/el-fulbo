@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { LogOut, Plus, Search, ShieldAlert, User } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { FloatingPanel } from '@/components/ui/floating-panel';
 import { DeleteGroupButton } from '@/components/groups/delete-group-button';
+import { AppShareButton } from '@/components/share/app-share-button';
 
 export default async function GroupsHubPage() {
   const supabase = createServerSupabaseClient();
@@ -142,6 +143,13 @@ export default async function GroupsHubPage() {
             <Plus className="h-5 w-5" />
             Crear Nuevo Equipo
           </Link>
+        </div>
+
+        <div className="mt-10 border-t border-white/10 pt-6">
+          <p className="mb-3 text-center font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">
+            Dale la app a tus amigos
+          </p>
+          <AppShareButton />
         </div>
       </FloatingPanel>
     </ImmersiveScreen>

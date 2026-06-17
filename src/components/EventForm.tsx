@@ -10,7 +10,7 @@ interface EventFormProps {
   readOnly?: boolean;
 }
 
-const MODALITIES: Modality[] = ['F5', 'F6', 'F7', 'F8', 'F11'];
+const MODALITIES: Modality[] = ['F5', 'F6', 'F7', 'F8', 'F9', 'F11'];
 
 function toInputDateTime(value?: string | null) {
   if (!value) {

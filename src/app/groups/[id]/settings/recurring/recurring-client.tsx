@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-const MODALITIES = ['F5', 'F6', 'F7', 'F8', 'F11'];
+const MODALITIES = ['F5', 'F6', 'F7', 'F8', 'F9', 'F11'];
 
 export interface RecurringSchedule {
   id: string;

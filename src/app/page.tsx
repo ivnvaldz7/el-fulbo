@@ -25,30 +25,48 @@ export default async function HomePage() {
               <span className="text-[42px] font-black tracking-tight text-white drop-shadow-[4px_4px_0px_rgba(0,0,0,0.5)]">EL</span>
               <span className="text-[82px] font-black italic tracking-tighter text-pitch-green drop-shadow-[4px_4px_0px_rgba(0,0,0,0.5)]">FULBO</span>
             </h1>
-            <p className="mt-4 max-w-[240px] font-headline text-2xl font-bold leading-tight text-white">
+            <p className="mt-4 mb-8 max-w-[240px] font-headline text-2xl font-bold leading-tight text-balance text-white">
               Organizá tus partidos con amigos. <span className="text-pitch-green">Sin caos.</span>
             </p>
           </div>
         </section>
 
         {/* Primary Actions / Bottom Area */}
-        <section className="flex flex-col gap-4">
-          <Link
-            href="/groups/new"
-            className="flex h-16 w-full items-center justify-center bg-pitch-green font-headline text-2xl font-bold text-black transition-transform active:scale-95"
-          >
-            CREAR GRUPO ⚽
-          </Link>
+        <section className="flex flex-col gap-5">
           <Link
             href="/login"
-            className="text-center font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 hover:text-white/60 transition-colors"
+            className="btn-interactive flex h-14 w-full items-center justify-center bg-pitch-green font-headline text-2xl font-bold text-black"
           >
-            Ya tengo cuenta → Entrar
+            ENTRAR
           </Link>
-          
+
+          <div className="flex flex-col items-center gap-3">
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
+              ¿Sos el que organiza?
+            </p>
+            <Link
+              href="/groups/new"
+              className="btn-interactive flex min-h-11 w-full items-center justify-center border border-white/10 bg-black/30 px-4 font-headline text-sm font-bold italic uppercase text-white/70 hover:border-white/30 hover:bg-white/5 hover:text-white"
+            >
+              Crear un grupo
+            </Link>
+          </div>
+
+          <div className="mt-1 text-center">
+            <Link
+              href="/join"
+              className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 hover:text-white/60 transition-colors"
+            >
+              Tengo un código de invitación
+            </Link>
+          </div>
+
           <footer className="mt-6 text-center">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
-              Hecho para el fulbito de siempre.
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/30">
+              Hecho para el fulbito de cada semana
+            </p>
+            <p className="mt-2 font-mono text-[8px] uppercase tracking-[0.2em] text-white/15">
+              Hecho por Iván Valdez
             </p>
           </footer>
         </section>

@@ -5,7 +5,7 @@ export type GroupId = string;
 export type EventId = string;
 export type InviteCode = string;
 
-export type Modality = 'F5' | 'F6' | 'F7' | 'F8' | 'F11';
+export type Modality = 'F5' | 'F6' | 'F7' | 'F8' | 'F9' | 'F11';
 export type EventStatus = 'scheduled' | 'confirming' | 'checked_in' | 'drawn' | 'played' | 'cancelled';
 export type AttendanceStatus = 'going' | 'not_going' | 'maybe' | 'waitlist';
 export type EventAttendeeStatus =
@@ -55,6 +55,7 @@ export const FORMATIONS: Record<Modality, Record<PlayerPosition, number>> = {
   F6: { ARQ: 1, DEF: 2, MED: 2, DEL: 1 },
   F7: { ARQ: 1, DEF: 2, MED: 3, DEL: 1 },
   F8: { ARQ: 1, DEF: 2, MED: 3, DEL: 2 },
+  F9: { ARQ: 1, DEF: 3, MED: 3, DEL: 2 },
   F11: { ARQ: 1, DEF: 4, MED: 3, DEL: 3 },
 };
 
