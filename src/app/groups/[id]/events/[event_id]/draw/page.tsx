@@ -32,10 +32,16 @@ export default function EventDrawPage() {
   const [playerNames, setPlayerNames] = useState<Record<string, string>>({});
 
   async function runDraw(nextSeed = buildSeed()) {
-    const [nextEvent, players] = await Promise.all([
+    const [eventResult, playersResult] = await Promise.all([
       eventsService.getEventById(eventId),
       eventsService.getDrawPlayers(eventId),
     ]);
+
+    if (!eventResult.ok) throw new Error(eventResult.error.message);
+    if (!playersResult.ok) throw new Error(playersResult.error.message);
+
+    const nextEvent = eventResult.data;
+    const players = playersResult.data;
 
     const nextResult = drawTeams({
       modality: nextEvent.modality,
@@ -69,13 +75,14 @@ export default function EventDrawPage() {
 
     setSaving(true);
     try {
-      await eventsService.confirmDraw({
+      const confirmResult = await eventsService.confirmDraw({
         eventId,
         seed,
         assignments: result.assignments,
         teamAName,
         teamBName,
       });
+      if (!confirmResult.ok) throw new Error(confirmResult.error.message);
       router.push(`/groups/${groupId}/events/${eventId}/teams`);
     } catch (error) {
       console.error(error);

@@ -10,8 +10,9 @@ export async function GET(request: Request) {
 
   try {
     const supabase = createServiceSupabaseClient();
-    const archived = await archiveStalePhantoms(supabase);
-    return successResponse({ archived });
+    const result = await archiveStalePhantoms(supabase);
+    if (!result.ok) throw new Error(result.error.message);
+    return successResponse({ archived: result.data });
   } catch (err) {
     return handleApiError(err);
   }

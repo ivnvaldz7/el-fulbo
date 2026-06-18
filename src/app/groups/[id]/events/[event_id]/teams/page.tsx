@@ -22,7 +22,12 @@ export default function EventTeamsPage() {
   useEffect(() => {
     eventsService
       .getTeamsSummary(eventId)
-      .then((value) => setTeams(value))
+      .then((result) => {
+        if (!result.ok) {
+          throw new Error(result.error.message);
+        }
+        setTeams(result.data);
+      })
       .catch((error) => {
         console.error(error);
         toast.error('No pudimos cargar los equipos.');

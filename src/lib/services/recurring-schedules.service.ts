@@ -1,12 +1,27 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { AppError } from '@/lib/types';
-import { mapSupabaseError } from '@/lib/services/errors';
+import type { Result } from '@/lib/types';
+import { mapSupabaseError, validationError } from '@/lib/services/errors';
 import { recurringScheduleSchema, type RecurringScheduleInput } from '@/lib/validations/recurring-schedule';
+
+export interface RecurringSchedule {
+  id: string;
+  group_id: string;
+  day_of_week: number;
+  scheduled_time: string;
+  field_name: string;
+  field_maps_url: string | null;
+  modality: string;
+  notes: string | null;
+  days_ahead: number;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 export async function getRecurringSchedules(
   supabase: SupabaseClient,
   groupId: string,
-): Promise<{ data: any[] | null; error: AppError | null }> {
+): Promise<Result<RecurringSchedule[]>> {
   const { data, error } = await supabase
     .from('group_recurring_schedules')
     .select('*')
@@ -15,27 +30,20 @@ export async function getRecurringSchedules(
     .order('day_of_week', { ascending: true });
 
   if (error) {
-    return { data: null, error: mapSupabaseError(error) };
+    return { ok: false, error: mapSupabaseError(error) };
   }
 
-  return { data: data ?? [], error: null };
+  return { ok: true, data: data ?? [] };
 }
 
 export async function createRecurringSchedule(
   supabase: SupabaseClient,
   groupId: string,
   input: unknown,
-): Promise<{ data: any | null; error: AppError | null }> {
+): Promise<Result<RecurringSchedule>> {
   const validation = recurringScheduleSchema.safeParse(input);
   if (!validation.success) {
-    return {
-      data: null,
-      error: {
-        code: 'VALIDATION_ERROR',
-        message: 'Algunos datos no son validos.',
-        details: validation.error.flatten(),
-      },
-    };
+    return { ok: false, error: validationError(validation.error.flatten()) };
   }
 
   const { data, error } = await supabase
@@ -58,24 +66,19 @@ export async function createRecurringSchedule(
     .single();
 
   if (error) {
-    return { data: null, error: mapSupabaseError(error) };
+    return { ok: false, error: mapSupabaseError(error) };
   }
 
-  return { data, error: null };
+  return { ok: true, data };
 }
 
 export async function deleteRecurringSchedule(
   supabase: SupabaseClient,
   groupId: string,
   scheduleId: string,
-): Promise<{ error: AppError | null }> {
+): Promise<Result<void>> {
   if (!scheduleId) {
-    return {
-      error: {
-        code: 'VALIDATION_ERROR',
-        message: 'scheduleId es requerido.',
-      },
-    };
+    return { ok: false, error: validationError('scheduleId es requerido.') };
   }
 
   const { error } = await supabase
@@ -85,8 +88,8 @@ export async function deleteRecurringSchedule(
     .eq('group_id', groupId);
 
   if (error) {
-    return { error: mapSupabaseError(error) };
+    return { ok: false, error: mapSupabaseError(error) };
   }
 
-  return { error: null };
+  return { ok: true, data: undefined };
 }

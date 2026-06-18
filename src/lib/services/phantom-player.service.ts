@@ -158,7 +158,9 @@ export async function getTokenInfo(
   };
 }
 
-export async function archiveStalePhantoms(supabase: SupabaseClient): Promise<number> {
-  const { data } = await supabase.rpc('archive_stale_phantoms');
-  return (data as number) ?? 0;
+export async function archiveStalePhantoms(supabase: SupabaseClient): Promise<Result<number>> {
+  const { data, error } = await supabase.rpc('archive_stale_phantoms');
+
+  if (error) return { ok: false, error: mapSupabaseError(error) };
+  return { ok: true, data: (data as number) ?? 0 };
 }

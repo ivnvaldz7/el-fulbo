@@ -49,37 +49,48 @@ export async function removePushSubscription(
 export async function getActiveSubscriptions(
   supabase: SupabaseClient,
   userId: string,
-): Promise<PushSubscriptionData[]> {
-  const { data } = await supabase
+): Promise<Result<PushSubscriptionData[]>> {
+  const { data, error } = await supabase
     .from('push_subscriptions')
     .select('id, endpoint, p256dh_key, auth_key')
     .eq('user_id', userId)
     .eq('archived', false);
 
-  return (data ?? []).map((s) => ({
-    id: s.id as string,
-    endpoint: s.endpoint as string,
-    p256dhKey: s.p256dh_key as string,
-    authKey: s.auth_key as string,
-  }));
+  if (error) return { ok: false, error: mapSupabaseError(error) };
+
+  return {
+    ok: true,
+    data: (data ?? []).map((s) => ({
+      id: s.id as string,
+      endpoint: s.endpoint as string,
+      p256dhKey: s.p256dh_key as string,
+      authKey: s.auth_key as string,
+    })),
+  };
 }
 
 export async function archiveStaleSubscription(
   supabase: SupabaseClient,
   subscriptionId: string,
-): Promise<void> {
-  await supabase
+): Promise<Result<void>> {
+  const { error } = await supabase
     .from('push_subscriptions')
     .update({ archived: true })
     .eq('id', subscriptionId);
+
+  if (error) return { ok: false, error: mapSupabaseError(error) };
+  return { ok: true, data: undefined };
 }
 
 export async function touchSubscription(
   supabase: SupabaseClient,
   subscriptionId: string,
-): Promise<void> {
-  await supabase
+): Promise<Result<void>> {
+  const { error } = await supabase
     .from('push_subscriptions')
     .update({ last_used_at: new Date().toISOString() })
     .eq('id', subscriptionId);
+
+  if (error) return { ok: false, error: mapSupabaseError(error) };
+  return { ok: true, data: undefined };
 }

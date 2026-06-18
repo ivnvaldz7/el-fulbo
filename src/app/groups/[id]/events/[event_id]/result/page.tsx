@@ -55,15 +55,21 @@ export default function EventResultPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const nextEvent = await eventsService.getEventById(eventId);
-      const [nextTeams, nextIsAdminOrOwner] = await Promise.all([
+      const eventResult = await eventsService.getEventById(eventId);
+      if (!eventResult.ok) throw new Error(eventResult.error.message);
+      const nextEvent = eventResult.data;
+
+      const [teamsResult, adminResult] = await Promise.all([
         eventsService.getTeamsSummary(eventId),
         eventsService.isCurrentUserAdminOrOwner(nextEvent.group_id),
       ]);
 
+      if (!teamsResult.ok) throw new Error(teamsResult.error.message);
+      if (!adminResult.ok) throw new Error(adminResult.error.message);
+
       setEvent(nextEvent);
-      setTeams(nextTeams);
-      setIsAdminOrOwner(nextIsAdminOrOwner);
+      setTeams(teamsResult.data);
+      setIsAdminOrOwner(adminResult.data);
     } catch (error) {
       console.error(error);
       toast.error('No pudimos cargar el resultado.');
@@ -142,13 +148,14 @@ export default function EventResultPage() {
 
     setSaving(true);
     try {
-      await eventsService.loadMatchResult({
+      const result = await eventsService.loadMatchResult({
         eventId,
         teamAScore,
         teamBScore,
         mvpPlayerId,
         notes: notes.trim() || null,
       });
+      if (!result.ok) throw new Error(result.error.message);
 
       if (typeof window !== 'undefined') {
         window.localStorage.removeItem(getDraftKey(eventId));

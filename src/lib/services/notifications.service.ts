@@ -35,6 +35,10 @@ export async function getNotifications(
     return { ok: false, error: mapSupabaseError(listResult.error) };
   }
 
+  if (countResult.error) {
+    return { ok: false, error: mapSupabaseError(countResult.error) };
+  }
+
   const notifications: AppNotification[] = (listResult.data ?? []).map((n) => ({
     id: n.id as string,
     type: n.type as NotificationType,
@@ -70,11 +74,6 @@ export async function markAllNotificationsRead(supabase: SupabaseClient): Promis
 
   if (error) return { ok: false, error: mapSupabaseError(error) };
   return { ok: true, data: undefined };
-}
-
-export async function getUnreadCount(supabase: SupabaseClient): Promise<number> {
-  const { data } = await supabase.rpc('get_unread_notification_count');
-  return (data as number) ?? 0;
 }
 
 export interface NotificationPreferences {
@@ -161,28 +160,36 @@ export async function createNotification(
 export async function markNotificationPushed(
   supabase: SupabaseClient,
   notificationId: string,
-): Promise<void> {
-  await supabase
+): Promise<Result<void>> {
+  const { error } = await supabase
     .from('notifications')
     .update({ pushed_at: new Date().toISOString() })
     .eq('id', notificationId);
+
+  if (error) return { ok: false, error: mapSupabaseError(error) };
+  return { ok: true, data: undefined };
 }
 
 export async function getPendingPushNotifications(
   supabase: SupabaseClient,
   limit = 100,
-): Promise<Array<{ id: string; userId: string; type: NotificationType; payload: NotificationPayload }>> {
-  const { data } = await supabase
+): Promise<Result<Array<{ id: string; userId: string; type: NotificationType; payload: NotificationPayload }>>> {
+  const { data, error } = await supabase
     .from('notifications')
     .select('id, user_id, type, payload')
     .is('pushed_at', null)
     .order('created_at', { ascending: true })
     .limit(limit);
 
-  return (data ?? []).map((n) => ({
-    id: n.id as string,
-    userId: n.user_id as string,
-    type: n.type as NotificationType,
-    payload: (n.payload ?? {}) as NotificationPayload,
-  }));
+  if (error) return { ok: false, error: mapSupabaseError(error) };
+
+  return {
+    ok: true,
+    data: (data ?? []).map((n) => ({
+      id: n.id as string,
+      userId: n.user_id as string,
+      type: n.type as NotificationType,
+      payload: (n.payload ?? {}) as NotificationPayload,
+    })),
+  };
 }

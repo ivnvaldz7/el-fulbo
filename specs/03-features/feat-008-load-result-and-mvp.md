@@ -152,6 +152,19 @@ Permitir al Admin (u Owner) cargar el resultado del partido (score + MVP) despu�
 - Tier puede cambiar (plata → oro simple, etc.).
 - La card MVP se muestra con efecto dorado especial durante los 3 partidos que dura el boost.
 
+### Etapa 6 — Sección "MVP de la fecha" en dashboard del grupo
+
+- En el dashboard del grupo (`/groups/{id}/dashboard`), aparece la sección **"MVP DE LA FECHA"**.
+- Muestra al MVP del último partido jugado que tenga un MVP asignado.
+- Contenido: foto del jugador, nombre, posición, overall actual, y link al resultado del partido.
+- Si el MVP actual tiene boost activo, se muestra el badge de boost en la card.
+- **Expiración:** la sección se oculta automáticamente cuando se juega el próximo partido (se consulta el event más reciente con `status='played'` y `mvp_player_id` no nulo). Si el MVP del partido más reciente es otro jugador, se muestra ese; si no hay MVP, se oculta.
+- **Estados:**
+  - **Con MVP:** card del jugador con nombre, posición, overall, resultado del partido.
+  - **Sin MVP en últimos partidos:** se oculta la sección (no se muestra vacía).
+  - **Loading:** skeleton con placeholder de card.
+  - **Error:** no se muestra la sección (fallback silencioso, no bloquea el dashboard).
+
 ---
 
 ## Algoritmo de cálculo de boost (referencia)

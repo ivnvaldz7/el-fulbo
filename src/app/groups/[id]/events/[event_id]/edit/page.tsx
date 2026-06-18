@@ -24,8 +24,9 @@ export default function EditEventPage() {
   useEffect(() => {
     async function loadEvent() {
       try {
-        const data = await eventsService.getEventById(eventId);
-        setEventData(data);
+        const result = await eventsService.getEventById(eventId);
+        if (!result.ok) throw new Error(result.error.message);
+        setEventData(result.data);
       } catch (error) {
         console.error(error);
         toast.error('No pudimos cargar el partido.');
@@ -39,7 +40,7 @@ export default function EditEventPage() {
 
   async function handleSubmit(formData: Event) {
     try {
-      await eventsService.updateEvent({
+      const result = await eventsService.updateEvent({
         p_event_id: eventId,
         p_field_name: formData.field_name,
         p_field_maps_url: formData.field_maps_url ?? null,
@@ -48,6 +49,7 @@ export default function EditEventPage() {
         p_notes: formData.notes ?? null,
       });
 
+      if (!result.ok) throw new Error(result.error.message);
       toast.success('Partido actualizado.');
       router.push(`/groups/${groupId}/events/${eventId}`);
     } catch (error) {

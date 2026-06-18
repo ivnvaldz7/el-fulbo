@@ -33,15 +33,21 @@ export default function EventCheckInPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const nextEvent = await eventsService.getEventById(eventId);
-      const [nextAttendees, nextIsAdminOrOwner] = await Promise.all([
+      const eventResult = await eventsService.getEventById(eventId);
+      if (!eventResult.ok) throw new Error(eventResult.error.message);
+      const nextEvent = eventResult.data;
+
+      const [attendeesResult, adminResult] = await Promise.all([
         eventsService.getEventAttendees(eventId),
         eventsService.isCurrentUserAdminOrOwner(nextEvent.group_id),
       ]);
 
+      if (!attendeesResult.ok) throw new Error(attendeesResult.error.message);
+      if (!adminResult.ok) throw new Error(adminResult.error.message);
+
       setEvent(nextEvent);
-      setAttendees(nextAttendees.filter((attendee) => attendee.status !== 'not_going'));
-      setIsAdminOrOwner(nextIsAdminOrOwner);
+      setAttendees(attendeesResult.data.filter((attendee) => attendee.status !== 'not_going'));
+      setIsAdminOrOwner(adminResult.data);
     } catch (error) {
       console.error(error);
       toast.error('No pudimos cargar el check-in.');
@@ -76,11 +82,12 @@ export default function EventCheckInPage() {
   async function handleToggle(attendee: EventAttendee, checkedIn: boolean) {
     setSaving(true);
     try {
-      await eventsService.updateCheckIn({
+      const result = await eventsService.updateCheckIn({
         eventId,
         playerId: attendee.playerId,
         checkedIn,
       });
+      if (!result.ok) throw new Error(result.error.message);
       await load();
     } catch (error) {
       console.error(error);
@@ -93,7 +100,8 @@ export default function EventCheckInPage() {
   async function handleMarkAll() {
     setSaving(true);
     try {
-      await eventsService.markAllGoingCheckedIn(eventId);
+      const result = await eventsService.markAllGoingCheckedIn(eventId);
+      if (!result.ok) throw new Error(result.error.message);
       await load();
     } catch (error) {
       console.error(error);
@@ -109,7 +117,8 @@ export default function EventCheckInPage() {
     setSaving(true);
     try {
       if (event.status !== 'checked_in') {
-        await eventsService.updateEventStatus(event.id, 'checked_in');
+        const statusResult = await eventsService.updateEventStatus(event.id, 'checked_in');
+        if (!statusResult.ok) throw new Error(statusResult.error.message);
       }
       router.push(`/groups/${groupId}/events/${eventId}/draw`);
     } catch (error) {

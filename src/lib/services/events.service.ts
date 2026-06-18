@@ -1,4 +1,4 @@
-import type { SupabaseClient, User } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type {
   AttendanceStatus,
   DrawAssignment,
@@ -9,6 +9,7 @@ import type {
   PlayerId,
   PlayerForDraw,
   PlayerStatsStatus,
+  Result,
   UserId,
 } from '@/lib/types';
 import type {
@@ -19,6 +20,7 @@ import type {
   RPC_UpdateEventPayload,
   UpdateCheckInPayload,
 } from '@/lib/types/events.types';
+import { mapSupabaseError } from '@/lib/services/errors';
 
 export interface EventAttendee {
   playerId: PlayerId;
@@ -67,12 +69,6 @@ export interface PlayedMatchSummaryItem {
 export class EventsService {
   constructor(private supabase: SupabaseClient) {}
 
-  private throwIfError(error: { message?: string } | null) {
-    if (error) {
-      throw new Error(error.message ?? 'Algo salio mal.');
-    }
-  }
-
   private normalizeEvent(row: any): Event {
     return {
       id: row.id,
@@ -116,17 +112,7 @@ export class EventsService {
     };
   }
 
-  private async getCurrentUser(): Promise<User | null> {
-    const {
-      data: { user },
-      error,
-    } = await this.supabase.auth.getUser();
-
-    this.throwIfError(error);
-    return user;
-  }
-
-  async createEvent(payload: RPC_CreateEventPayload): Promise<EventId> {
+  async createEvent(payload: RPC_CreateEventPayload): Promise<Result<EventId>> {
     const rpcPayload = {
       p_group_id: payload.p_group_id,
       p_modality: payload.p_modality,
@@ -137,12 +123,12 @@ export class EventsService {
     };
 
     const { data, error } = await this.supabase.rpc('create_event', rpcPayload);
-    this.throwIfError(error);
+    if (error) return { ok: false, error: mapSupabaseError(error) };
 
-    return data as EventId;
+    return { ok: true, data: data as EventId };
   }
 
-  async updateEvent(payload: RPC_UpdateEventPayload): Promise<void> {
+  async updateEvent(payload: RPC_UpdateEventPayload): Promise<Result<void>> {
     const rpcPayload = {
       p_event_id: payload.p_event_id,
       p_modality: payload.p_modality ?? null,
@@ -153,29 +139,34 @@ export class EventsService {
     };
 
     const { error } = await this.supabase.rpc('update_event', rpcPayload);
-    this.throwIfError(error);
+    if (error) return { ok: false, error: mapSupabaseError(error) };
+
+    return { ok: true, data: undefined };
   }
 
-  async cancelEvent(payload: RPC_CancelEventPayload): Promise<void> {
+  async cancelEvent(payload: RPC_CancelEventPayload): Promise<Result<void>> {
     const { error } = await this.supabase.rpc('cancel_event', {
       p_event_id: payload.p_event_id,
       p_motive: payload.p_motive ?? null,
     });
-    this.throwIfError(error);
+    if (error) return { ok: false, error: mapSupabaseError(error) };
+
+    return { ok: true, data: undefined };
   }
 
-  async getEventById(eventId: EventId): Promise<Event> {
+  async getEventById(eventId: EventId): Promise<Result<Event>> {
     const { data, error } = await this.supabase
       .from('events')
       .select('*')
       .eq('id', eventId)
       .single();
 
-    this.throwIfError(error);
-    return this.normalizeEvent(data);
+    if (error) return { ok: false, error: mapSupabaseError(error) };
+
+    return { ok: true, data: this.normalizeEvent(data) };
   }
 
-  async getEventAttendees(eventId: EventId): Promise<EventAttendee[]> {
+  async getEventAttendees(eventId: EventId): Promise<Result<EventAttendee[]>> {
     const { data, error } = await this.supabase
       .from('event_attendances')
       .select(
@@ -197,9 +188,9 @@ export class EventsService {
       )
       .eq('event_id', eventId);
 
-    this.throwIfError(error);
+    if (error) return { ok: false, error: mapSupabaseError(error) };
 
-    return (data ?? [])
+    const attendees = (data ?? [])
       .map((row) => this.normalizeAttendee(row))
       .filter((attendee) => attendee.statsStatus === 'approved')
       .sort((left, right) => {
@@ -213,9 +204,11 @@ export class EventsService {
 
         return left.displayName.localeCompare(right.displayName, 'es');
       });
+
+    return { ok: true, data: attendees };
   }
 
-  async getDrawPlayers(eventId: EventId): Promise<PlayerForDraw[]> {
+  async getDrawPlayers(eventId: EventId): Promise<Result<PlayerForDraw[]>> {
     const { data, error } = await this.supabase
       .from('event_attendances')
       .select(
@@ -238,9 +231,9 @@ export class EventsService {
       .eq('event_id', eventId)
       .eq('checked_in', true);
 
-    this.throwIfError(error);
+    if (error) return { ok: false, error: mapSupabaseError(error) };
 
-    return (data ?? [])
+    const players = (data ?? [])
       .map((row) => {
         const player = Array.isArray(row.players) ? row.players[0] : row.players;
         if (!player || player.stats_status !== 'approved') {
@@ -259,16 +252,21 @@ export class EventsService {
         } as PlayerForDraw;
       })
       .filter(Boolean) as PlayerForDraw[];
+
+    return { ok: true, data: players };
   }
 
   async getCurrentPlayerAttendanceContext(
     groupId: GroupId,
     eventId: EventId,
-  ): Promise<CurrentPlayerAttendanceContext | null> {
-    const user = await this.getCurrentUser();
-    if (!user) {
-      return null;
-    }
+  ): Promise<Result<CurrentPlayerAttendanceContext | null>> {
+    const {
+      data: { user },
+      error: userError,
+    } = await this.supabase.auth.getUser();
+
+    if (userError) return { ok: false, error: mapSupabaseError(userError) };
+    if (!user) return { ok: true, data: null };
 
     const { data: player, error: playerError } = await this.supabase
       .from('players')
@@ -280,12 +278,12 @@ export class EventsService {
 
     if (playerError) {
       if (playerError.code === 'PGRST116') {
-        return null;
+        return { ok: true, data: null };
       }
-      this.throwIfError(playerError);
+      return { ok: false, error: mapSupabaseError(playerError) };
     }
 
-    if (!player) return null;
+    if (!player) return { ok: true, data: null };
 
     const { data: attendance, error: attendanceError } = await this.supabase
       .from('event_attendances')
@@ -294,36 +292,42 @@ export class EventsService {
       .eq('player_id', player.id)
       .maybeSingle();
 
-    this.throwIfError(attendanceError);
+    if (attendanceError) return { ok: false, error: mapSupabaseError(attendanceError) };
 
     return {
-      userId: player.user_id,
-      playerId: player.id,
-      displayName: player.display_name,
-      statsStatus: player.stats_status as PlayerStatsStatus,
-      attendanceStatus: (attendance?.status as AttendanceStatus | null) ?? null,
+      ok: true,
+      data: {
+        userId: player.user_id,
+        playerId: player.id,
+        displayName: player.display_name,
+        statsStatus: player.stats_status as PlayerStatsStatus,
+        attendanceStatus: (attendance?.status as AttendanceStatus | null) ?? null,
+      },
     };
   }
 
-  async isCurrentUserAdminOrOwner(groupId: GroupId): Promise<boolean> {
+  async isCurrentUserAdminOrOwner(groupId: GroupId): Promise<Result<boolean>> {
     const { data, error } = await this.supabase.rpc('is_group_admin_or_owner', {
       gid: groupId,
     });
 
-    this.throwIfError(error);
-    return Boolean(data);
+    if (error) return { ok: false, error: mapSupabaseError(error) };
+
+    return { ok: true, data: Boolean(data) };
   }
 
-  async updateAttendance(input: { p_event_id: EventId; p_status: AttendanceStatus }): Promise<void> {
+  async updateAttendance(input: { p_event_id: EventId; p_status: AttendanceStatus }): Promise<Result<void>> {
     const { error } = await this.supabase.rpc('update_attendance', {
       p_event_id: input.p_event_id,
       p_status: input.p_status,
     });
 
-    this.throwIfError(error);
+    if (error) return { ok: false, error: mapSupabaseError(error) };
+
+    return { ok: true, data: undefined };
   }
 
-  async updateCheckIn(input: UpdateCheckInPayload): Promise<void> {
+  async updateCheckIn(input: UpdateCheckInPayload): Promise<Result<void>> {
     const payload = {
       checked_in: input.checkedIn,
       checked_in_at: input.checkedIn ? new Date().toISOString() : null,
@@ -336,10 +340,12 @@ export class EventsService {
       .eq('player_id', input.playerId)
       .eq('status', 'going');
 
-    this.throwIfError(error);
+    if (error) return { ok: false, error: mapSupabaseError(error) };
+
+    return { ok: true, data: undefined };
   }
 
-  async markAllGoingCheckedIn(eventId: EventId): Promise<void> {
+  async markAllGoingCheckedIn(eventId: EventId): Promise<Result<void>> {
     const { error } = await this.supabase
       .from('event_attendances')
       .update({
@@ -350,15 +356,19 @@ export class EventsService {
       .eq('status', 'going')
       .eq('checked_in', false);
 
-    this.throwIfError(error);
+    if (error) return { ok: false, error: mapSupabaseError(error) };
+
+    return { ok: true, data: undefined };
   }
 
-  async updateEventStatus(eventId: EventId, status: EventStatus): Promise<void> {
+  async updateEventStatus(eventId: EventId, status: EventStatus): Promise<Result<void>> {
     const { error } = await this.supabase.from('events').update({ status }).eq('id', eventId);
-    this.throwIfError(error);
+    if (error) return { ok: false, error: mapSupabaseError(error) };
+
+    return { ok: true, data: undefined };
   }
 
-  async confirmDraw(payload: ConfirmDrawPayload): Promise<void> {
+  async confirmDraw(payload: ConfirmDrawPayload): Promise<Result<void>> {
     const { error } = await this.supabase.rpc('confirm_draw', {
       p_event_id: payload.eventId,
       p_seed: payload.seed,
@@ -367,10 +377,12 @@ export class EventsService {
       p_team_b_name: payload.teamBName,
     });
 
-    this.throwIfError(error);
+    if (error) return { ok: false, error: mapSupabaseError(error) };
+
+    return { ok: true, data: undefined };
   }
 
-  async loadMatchResult(payload: LoadMatchResultPayload): Promise<void> {
+  async loadMatchResult(payload: LoadMatchResultPayload): Promise<Result<void>> {
     const { error } = await this.supabase.rpc('load_match_result', {
       p_event_id: payload.eventId,
       p_team_a_score: payload.teamAScore,
@@ -379,11 +391,17 @@ export class EventsService {
       p_notes: payload.notes,
     });
 
-    this.throwIfError(error);
+    if (error) return { ok: false, error: mapSupabaseError(error) };
+
+    return { ok: true, data: undefined };
   }
 
-  async getTeamsSummary(eventId: EventId): Promise<DrawTeamSummary[]> {
-    const event = await this.getEventById(eventId);
+  async getTeamsSummary(eventId: EventId): Promise<Result<DrawTeamSummary[]>> {
+    const eventResult = await this.getEventById(eventId);
+    if (!eventResult.ok) return eventResult;
+
+    const event = eventResult.data;
+
     const { data, error } = await this.supabase
       .from('match_participations')
       .select(
@@ -398,7 +416,7 @@ export class EventsService {
       .eq('event_id', eventId)
       .neq('team', 'substitute');
 
-    this.throwIfError(error);
+    if (error) return { ok: false, error: mapSupabaseError(error) };
 
     const teams = new Map<'A' | 'B', DrawTeamSummary>([
       [
@@ -438,11 +456,15 @@ export class EventsService {
       });
     });
 
-    return [...teams.values()];
+    return { ok: true, data: [...teams.values()] };
   }
 
-  async getPlayedMatchSummary(eventId: EventId): Promise<PlayedMatchSummaryItem[]> {
-    const event = await this.getEventById(eventId);
+  async getPlayedMatchSummary(eventId: EventId): Promise<Result<PlayedMatchSummaryItem[]>> {
+    const eventResult = await this.getEventById(eventId);
+    if (!eventResult.ok) return eventResult;
+
+    const event = eventResult.data;
+
     const { data, error } = await this.supabase
       .from('match_participations')
       .select(
@@ -458,9 +480,9 @@ export class EventsService {
       .eq('event_id', eventId)
       .in('team', ['A', 'B']);
 
-    this.throwIfError(error);
+    if (error) return { ok: false, error: mapSupabaseError(error) };
 
-    return (data ?? []).map((row: any) => {
+    const summary = (data ?? []).map((row: any) => {
       const player = Array.isArray(row.players) ? row.players[0] : row.players;
       const boostApplied = row.boost_applied ?? null;
 
@@ -475,5 +497,7 @@ export class EventsService {
         isMvp: row.player_id === event.mvp_player_id,
       } satisfies PlayedMatchSummaryItem;
     });
+
+    return { ok: true, data: summary };
   }
 }

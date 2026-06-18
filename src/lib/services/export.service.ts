@@ -1,5 +1,7 @@
 import JSZip from 'jszip';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Result } from '@/lib/types';
+import { mapSupabaseError } from './errors';
 
 export interface ExportGroupData {
   group: Record<string, unknown>;
@@ -31,7 +33,7 @@ export interface AnonymizedExport {
 export async function fetchGroupData(
   supabase: SupabaseClient,
   groupId: string,
-): Promise<ExportGroupData> {
+): Promise<Result<ExportGroupData>> {
   const [
     groupRes,
     rosterRes,
@@ -131,15 +133,27 @@ export async function fetchGroupData(
       .eq('group_id', groupId),
   ]);
 
+  if (groupRes.error) return { ok: false, error: mapSupabaseError(groupRes.error) };
+  if (rosterRes.error) return { ok: false, error: mapSupabaseError(rosterRes.error) };
+  if (eventsRes.error) return { ok: false, error: mapSupabaseError(eventsRes.error) };
+  if (attendancesRes.error) return { ok: false, error: mapSupabaseError(attendancesRes.error) };
+  if (participationsRes.error) return { ok: false, error: mapSupabaseError(participationsRes.error) };
+  if (statLogsRes.error) return { ok: false, error: mapSupabaseError(statLogsRes.error) };
+  if (revisionRes.error) return { ok: false, error: mapSupabaseError(revisionRes.error) };
+  if (reintegrationRes.error) return { ok: false, error: mapSupabaseError(reintegrationRes.error) };
+
   return {
-    group: (groupRes.data ?? {}) as Record<string, unknown>,
-    roster: (rosterRes.data ?? []) as Record<string, unknown>[],
-    events: (eventsRes.data ?? []) as Record<string, unknown>[],
-    attendances: (attendancesRes.data ?? []) as Record<string, unknown>[],
-    participations: (participationsRes.data ?? []) as Record<string, unknown>[],
-    statChangeLogs: (statLogsRes.data ?? []) as Record<string, unknown>[],
-    revisionRequests: (revisionRes.data ?? []) as Record<string, unknown>[],
-    reintegrationRequests: (reintegrationRes.data ?? []) as Record<string, unknown>[],
+    ok: true,
+    data: {
+      group: (groupRes.data ?? {}) as Record<string, unknown>,
+      roster: (rosterRes.data ?? []) as Record<string, unknown>[],
+      events: (eventsRes.data ?? []) as Record<string, unknown>[],
+      attendances: (attendancesRes.data ?? []) as Record<string, unknown>[],
+      participations: (participationsRes.data ?? []) as Record<string, unknown>[],
+      statChangeLogs: (statLogsRes.data ?? []) as Record<string, unknown>[],
+      revisionRequests: (revisionRes.data ?? []) as Record<string, unknown>[],
+      reintegrationRequests: (reintegrationRes.data ?? []) as Record<string, unknown>[],
+    },
   };
 }
 

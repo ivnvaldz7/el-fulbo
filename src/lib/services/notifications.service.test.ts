@@ -127,7 +127,7 @@ describe('getPendingPushNotifications', () => {
   it('returns empty array when nothing pending', async () => {
     const supabase = makeSupabase();
     const result = await getPendingPushNotifications(supabase as never);
-    expect(Array.isArray(result)).toBe(true);
-    expect(result).toHaveLength(0);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data).toHaveLength(0);
   });
 });

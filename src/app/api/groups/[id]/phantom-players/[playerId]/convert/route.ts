@@ -33,7 +33,10 @@ export async function POST(
     return NextResponse.json(result, { status: 400 });
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL
+    ?? process.env.VERCEL_URL
+    ?? 'http://localhost:3000';
   const conversionUrl = `${appUrl}/convert-phantom/${result.data.token}`;
 
   console.info('[phantom-conversion] Link generado para', parsed.data.email, '→', conversionUrl);

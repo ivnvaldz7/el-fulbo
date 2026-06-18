@@ -68,7 +68,7 @@ export function useUnreadCount() {
       .then((json: { ok: boolean; data?: { unreadCount: number } }) => {
         if (json.ok && json.data) setCount(json.data.unreadCount);
       })
-      .catch(() => {});
+      .catch((err) => console.error('[useUnreadCount] Error fetching unread count:', err));
   }, []);
 
   useEffect(() => {
@@ -84,7 +84,7 @@ export function useUnreadCount() {
             .then((json: { ok: boolean; data?: { unreadCount: number } }) => {
               if (json.ok && json.data) setCount(json.data.unreadCount);
             })
-            .catch(() => {});
+            .catch((err) => console.error('[useUnreadCount] Error re-fetching after change:', err));
         },
       )
       .subscribe();

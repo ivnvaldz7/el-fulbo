@@ -105,14 +105,15 @@ export default function EventViewPage() {
 
   const refreshAttendees = useCallback(async () => {
     if (!event) return;
-    const [nextAttendees, nextCurrentPlayer] = await Promise.all([
+    const [attendeesResult, playerResult] = await Promise.all([
       eventsService.getEventAttendees(eventId),
       eventsService.getCurrentPlayerAttendanceContext(event.group_id, eventId),
     ]);
-    setAttendees(nextAttendees);
-    setCurrentPlayer(nextCurrentPlayer);
-    if (nextCurrentPlayer) {
-      setSelectedStatus(nextCurrentPlayer.attendanceStatus);
+    if (!attendeesResult.ok || !playerResult.ok) return;
+    setAttendees(attendeesResult.data);
+    setCurrentPlayer(playerResult.data);
+    if (playerResult.data) {
+      setSelectedStatus(playerResult.data.attendanceStatus);
     }
   }, [eventId, eventsService, event]);
 
@@ -123,13 +124,24 @@ export default function EventViewPage() {
     setError(null);
 
     try {
-      const eventData = await eventsService.getEventById(eventId);
-      const [nextAttendees, nextCurrentPlayer, nextIsAdminOrOwner, groupResponse] = await Promise.all([
+      const eventResult = await eventsService.getEventById(eventId);
+      if (!eventResult.ok) throw new Error(eventResult.error.message);
+      const eventData = eventResult.data;
+
+      const [attendeesResult, playerResult, adminResult, groupResponse] = await Promise.all([
         eventsService.getEventAttendees(eventId),
         eventsService.getCurrentPlayerAttendanceContext(eventData.group_id, eventId),
         eventsService.isCurrentUserAdminOrOwner(eventData.group_id),
         supabase.from('groups').select('name').eq('id', eventData.group_id).single(),
       ]);
+
+      if (!attendeesResult.ok) throw new Error(attendeesResult.error.message);
+      if (!playerResult.ok) throw new Error(playerResult.error.message);
+      if (!adminResult.ok) throw new Error(adminResult.error.message);
+
+      const nextAttendees = attendeesResult.data;
+      const nextCurrentPlayer = playerResult.data;
+      const nextIsAdminOrOwner = adminResult.data;
 
       setEvent(eventData);
       setGroupName(groupResponse.data?.name ?? 'El Fulbo');
@@ -141,8 +153,9 @@ export default function EventViewPage() {
           (nextCurrentPlayer ? eventData.created_by_user_id === nextCurrentPlayer.userId : false),
       );
       if (eventData.status === 'played') {
-        const summary = await eventsService.getPlayedMatchSummary(eventId);
-        setPlayedSummary(summary);
+        const summaryResult = await eventsService.getPlayedMatchSummary(eventId);
+        if (!summaryResult.ok) throw new Error(summaryResult.error.message);
+        setPlayedSummary(summaryResult.data);
         
         if (nextCurrentPlayer && !eventData.mvp_player_id) {
           const { data: vote } = await supabase
@@ -232,10 +245,12 @@ export default function EventViewPage() {
     });
 
     try {
-      await eventsService.updateAttendance({
+      const result = await eventsService.updateAttendance({
         p_event_id: event.id,
         p_status: nextStatus,
       });
+      if (!result.ok) throw new Error(result.error.message);
+
       setCurrentPlayer((value) =>
         value
           ? {
@@ -263,10 +278,12 @@ export default function EventViewPage() {
 
     try {
       setSavingAttendance(true);
-      await eventsService.cancelEvent({
+      const result = await eventsService.cancelEvent({
         p_event_id: event.id,
         p_motive: motive ?? null,
       });
+      if (!result.ok) throw new Error(result.error.message);
+
       showEventNotification('event_cancelled', { eventName: event.field_name });
       toast.success('Partido cancelado.');
       router.push(`/groups/${groupId}/dashboard`);

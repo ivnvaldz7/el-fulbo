@@ -79,6 +79,20 @@ describe('getActiveSubscriptions', () => {
     }));
     const supabase = { from };
     const result = await getActiveSubscriptions(supabase as never, 'user-1');
-    expect(result).toEqual([]);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data).toEqual([]);
+  });
+
+  it('returns error when query fails', async () => {
+    const from = vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      then: vi.fn().mockImplementation((cb: (v: unknown) => void) => {
+        cb({ data: null, error: { message: 'DB error', code: '400' } });
+      }),
+    }));
+    const supabase = { from };
+    const result = await getActiveSubscriptions(supabase as never, 'user-1');
+    expect(result.ok).toBe(false);
   });
 });

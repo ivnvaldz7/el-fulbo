@@ -20,22 +20,29 @@ describe('EventsService.cancelEvent', () => {
   it('calls cancel_event RPC with correct payload', async () => {
     const supabase = mockSupabase({ data: null, error: null });
     const service = new EventsService(supabase as never);
-    await service.cancelEvent(mockPayload);
+    const result = await service.cancelEvent(mockPayload);
+    expect(result.ok).toBe(true);
     expect(supabase.rpc).toHaveBeenCalledWith('cancel_event', mockPayload);
   });
 
-  it('resolves without throwing on success', async () => {
+  it('returns ok on success', async () => {
     const supabase = mockSupabase({ data: null, error: null });
     const service = new EventsService(supabase as never);
-    await expect(service.cancelEvent(mockPayload)).resolves.toBeUndefined();
+    const result = await service.cancelEvent(mockPayload);
+    expect(result.ok).toBe(true);
   });
 
-  it('throws when RPC returns an error', async () => {
+  it('returns error when RPC fails', async () => {
     const supabase = mockSupabase({
       data: null,
       error: { message: 'Failed to cancel event', code: '400', details: '', hint: '' },
     });
     const service = new EventsService(supabase as never);
-    await expect(service.cancelEvent(mockPayload)).rejects.toThrow('Failed to cancel event');
+    const result = await service.cancelEvent(mockPayload);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe('INTERNAL_ERROR');
+      expect(result.error.message).toBe('Algo salio mal.');
+    }
   });
 });

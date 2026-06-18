@@ -9,10 +9,10 @@ import {
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   try {
     const supabase = createServerSupabaseClient();
-    const { data, error } = await getRecurringSchedules(supabase, params.id);
+    const result = await getRecurringSchedules(supabase, params.id);
 
-    if (error) return errorResponse(error, 400);
-    return successResponse(data ?? []);
+    if (!result.ok) return errorResponse(result.error, 400);
+    return successResponse(result.data);
   } catch (err) {
     return handleApiError(err);
   }
@@ -23,10 +23,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const supabase = createServerSupabaseClient();
     const body = await req.json();
 
-    const { data, error } = await createRecurringSchedule(supabase, params.id, body);
+    const result = await createRecurringSchedule(supabase, params.id, body);
 
-    if (error) return errorResponse(error, 400);
-    return successResponse(data);
+    if (!result.ok) return errorResponse(result.error, 400);
+    return successResponse(result.data);
   } catch (err) {
     return handleApiError(err);
   }
@@ -38,9 +38,9 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     const { searchParams } = new URL(req.url);
     const scheduleId = searchParams.get('scheduleId');
 
-    const { error } = await deleteRecurringSchedule(supabase, params.id, scheduleId ?? '');
+    const result = await deleteRecurringSchedule(supabase, params.id, scheduleId ?? '');
 
-    if (error) return errorResponse(error, 400);
+    if (!result.ok) return errorResponse(result.error, 400);
     return successResponse({});
   } catch (err) {
     return handleApiError(err);

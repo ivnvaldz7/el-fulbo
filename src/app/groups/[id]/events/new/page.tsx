@@ -122,7 +122,7 @@ export default function NewEventPage() {
       // Concatenate date and time to form a valid ISO 8601 string for Supabase
       const dateTime = new Date(`${parsed.data.date}T${parsed.data.time}:00`).toISOString();
 
-      await eventsService.createEvent({
+      const result = await eventsService.createEvent({
         p_group_id: groupId,
         p_title: `Partido en ${parsed.data.locationName}`,
         p_date_time: dateTime,
@@ -130,6 +130,7 @@ export default function NewEventPage() {
         p_modality: parsed.data.modality,
         p_created_by: (await supabase.auth.getUser()).data.user?.id || '',
       });
+      if (!result.ok) throw new Error(result.error.message);
 
       window.localStorage.removeItem(CREATE_EVENT_DRAFT_KEY);
       showEventNotification('event_created', { eventName: parsed.data.locationName });

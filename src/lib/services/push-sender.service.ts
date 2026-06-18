@@ -19,7 +19,13 @@ function ensureVapid() {
   if (vapidInitialized) return;
   const publicKey = process.env.VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
-  if (!publicKey || !privateKey) return;
+  if (!publicKey || !privateKey) {
+    console.warn(
+      '[push-sender] VAPID keys no configuradas. Notificaciones push desactivadas. ' +
+      'Setear VAPID_PUBLIC_KEY y VAPID_PRIVATE_KEY en env.',
+    );
+    return;
+  }
 
   webpush.setVapidDetails('mailto:ivnvldz7@gmail.com', publicKey, privateKey);
   vapidInitialized = true;
@@ -41,20 +47,30 @@ export async function sendPushToUser(
   ensureVapid();
   if (!vapidInitialized) return;
 
-  const subscriptions = await getActiveSubscriptions(supabase, userId);
-  if (!subscriptions.length) return;
+  const subsResult = await getActiveSubscriptions(supabase, userId);
+  if (!subsResult.ok) {
+    console.error('[push-sender] Error fetching subscriptions:', subsResult.error.message);
+    return;
+  }
+  if (!subsResult.data.length) return;
 
-  for (const sub of subscriptions) {
+  for (const sub of subsResult.data) {
     try {
       await webpush.sendNotification(
         { endpoint: sub.endpoint, keys: { p256dh: sub.p256dhKey, auth: sub.authKey } },
         JSON.stringify(payload),
       );
-      await touchSubscription(supabase, sub.id);
+      const touchResult = await touchSubscription(supabase, sub.id);
+      if (!touchResult.ok) {
+        console.error('[push-sender] Error touching subscription:', touchResult.error.message);
+      }
     } catch (err: unknown) {
       const statusCode = (err as { statusCode?: number }).statusCode;
       if (statusCode === 410 || statusCode === 404) {
-        await archiveStaleSubscription(supabase, sub.id);
+        const archiveResult = await archiveStaleSubscription(supabase, sub.id);
+        if (!archiveResult.ok) {
+          console.error('[push-sender] Error archiving stale subscription:', archiveResult.error.message);
+        }
       }
     }
   }
@@ -77,7 +93,10 @@ export async function sendNotificationPush(
     url,
   });
 
-  await markNotificationPushed(supabase, notificationId);
+  const pushedResult = await markNotificationPushed(supabase, notificationId);
+  if (!pushedResult.ok) {
+    console.error('[push-sender] Error marking notification as pushed:', pushedResult.error.message);
+  }
 }
 
 export async function deliverPendingPushes(supabase: SupabaseClient): Promise<number> {
@@ -104,7 +123,10 @@ export async function deliverPendingPushes(supabase: SupabaseClient): Promise<nu
   for (const n of pending) {
     const userId = n.user_id as string;
     if (!enabledUsers.has(userId)) {
-      await markNotificationPushed(supabase, n.id as string);
+      const skippedResult = await markNotificationPushed(supabase, n.id as string);
+      if (!skippedResult.ok) {
+        console.error('[push-sender] Error marking skipped notification as pushed:', skippedResult.error.message);
+      }
       continue;
     }
 

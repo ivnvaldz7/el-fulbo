@@ -24,7 +24,7 @@ describe('GroupDashboardInitialState', () => {
     expect(screen.getByText('Fulbito')).toBeInTheDocument();
     expect(screen.getByText('Sumá a tus jugadores')).toBeInTheDocument();
     expect(
-      screen.getByText(/Compartí este link en el grupo de WhatsApp/i),
+      screen.getByText(/Compartí el link o el código para que entren al grupo/i),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Invitar jugadores' })).toBeInTheDocument();
   });
@@ -45,14 +45,14 @@ describe('GroupDashboardInitialState', () => {
     expect(screen.getByRole('button', { name: 'Invitar jugadores' })).toBeInTheDocument();
   });
 
-  it('does not render the invite banner with 2 players', () => {
+  it('does not render the invite banner for non-admin users', () => {
     render(
       <GroupDashboardInitialState
         {...BASE_PROPS}
         groupName="Fulbito"
         modality="F5"
         activePlayers={2}
-        userRole="owner"
+        userRole="player"
         matchesToday={[]}
       />,
     );

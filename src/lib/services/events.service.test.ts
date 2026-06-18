@@ -29,7 +29,8 @@ describe('EventsService', () => {
       p_scheduled_at: '2026-05-10T20:00:00Z',
       p_notes: null,
     });
-    expect(result).toBe('event-123');
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data).toBe('event-123');
   });
 
   it('handles optional notes in create_event RPC', async () => {
@@ -52,10 +53,11 @@ describe('EventsService', () => {
       p_scheduled_at: '2026-06-01T10:00:00Z',
       p_notes: 'Some additional notes for the event.',
     });
-    expect(result).toBe('event-456');
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data).toBe('event-456');
   });
 
-  it('throws an error if p_title is empty when creating an event', async () => {
+  it('returns error when p_title is empty', async () => {
     mockRpc.mockResolvedValueOnce({ data: null, error: { message: 'P_TITLE_EMPTY: Title cannot be empty' } });
 
     const payload: RPC_CreateEventPayload = {
@@ -68,14 +70,16 @@ describe('EventsService', () => {
     };
 
     const service = new EventsService(mockSupabase);
-    await expect(service.createEvent(payload)).rejects.toThrow('P_TITLE_EMPTY: Title cannot be empty');
+    const result = await service.createEvent(payload);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.message).toBe('Algo salio mal.');
   });
 
-  it('throws an error if p_date_time is in the past when creating an event', async () => {
+  it('returns error when p_date_time is in the past', async () => {
     mockRpc.mockResolvedValueOnce({ data: null, error: { message: 'P_DATE_TIME_PAST: Event date cannot be in the past' } });
 
     const pastDate = new Date();
-    pastDate.setFullYear(pastDate.getFullYear() - 1); // Set to one year ago
+    pastDate.setFullYear(pastDate.getFullYear() - 1);
 
     const payload: RPC_CreateEventPayload = {
       p_group_id: 'group-4',
@@ -87,7 +91,9 @@ describe('EventsService', () => {
     };
 
     const service = new EventsService(mockSupabase);
-    await expect(service.createEvent(payload)).rejects.toThrow('P_DATE_TIME_PAST: Event date cannot be in the past');
+    const result = await service.createEvent(payload);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.message).toBe('Algo salio mal.');
   });
 
   it('successfully creates an event with a future p_date_time', async () => {
@@ -112,10 +118,11 @@ describe('EventsService', () => {
       p_scheduled_at: futureDate.toISOString(),
       p_notes: null,
     });
-    expect(result).toBe('event-789');
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data).toBe('event-789');
   });
 
-  it('throws an error if p_google_maps_link is malformed', async () => {
+  it('returns error when p_google_maps_link is malformed', async () => {
     mockRpc.mockResolvedValueOnce({ data: null, error: { message: 'P_GOOGLE_MAPS_LINK_INVALID: Google Maps link is malformed' } });
 
     const payload: RPC_CreateEventPayload = {
@@ -129,10 +136,12 @@ describe('EventsService', () => {
     };
 
     const service = new EventsService(mockSupabase);
-    await expect(service.createEvent(payload)).rejects.toThrow('P_GOOGLE_MAPS_LINK_INVALID: Google Maps link is malformed');
+    const result = await service.createEvent(payload);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.message).toBe('Algo salio mal.');
   });
 
-  it('throws error if create_event RPC fails', async () => {
+  it('returns error when create_event RPC fails', async () => {
     mockRpc.mockResolvedValueOnce({ data: null, error: { message: 'Database error' } });
 
     const payload: RPC_CreateEventPayload = {
@@ -145,7 +154,9 @@ describe('EventsService', () => {
     };
 
     const service = new EventsService(mockSupabase);
-    await expect(service.createEvent(payload)).rejects.toThrow('Database error');
+    const result = await service.createEvent(payload);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.message).toBe('Algo salio mal.');
   });
 
   it('calls update_event RPC with correct transformed payload', async () => {

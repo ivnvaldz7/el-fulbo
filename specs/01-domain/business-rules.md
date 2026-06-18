@@ -193,7 +193,9 @@ Aunque el boost sume, el overall se **clampa a 99**. Un jugador base 98 + boost 
 |-----------|-----|-----|-----|-----|-------------------|
 | F5  | 1 | 1 | 2 | 1 | 5  |
 | F6  | 1 | 2 | 2 | 1 | 6  |
+| F7  | 1 | 2 | 3 | 1 | 7  |
 | F8  | 1 | 3 | 3 | 1 | 8  |
+| F9  | 1 | 3 | 3 | 2 | 9  |
 | F11 | 1 | 4 | 3 | 3 | 11 |
 
 Los cupos son **mínimos a cumplir**. Si hay jugadores en exceso, ver regla de paridad impar.
