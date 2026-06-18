@@ -13,6 +13,10 @@ export function GoogleSignInButton({ nextPath }: { nextPath: string }) {
     setLoading(true);
     setError(null);
 
+    // Guardar el nextPath en una cookie antes del redirect a Google.
+    // La cookie sobrevive al OAuth redirect chain donde el query param `next` se pierde.
+    document.cookie = `pending_next=${encodeURIComponent(nextPath)}; path=/; max-age=300; SameSite=Lax`;
+
     const result = await signInWithGoogle(createBrowserSupabaseClient(), nextPath);
     if (!result.ok) {
       setError(result.error.message);

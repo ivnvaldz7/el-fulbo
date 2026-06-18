@@ -5,7 +5,13 @@ import { upsertCurrentUser } from '@/lib/services/auth.service';
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  const next = requestUrl.searchParams.get('next') ?? '/groups';
+
+  // Leer next del query param. Si no está (se perdió en el redirect OAuth de Supabase),
+  // fallback a cookie `pending_next` seteada por GoogleSignInButton antes del redirect.
+  const next =
+    requestUrl.searchParams.get('next') ??
+    request.cookies.get('pending_next')?.value ??
+    '/groups';
 
   if (code) {
     // Acumulá las cookies que Supabase setea DURANTE exchangeCodeForSession,
@@ -35,7 +41,9 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
-      return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error.message)}`, requestUrl.origin));
+      const errorResponse = NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error.message)}`, requestUrl.origin));
+      errorResponse.cookies.set('pending_next', '', { path: '/', maxAge: 0 });
+      return errorResponse;
     }
 
     await upsertCurrentUser(supabase);
@@ -45,8 +53,13 @@ export async function GET(request: NextRequest) {
       response.cookies.set(name, value, options);
     }
 
+    // Limpiar la cookie pendiente para evitar redirects stale
+    response.cookies.set('pending_next', '', { path: '/', maxAge: 0 });
+
     return response;
   }
 
-  return NextResponse.redirect(new URL(next, requestUrl.origin));
+  const fallbackResponse = NextResponse.redirect(new URL(next, requestUrl.origin));
+  fallbackResponse.cookies.set('pending_next', '', { path: '/', maxAge: 0 });
+  return fallbackResponse;
 }
