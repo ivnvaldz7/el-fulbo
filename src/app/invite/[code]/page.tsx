@@ -55,10 +55,6 @@ export default async function InvitePage({ params }: { params: { code: string } 
     redirect(`/invite/${inviteCode}/request-pending`);
   }
 
-  if (resolution.data.kind === 'expelled_cooldown') {
-    redirect(`/invite/${inviteCode}/cooldown`);
-  }
-
   const preview = resolution.data.preview;
   const isAnonymous = resolution.data.kind === 'anonymous';
 

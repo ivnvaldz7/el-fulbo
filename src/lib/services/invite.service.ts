@@ -38,12 +38,6 @@ export interface ArchivedPlayerPreview {
   archivedAt: string;
 }
 
-export interface ReintegrationCooldownInfo {
-  cooldownExpiresAt: string;
-  lastRejectionAt: string;
-  lastRejectionNote: string | null;
-}
-
 type InviteValidationPayload =
   | {
       valid: false;
@@ -68,8 +62,7 @@ type InviteValidationPayload =
         | 'user_limit'
         | 'voluntary_returner'
         | 'expelled_can_request'
-        | 'expelled_pending_request'
-        | 'expelled_cooldown';
+        | 'expelled_pending_request';
       extras?: {
         archived_player?: {
           id: PlayerId;
@@ -81,9 +74,6 @@ type InviteValidationPayload =
           archived_at: string;
         };
         request_created_at?: string;
-        cooldown_expires_at?: string;
-        last_rejection_at?: string;
-        last_rejection_note?: string | null;
       };
     };
 
@@ -97,8 +87,7 @@ export type InviteResolvedState =
   | { kind: 'new'; preview: InvitePreview }
   | { kind: 'voluntary_returner'; preview: InvitePreview; archivedPlayer: ArchivedPlayerPreview }
   | { kind: 'expelled_can_request'; preview: InvitePreview }
-  | { kind: 'expelled_pending_request'; preview: InvitePreview; requestCreatedAt: string }
-  | { kind: 'expelled_cooldown'; preview: InvitePreview; cooldown: ReintegrationCooldownInfo };
+  | { kind: 'expelled_pending_request'; preview: InvitePreview; requestCreatedAt: string };
 
 function toInvitePreview(group: Extract<InviteValidationPayload, { valid: true }>['group']): InvitePreview {
   return {
@@ -202,22 +191,6 @@ export async function resolveInviteState(
           kind: 'expelled_pending_request',
           preview,
           requestCreatedAt: payload.extras.request_created_at,
-        },
-      };
-    case 'expelled_cooldown':
-      if (!payload.extras?.cooldown_expires_at || !payload.extras?.last_rejection_at) {
-        return { ok: false, error: { code: 'INTERNAL_ERROR', message: 'Algo salio mal.' } };
-      }
-      return {
-        ok: true,
-        data: {
-          kind: 'expelled_cooldown',
-          preview,
-          cooldown: {
-            cooldownExpiresAt: payload.extras.cooldown_expires_at,
-            lastRejectionAt: payload.extras.last_rejection_at,
-            lastRejectionNote: payload.extras.last_rejection_note ?? null,
-          },
         },
       };
     default:
