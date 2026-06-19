@@ -91,7 +91,7 @@ export async function GET(request: Request) {
           team_b_name: 'Equipo B',
         })
         .select('id')
-        .single();
+        .maybeSingle();
 
       if (insertError || !eventRow) {
         errors.push({ scheduleId: schedule.id, error: insertError?.message ?? 'Insert failed' });

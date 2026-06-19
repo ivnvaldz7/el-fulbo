@@ -1,6 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Result } from '@/lib/types';
 import { mapSupabaseError } from './errors';
+import { z } from 'zod';
+
+const respondInviteSchema = z.object({
+  eventId: z.string().uuid(),
+  accept: z.boolean(),
+});
 
 export interface TemporaryOwnerAssignment {
   eventId: string;
@@ -46,7 +52,7 @@ export async function getMyTemporaryOwnerAssignment(
     )
     .eq('event_id', eventId)
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
 
   if (error) {
     return { ok: false, error: mapSupabaseError(error) };
@@ -73,6 +79,9 @@ export async function respondTemporaryOwnerInvite(
   supabase: SupabaseClient,
   input: { eventId: string; accept: boolean },
 ): Promise<Result<null>> {
+  const parsed = respondInviteSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Input inválido' } };
+
   const { error } = await supabase.rpc('respond_temporary_owner_invite', {
     p_event_id: input.eventId,
     p_accept: input.accept,

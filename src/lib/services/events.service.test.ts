@@ -11,18 +11,18 @@ describe('EventsService', () => {
   } as unknown as SupabaseClient;
 
   it('calls create_event RPC with correct payload and returns event ID', async () => {
-    mockRpc.mockResolvedValueOnce({ data: 'event-123', error: null });
+    mockRpc.mockResolvedValueOnce({ data: '11111111-1111-1111-1111-111111111111', error: null });
 
     const service = new EventsService(mockSupabase);
     const result = await service.createEvent({
-      p_group_id: 'group-1',
+      p_group_id: '22222222-2222-2222-2222-222222222222',
       p_date_time: '2026-05-10T20:00:00Z',
       p_location: 'Cancha 1',
       p_modality: 'F5',
     });
 
     expect(mockRpc).toHaveBeenCalledWith('create_event', {
-      p_group_id: 'group-1',
+      p_group_id: '22222222-2222-2222-2222-222222222222',
       p_modality: 'F5',
       p_field_name: 'Cancha 1',
       p_field_maps_url: null,
@@ -30,15 +30,15 @@ describe('EventsService', () => {
       p_notes: null,
     });
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.data).toBe('event-123');
+    if (result.ok) expect(result.data).toBe('11111111-1111-1111-1111-111111111111');
   });
 
   it('handles optional notes in create_event RPC', async () => {
-    mockRpc.mockResolvedValueOnce({ data: 'event-456', error: null });
+    mockRpc.mockResolvedValueOnce({ data: '11111111-1111-1111-1111-111111111112', error: null });
 
     const service = new EventsService(mockSupabase);
     const result = await service.createEvent({
-      p_group_id: 'group-2',
+      p_group_id: '22222222-2222-2222-2222-222222222222',
       p_date_time: '2026-06-01T10:00:00Z',
       p_location: 'Online',
       p_modality: 'F11',
@@ -46,7 +46,7 @@ describe('EventsService', () => {
     });
 
     expect(mockRpc).toHaveBeenCalledWith('create_event', {
-      p_group_id: 'group-2',
+      p_group_id: '22222222-2222-2222-2222-222222222222',
       p_modality: 'F11',
       p_field_name: 'Online',
       p_field_maps_url: null,
@@ -54,19 +54,19 @@ describe('EventsService', () => {
       p_notes: 'Some additional notes for the event.',
     });
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.data).toBe('event-456');
+    if (result.ok) expect(result.data).toBe('11111111-1111-1111-1111-111111111112');
   });
 
   it('returns error when p_title is empty', async () => {
     mockRpc.mockResolvedValueOnce({ data: null, error: { message: 'P_TITLE_EMPTY: Title cannot be empty' } });
 
     const payload: RPC_CreateEventPayload = {
-      p_group_id: 'group-3',
+      p_group_id: '22222222-2222-2222-2222-222222222223',
       p_title: '',
       p_date_time: '2026-07-01T15:00:00Z',
       p_location: 'Some Location',
       p_modality: 'F7' as Modality,
-      p_created_by: 'user-3' as UserId,
+      p_created_by: '44444444-4444-4444-4444-444444444443' as UserId,
     };
 
     const service = new EventsService(mockSupabase);
@@ -82,12 +82,12 @@ describe('EventsService', () => {
     pastDate.setFullYear(pastDate.getFullYear() - 1);
 
     const payload: RPC_CreateEventPayload = {
-      p_group_id: 'group-4',
+      p_group_id: '22222222-2222-2222-2222-222222222224',
       p_title: 'Event in the Past',
       p_date_time: pastDate.toISOString(),
       p_location: 'Historic Venue',
       p_modality: 'F11' as Modality,
-      p_created_by: 'user-4' as UserId,
+      p_created_by: '44444444-4444-4444-4444-444444444444' as UserId,
     };
 
     const service = new EventsService(mockSupabase);
@@ -97,21 +97,21 @@ describe('EventsService', () => {
   });
 
   it('successfully creates an event with a future p_date_time', async () => {
-    mockRpc.mockResolvedValueOnce({ data: 'event-789', error: null });
+    mockRpc.mockResolvedValueOnce({ data: '11111111-1111-1111-1111-111111111113', error: null });
 
     const futureDate = new Date();
     futureDate.setFullYear(futureDate.getFullYear() + 1);
 
     const service = new EventsService(mockSupabase);
     const result = await service.createEvent({
-      p_group_id: 'group-5',
+      p_group_id: '55555555-5555-5555-5555-555555555555',
       p_date_time: futureDate.toISOString(),
       p_location: 'Future Stadium',
       p_modality: 'F8',
     });
 
     expect(mockRpc).toHaveBeenCalledWith('create_event', {
-      p_group_id: 'group-5',
+      p_group_id: '55555555-5555-5555-5555-555555555555',
       p_modality: 'F8',
       p_field_name: 'Future Stadium',
       p_field_maps_url: null,
@@ -119,38 +119,38 @@ describe('EventsService', () => {
       p_notes: null,
     });
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.data).toBe('event-789');
+    if (result.ok) expect(result.data).toBe('11111111-1111-1111-1111-111111111113');
   });
 
   it('returns error when p_google_maps_link is malformed', async () => {
     mockRpc.mockResolvedValueOnce({ data: null, error: { message: 'P_GOOGLE_MAPS_LINK_INVALID: Google Maps link is malformed' } });
 
     const payload: RPC_CreateEventPayload = {
-      p_group_id: 'group-6',
+      p_group_id: '22222222-2222-2222-2222-222222222226',
       p_title: 'Event with Bad Map Link',
       p_date_time: '2026-08-01T18:00:00Z',
       p_location: 'Invalid Link Location',
       p_modality: 'F8' as Modality,
-      p_created_by: 'user-6' as UserId,
+      p_created_by: '44444444-4444-4444-4444-444444444446' as UserId,
       p_field_maps_url: 'not-a-valid-url',
     };
 
     const service = new EventsService(mockSupabase);
     const result = await service.createEvent(payload);
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.message).toBe('Algo salio mal.');
+    if (!result.ok) expect(result.error.message).toBe('Datos de evento inválidos');
   });
 
   it('returns error when create_event RPC fails', async () => {
     mockRpc.mockResolvedValueOnce({ data: null, error: { message: 'Database error' } });
 
     const payload: RPC_CreateEventPayload = {
-      p_group_id: 'group-1',
+      p_group_id: '22222222-2222-2222-2222-222222222222',
       p_title: 'Test Event',
       p_date_time: '2026-05-10T20:00:00Z',
       p_location: 'Cancha 1',
       p_modality: 'F5',
-      p_created_by: 'user-1',
+      p_created_by: '44444444-4444-4444-4444-444444444441',
     };
 
     const service = new EventsService(mockSupabase);
@@ -164,14 +164,14 @@ describe('EventsService', () => {
 
     const service = new EventsService(mockSupabase);
     await service.updateEvent({
-      p_event_id: 'event-123',
+      p_event_id: '11111111-1111-1111-1111-111111111111',
       p_date_time: '2026-05-11T20:00:00Z',
       p_location: 'Cancha 2',
       p_modality: 'F5',
     });
 
     expect(mockRpc).toHaveBeenCalledWith('update_event', {
-      p_event_id: 'event-123',
+      p_event_id: '11111111-1111-1111-1111-111111111111',
       p_modality: 'F5',
       p_field_name: 'Cancha 2',
       p_field_maps_url: null,
@@ -185,12 +185,12 @@ describe('EventsService', () => {
 
     const service = new EventsService(mockSupabase);
     await service.updateEvent({
-      p_event_id: 'event-123',
+      p_event_id: '11111111-1111-1111-1111-111111111111',
       p_field_name: 'Updated Title Only',
     });
 
     expect(mockRpc).toHaveBeenCalledWith('update_event', {
-      p_event_id: 'event-123',
+      p_event_id: '11111111-1111-1111-1111-111111111111',
       p_modality: null,
       p_field_name: 'Updated Title Only',
       p_field_maps_url: null,
@@ -204,12 +204,12 @@ describe('EventsService', () => {
 
     const service = new EventsService(mockSupabase);
     await service.updateEvent({
-      p_event_id: 'event-123',
+      p_event_id: '11111111-1111-1111-1111-111111111111',
       p_location: 'New Location Address',
     });
 
     expect(mockRpc).toHaveBeenCalledWith('update_event', {
-      p_event_id: 'event-123',
+      p_event_id: '11111111-1111-1111-1111-111111111111',
       p_modality: null,
       p_field_name: 'New Location Address',
       p_field_maps_url: null,

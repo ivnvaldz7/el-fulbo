@@ -48,7 +48,7 @@ export async function fetchGroupData(
       .from('groups')
       .select('id, name, default_modality, invite_code, donation_link, created_at, archived_at')
       .eq('id', groupId)
-      .single(),
+      .maybeSingle(),
 
     supabase
       .from('players')

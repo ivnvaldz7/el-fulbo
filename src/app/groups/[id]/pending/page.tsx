@@ -21,7 +21,7 @@ export default async function PendingPage({ params }: { params: { id: string } }
   const isRejected = player.data.statsStatus === 'rejected';
 
   return (
-    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px]">
+    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] lg:max-w-[480px]">
       <div className="mb-8 flex justify-center">
         <PlayerCardPreview
           name={player.data.displayName}

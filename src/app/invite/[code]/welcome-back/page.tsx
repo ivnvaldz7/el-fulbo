@@ -32,7 +32,7 @@ export default async function InviteWelcomeBackPage({ params }: { params: { code
   const { preview, archivedPlayer } = resolution.data;
 
   return (
-    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px]">
+    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] lg:max-w-[480px]">
       <div className="mb-8 flex justify-center">
         <PlayerCardPreview
           name={archivedPlayer.displayName}

@@ -17,7 +17,7 @@ export default async function HomePage() {
 
   return (
     <ImmersiveScreen align="center" backgroundImage={`linear-gradient(to bottom, rgba(10,10,10,0.4) 0%, rgba(10,10,10,0.95) 100%), url("${backgroundUrl}")`}>
-      <main className="mx-auto flex h-full max-w-[390px] flex-col px-5 pb-12">
+      <main className="mx-auto flex h-full max-w-[390px] lg:max-w-[480px] flex-col pb-12">
         {/* Brand Identity / Center Section */}
         <section className="flex flex-grow flex-col items-center justify-center space-y-6 text-center">
           <div className="flex flex-col items-center">

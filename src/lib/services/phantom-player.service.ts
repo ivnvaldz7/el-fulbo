@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Result } from '@/lib/types';
 import { mapSupabaseError } from './errors';
-import type { CreatePhantomInput, ConvertPhantomInput } from '@/lib/validations/phantom-player';
+import { createPhantomSchema, convertPhantomSchema, type CreatePhantomInput, type ConvertPhantomInput } from '@/lib/validations/phantom-player';
 
 export interface PendingPhantom {
   id: string;
@@ -15,6 +15,9 @@ export async function createPhantomPlayer(
   supabase: SupabaseClient,
   input: CreatePhantomInput,
 ): Promise<Result<string>> {
+  const parsed = createPhantomSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Datos de phantom inválidos.' } };
+
   const { data, error } = await supabase.rpc('create_phantom_player', {
     p_group_id: input.groupId,
     p_event_id: input.eventId,
@@ -84,6 +87,9 @@ export async function initiateConversion(
   supabase: SupabaseClient,
   input: ConvertPhantomInput,
 ): Promise<Result<ConversionInitResult>> {
+  const parsed = convertPhantomSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Datos de conversión inválidos.' } };
+
   const { data, error } = await supabase.rpc('initiate_phantom_conversion', {
     p_player_id: input.playerId,
     p_email: input.email,

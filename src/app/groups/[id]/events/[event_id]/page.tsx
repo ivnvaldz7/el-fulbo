@@ -298,7 +298,7 @@ export default function EventViewPage() {
 
   if (loading) {
     return (
-      <ImmersiveScreen align="center" contentClassName="text-center">
+      <ImmersiveScreen align="center" contentClassName="mx-auto text-center">
         <div className="mx-auto h-12 w-12 animate-spin border-4 border-pitch-green border-t-transparent" />
         <p className="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
           Cargando evento

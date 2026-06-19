@@ -21,6 +21,14 @@ import type {
   UpdateCheckInPayload,
 } from '@/lib/types/events.types';
 import { mapSupabaseError } from '@/lib/services/errors';
+import {
+  createEventRpcSchema,
+  updateEventRpcSchema,
+  cancelEventRpcSchema,
+  updateAttendanceSchema,
+  updateCheckInSchema,
+  loadMatchResultSchema,
+} from '@/lib/validations/events.service';
 
 export interface EventAttendee {
   playerId: PlayerId;
@@ -113,6 +121,9 @@ export class EventsService {
   }
 
   async createEvent(payload: RPC_CreateEventPayload): Promise<Result<EventId>> {
+    const parsed = createEventRpcSchema.safeParse(payload);
+    if (!parsed.success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Datos de evento inválidos' } };
+
     const rpcPayload = {
       p_group_id: payload.p_group_id,
       p_modality: payload.p_modality,
@@ -129,6 +140,9 @@ export class EventsService {
   }
 
   async updateEvent(payload: RPC_UpdateEventPayload): Promise<Result<void>> {
+    const parsed = updateEventRpcSchema.safeParse(payload);
+    if (!parsed.success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Datos de evento inválidos' } };
+
     const rpcPayload = {
       p_event_id: payload.p_event_id,
       p_modality: payload.p_modality ?? null,
@@ -145,6 +159,9 @@ export class EventsService {
   }
 
   async cancelEvent(payload: RPC_CancelEventPayload): Promise<Result<void>> {
+    const parsed = cancelEventRpcSchema.safeParse(payload);
+    if (!parsed.success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Datos inválidos' } };
+
     const { error } = await this.supabase.rpc('cancel_event', {
       p_event_id: payload.p_event_id,
       p_motive: payload.p_motive ?? null,
@@ -159,7 +176,7 @@ export class EventsService {
       .from('events')
       .select('*')
       .eq('id', eventId)
-      .single();
+      .maybeSingle();
 
     if (error) return { ok: false, error: mapSupabaseError(error) };
 
@@ -274,7 +291,7 @@ export class EventsService {
       .eq('group_id', groupId)
       .eq('user_id', user.id)
       .is('archived_at', null)
-      .single();
+      .maybeSingle();
 
     if (playerError) {
       if (playerError.code === 'PGRST116') {
@@ -317,6 +334,9 @@ export class EventsService {
   }
 
   async updateAttendance(input: { p_event_id: EventId; p_status: AttendanceStatus }): Promise<Result<void>> {
+    const parsed = updateAttendanceSchema.safeParse(input);
+    if (!parsed.success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Datos inválidos' } };
+
     const { error } = await this.supabase.rpc('update_attendance', {
       p_event_id: input.p_event_id,
       p_status: input.p_status,
@@ -328,6 +348,9 @@ export class EventsService {
   }
 
   async updateCheckIn(input: UpdateCheckInPayload): Promise<Result<void>> {
+    const parsed = updateCheckInSchema.safeParse(input);
+    if (!parsed.success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Datos inválidos' } };
+
     const payload = {
       checked_in: input.checkedIn,
       checked_in_at: input.checkedIn ? new Date().toISOString() : null,
@@ -383,6 +406,9 @@ export class EventsService {
   }
 
   async loadMatchResult(payload: LoadMatchResultPayload): Promise<Result<void>> {
+    const parsed = loadMatchResultSchema.safeParse(payload);
+    if (!parsed.success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Datos inválidos' } };
+
     const { error } = await this.supabase.rpc('load_match_result', {
       p_event_id: payload.eventId,
       p_team_a_score: payload.teamAScore,

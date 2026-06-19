@@ -7,7 +7,7 @@ function SkeletonBlock({ className = '' }: { className?: string }) {
 
 export default function GroupsHubLoading() {
   return (
-    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] w-full py-8 px-4">
+    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] lg:max-w-[480px] w-full py-8 px-4">
       <FloatingPanel className="border-2 border-white/10 p-6">
         {/* Header */}
         <div className="mb-8">

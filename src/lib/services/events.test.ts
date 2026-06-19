@@ -11,7 +11,7 @@ function mockSupabase(rpcResult: { data: unknown; error: unknown }) {
 }
 
 describe('EventsService.cancelEvent', () => {
-  const mockEventId: EventId = 'some-event-id-123';
+  const mockEventId: EventId = '11111111-1111-1111-1111-111111111111';
   const mockPayload: RPC_CancelEventPayload = {
     p_event_id: mockEventId,
     p_motive: 'User requested cancellation',

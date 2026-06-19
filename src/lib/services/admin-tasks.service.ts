@@ -1,6 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { GroupId, Result } from '@/lib/types';
 import { mapSupabaseError } from './errors';
+import { z } from 'zod';
+
+const idSchema = z.string().uuid();
+const idWithNoteSchema = z.object({ id: z.string().uuid(), note: z.string().max(500).optional().nullable() });
 
 export interface PendingTasksSummary {
   cardsNew: number;
@@ -27,6 +31,8 @@ export async function approveInitialStats(
   supabase: SupabaseClient,
   playerId: string,
 ): Promise<Result<null>> {
+  if (!idSchema.safeParse(playerId).success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'ID inválido' } };
+
   const { error } = await supabase.rpc('approve_initial_stats', {
     p_player_id: playerId,
   });
@@ -43,6 +49,8 @@ export async function rejectInitialStats(
   playerId: string,
   note?: string | null,
 ): Promise<Result<null>> {
+  if (!idWithNoteSchema.safeParse({ id: playerId, note }).success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Datos inválidos' } };
+
   const { error } = await supabase.rpc('reject_initial_stats', {
     p_player_id: playerId,
     p_note: note ?? null,
@@ -59,6 +67,8 @@ export async function approveStatRevision(
   supabase: SupabaseClient,
   requestId: string,
 ): Promise<Result<null>> {
+  if (!idSchema.safeParse(requestId).success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'ID inválido' } };
+
   const { error } = await supabase.rpc('approve_stat_revision', {
     p_request_id: requestId,
   });
@@ -75,6 +85,8 @@ export async function rejectStatRevision(
   requestId: string,
   note?: string | null,
 ): Promise<Result<null>> {
+  if (!idWithNoteSchema.safeParse({ id: requestId, note }).success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Datos inválidos' } };
+
   const { error } = await supabase.rpc('reject_stat_revision', {
     p_request_id: requestId,
     p_note: note ?? null,
@@ -91,6 +103,8 @@ export async function approveReintegrationRequest(
   supabase: SupabaseClient,
   requestId: string,
 ): Promise<Result<null>> {
+  if (!idSchema.safeParse(requestId).success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'ID inválido' } };
+
   const { error } = await supabase.rpc('approve_reintegration_request', {
     p_request_id: requestId,
   });
@@ -107,6 +121,8 @@ export async function rejectReintegrationRequest(
   requestId: string,
   note?: string | null,
 ): Promise<Result<null>> {
+  if (!idWithNoteSchema.safeParse({ id: requestId, note }).success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Datos inválidos' } };
+
   const { error } = await supabase.rpc('reject_reintegration_request', {
     p_request_id: requestId,
     p_note: note ?? null,

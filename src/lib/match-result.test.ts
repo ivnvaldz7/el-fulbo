@@ -4,7 +4,7 @@ import { calculateMatchBoost, decrementBoostAfterParticipation } from './match-r
 describe('match-result boost rules', () => {
   it('applies victory + MVP boost with +3 on principal stats and +1 on the rest', () => {
     const boost = calculateMatchBoost({
-      appliedAtEventId: 'event-1',
+      appliedAtEventId: '11111111-1111-1111-1111-111111111111',
       isWinner: true,
       isDraw: false,
       isMvp: true,
@@ -12,7 +12,7 @@ describe('match-result boost rules', () => {
     });
 
     expect(boost).toEqual({
-      applied_at_event_id: 'event-1',
+      applied_at_event_id: '11111111-1111-1111-1111-111111111111',
       partidos_remaining: 3,
       reason: 'victory_mvp',
       modifiers: {

@@ -40,7 +40,7 @@ export async function getCurrentUserPlayerInGroup(
     .eq('group_id', groupId)
     .eq('user_id', user.id)
     .is('archived_at', null)
-    .single();
+    .maybeSingle();
 
   if (error) {
     return { ok: false, error: mapSupabaseError(error) };

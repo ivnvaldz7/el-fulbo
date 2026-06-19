@@ -13,7 +13,15 @@ export async function POST(request: Request) {
     );
   }
 
-  const sub = (await request.json()) as PushSubscriptionJSON;
+  let sub;
+  try {
+    sub = await request.json();
+  } catch (e) {
+    return NextResponse.json(
+      { ok: false, error: { code: 'VALIDATION_ERROR', message: 'JSON malformado.' } },
+      { status: 400 }
+    );
+  }
   const result = await savePushSubscription(supabase, sub);
 
   if (!result.ok) {
@@ -34,7 +42,7 @@ export async function DELETE(request: Request) {
     );
   }
 
-  const { endpoint } = (await request.json()) as { endpoint: string };
+  const { endpoint } = (await safeJson(request)) as { endpoint: string };
   if (!endpoint) {
     return NextResponse.json(
       { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Falta el endpoint.' } },

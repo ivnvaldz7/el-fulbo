@@ -78,7 +78,7 @@ describe('getActiveSubscriptions', () => {
       }),
     }));
     const supabase = { from };
-    const result = await getActiveSubscriptions(supabase as never, 'user-1');
+    const result = await getActiveSubscriptions(supabase as never, '44444444-4444-4444-4444-444444444441');
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.data).toEqual([]);
   });
@@ -92,7 +92,7 @@ describe('getActiveSubscriptions', () => {
       }),
     }));
     const supabase = { from };
-    const result = await getActiveSubscriptions(supabase as never, 'user-1');
+    const result = await getActiveSubscriptions(supabase as never, '44444444-4444-4444-4444-444444444441');
     expect(result.ok).toBe(false);
   });
 });

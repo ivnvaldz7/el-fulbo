@@ -2,6 +2,15 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Result } from '@/lib/types';
 import { mapSupabaseError } from './errors';
 import type { NotificationPayload, NotificationType } from '@/lib/notifications-deeplink';
+import { z } from 'zod';
+
+const prefsSchema = z.object({
+  pushEnabled: z.boolean().optional(),
+  matchReminders: z.boolean().optional(),
+  digestEnabled: z.boolean().optional(),
+  digestFrequency: z.enum(['daily', 'weekly', 'disabled']).optional(),
+  timezone: z.string().max(100).optional(),
+});
 
 export interface AppNotification {
   id: string;
@@ -126,6 +135,9 @@ export async function saveNotificationPreferences(
   userId: string,
   prefs: Partial<NotificationPreferences>,
 ): Promise<Result<void>> {
+  const parsed = prefsSchema.safeParse(prefs);
+  if (!parsed.success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Preferencias inválidas' } };
+
   const payload: Record<string, unknown> = { user_id: userId };
   if (prefs.pushEnabled !== undefined) payload.push_enabled = prefs.pushEnabled;
   if (prefs.matchReminders !== undefined) payload.match_reminders = prefs.matchReminders;
@@ -151,7 +163,7 @@ export async function createNotification(
     .from('notifications')
     .insert({ user_id: userId, type, payload })
     .select('id')
-    .single();
+    .maybeSingle();
 
   if (error) return { ok: false, error: mapSupabaseError(error) };
   return { ok: true, data: data.id as string };

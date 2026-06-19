@@ -7,7 +7,7 @@ import {
   buildGroupZip,
   exportFileName,
 } from '@/lib/services/export.service';
-import { handleApiError } from '@/lib/api-helpers';
+import { handleApiError, errorResponse } from '@/lib/api-helpers';
 
 export async function GET(
   _request: Request,
@@ -49,7 +49,7 @@ export async function GET(
 
     const serviceSupabase = createServiceSupabaseClient();
     const groupDataResult = await fetchGroupData(serviceSupabase, params.id);
-    if (!groupDataResult.ok) throw new Error(groupDataResult.error.message);
+    if (!groupDataResult.ok) return errorResponse(groupDataResult.error);
     const anonymized = anonymizeData(groupDataResult.data, user.id, isAdmin, exportedByName);
     const zipBuffer = await buildGroupZip(anonymized);
     const filename = exportFileName(anonymized.groupName);

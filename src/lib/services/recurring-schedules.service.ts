@@ -63,7 +63,7 @@ export async function createRecurringSchedule(
       { onConflict: 'group_id,day_of_week' },
     )
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     return { ok: false, error: mapSupabaseError(error) };

@@ -28,7 +28,7 @@ export async function fetchPlayerStats(
 ): Promise<Result<PlayerStatsAggregate>> {
   const { data, error } = await supabase
     .rpc('get_player_stats', { p_player_id: playerId })
-    .single();
+    .maybeSingle();
 
   if (error) {
     return { ok: false, error: mapSupabaseError(error) };

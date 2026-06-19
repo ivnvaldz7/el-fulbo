@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { GroupDashboardInitialState } from './group-dashboard-initial-state';
 
 const BASE_PROPS = {
-  groupId: 'group-1',
+  groupId: '22222222-2222-2222-2222-222222222222',
   inviteCode: 'FULBO-ABC123',
   currentPlayerId: null,
 };
@@ -89,7 +89,7 @@ describe('GroupDashboardInitialState', () => {
         matchesToday={[]}
         recentPlayedEvents={[
           {
-            id: 'event-1',
+            id: '11111111-1111-1111-1111-111111111111',
             fieldName: 'Cancha 5',
             teamAName: 'Negros',
             teamBName: 'Blancos',

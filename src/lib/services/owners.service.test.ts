@@ -47,7 +47,7 @@ describe('getOwnersSettingsData', () => {
           return {
             select: vi.fn().mockReturnValue({
               eq: vi.fn().mockReturnValue({
-                single: vi.fn().mockResolvedValue({
+                maybeSingle: vi.fn().mockResolvedValue({
                   data: {
                     id: '11111111-1111-4111-8111-111111111111',
                     name: 'Fulbito',
@@ -91,7 +91,7 @@ describe('getOwnersSettingsData', () => {
                       data: [
                         { user_id: 'admin-1', display_name: 'Admin', photo_url: null },
                         { user_id: 'owner-1', display_name: 'Juan', photo_url: null },
-                        { user_id: 'player-1', display_name: 'Pedro', photo_url: null },
+                        { user_id: '33333333-3333-3333-3333-333333333333', display_name: 'Pedro', photo_url: null },
                       ],
                       error: null,
                     }),
@@ -113,7 +113,7 @@ describe('getOwnersSettingsData', () => {
       expect(result.data.owners[0]?.displayName).toBe('Juan');
       expect(result.data.candidates).toEqual([
         {
-          userId: 'player-1',
+          userId: '33333333-3333-3333-3333-333333333333',
           displayName: 'Pedro',
           photoUrl: null,
         },

@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { fetchPlayerStats } from './player-stats.service';
 
 const baseRow = {
-  player_id: 'p1',
-  group_id: 'g1',
-  user_id: 'u1',
+  player_id: '33333333-3333-3333-3333-333333333331',
+  group_id: '22222222-2222-2222-2222-222222222221',
+  user_id: '44444444-4444-4444-4444-444444444441',
   display_name: 'Juan',
   matches_played: 10,
   wins: 5,
@@ -19,14 +19,14 @@ const baseRow = {
 function mockSupabase(data: unknown, error: unknown = null) {
   return {
     rpc: vi.fn().mockReturnValue({
-      single: vi.fn().mockResolvedValue({ data, error }),
+      maybeSingle: vi.fn().mockResolvedValue({ data, error }),
     }),
   };
 }
 
 describe('fetchPlayerStats', () => {
   it('maps a full row correctly', async () => {
-    const result = await fetchPlayerStats(mockSupabase(baseRow) as never, 'p1');
+    const result = await fetchPlayerStats(mockSupabase(baseRow) as never, '33333333-3333-3333-3333-333333333331');
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.data.matchesPlayed).toBe(10);
@@ -41,7 +41,7 @@ describe('fetchPlayerStats', () => {
 
   it('returns winPercentage null when matchesPlayed is 0', async () => {
     const row = { ...baseRow, matches_played: 0, wins: 0 };
-    const result = await fetchPlayerStats(mockSupabase(row) as never, 'p1');
+    const result = await fetchPlayerStats(mockSupabase(row) as never, '33333333-3333-3333-3333-333333333331');
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.data.winPercentage).toBeNull();
@@ -51,7 +51,7 @@ describe('fetchPlayerStats', () => {
   it('returns error on query failure', async () => {
     const result = await fetchPlayerStats(
       mockSupabase(null, { message: 'Database error', code: 'PGRST116' }) as never,
-      'p1',
+      '33333333-3333-3333-3333-333333333331',
     );
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -59,7 +59,7 @@ describe('fetchPlayerStats', () => {
   });
 
   it('returns NOT_FOUND when data is null without error', async () => {
-    const result = await fetchPlayerStats(mockSupabase(null, null) as never, 'p1');
+    const result = await fetchPlayerStats(mockSupabase(null, null) as never, '33333333-3333-3333-3333-333333333331');
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe('NOT_FOUND');
@@ -67,7 +67,7 @@ describe('fetchPlayerStats', () => {
 
   it('handles null attendance_rate (jugador nuevo)', async () => {
     const row = { ...baseRow, attendance_rate: null };
-    const result = await fetchPlayerStats(mockSupabase(row) as never, 'p1');
+    const result = await fetchPlayerStats(mockSupabase(row) as never, '33333333-3333-3333-3333-333333333331');
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.data.attendanceRate).toBeNull();
@@ -75,7 +75,7 @@ describe('fetchPlayerStats', () => {
 
   it('handles null last_mvp_at', async () => {
     const row = { ...baseRow, last_mvp_at: null };
-    const result = await fetchPlayerStats(mockSupabase(row) as never, 'p1');
+    const result = await fetchPlayerStats(mockSupabase(row) as never, '33333333-3333-3333-3333-333333333331');
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.data.lastMvpAt).toBeNull();

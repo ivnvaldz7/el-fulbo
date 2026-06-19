@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { errorResponse, successResponse } from '@/lib/api-helpers';
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   const supabase = createServerSupabaseClient();
   
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+    return errorResponse({ code: 'UNAUTHORIZED', message: 'Unauthorized' }, 401);
   }
 
   // Verificar que sea admin
@@ -17,7 +18,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     .single();
 
   if (!group || group.admin_user_id !== user.id) {
-    return NextResponse.json({ ok: false, error: 'Forbidden' }, { status: 403 });
+    return errorResponse({ code: 'FORBIDDEN', message: 'Forbidden' }, 403);
   }
 
   // Delete the group. Supabase RLS allows admins to delete.
@@ -27,8 +28,8 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     .eq('id', params.id);
 
   if (error) {
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    return errorResponse({ code: 'INTERNAL_ERROR', message: error.message }, 500);
   }
 
-  return NextResponse.json({ ok: true });
+  return successResponse(null);
 }

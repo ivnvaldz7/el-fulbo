@@ -17,7 +17,7 @@ export async function POST(
     );
   }
 
-  const body = await request.json();
+  const body = await safeJson(request);
   const parsed = convertPhantomSchema.safeParse({ playerId: params.playerId, email: body.email });
 
   if (!parsed.success) {

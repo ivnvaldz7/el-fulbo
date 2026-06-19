@@ -23,7 +23,7 @@ function makeSupabase(overrides: Record<string, unknown> = {}) {
     is: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
     maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-    single: vi.fn().mockResolvedValue({ data: null, error: null }),
+    maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     insert: vi.fn().mockReturnThis(),
     upsert: vi.fn().mockResolvedValue({ error: null }),
     update: vi.fn().mockReturnThis(),
@@ -87,7 +87,7 @@ describe('markAllNotificationsRead', () => {
 describe('getNotificationPreferences', () => {
   it('returns defaults when no preferences exist', async () => {
     const supabase = makeSupabase();
-    const result = await getNotificationPreferences(supabase as never, 'user-1');
+    const result = await getNotificationPreferences(supabase as never, '44444444-4444-4444-4444-444444444441');
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.pushEnabled).toBe(false);
@@ -101,7 +101,7 @@ describe('saveNotificationPreferences', () => {
     const upsert = vi.fn().mockResolvedValue({ error: null });
     const from = vi.fn(() => ({ upsert }));
     const supabase = makeSupabase({ from });
-    const result = await saveNotificationPreferences(supabase as never, 'user-1', {
+    const result = await saveNotificationPreferences(supabase as never, '44444444-4444-4444-4444-444444444441', {
       pushEnabled: true,
     });
     expect(result.ok).toBe(true);
@@ -111,13 +111,13 @@ describe('saveNotificationPreferences', () => {
 
 describe('createNotification', () => {
   it('inserts notification and returns id', async () => {
-    const single = vi.fn().mockResolvedValue({ data: { id: 'notif-123' }, error: null });
-    const select = vi.fn().mockReturnValue({ single });
+    const maybeSingle = vi.fn().mockResolvedValue({ data: { id: 'notif-123' }, error: null });
+    const select = vi.fn().mockReturnValue({ maybeSingle });
     const insert = vi.fn().mockReturnValue({ select });
     const from = vi.fn(() => ({ insert }));
     const supabase = makeSupabase({ from });
 
-    const result = await createNotification(supabase as never, 'user-1', 'event_created', {});
+    const result = await createNotification(supabase as never, '44444444-4444-4444-4444-444444444441', 'event_created', {});
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.data).toBe('notif-123');
   });

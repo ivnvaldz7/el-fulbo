@@ -174,7 +174,7 @@ export default function EventResultPage() {
 
   if (loading) {
     return (
-      <ImmersiveScreen align="center" contentClassName="text-center">
+      <ImmersiveScreen align="center" contentClassName="mx-auto text-center">
         <div className="mx-auto h-12 w-12 animate-spin border-4 border-pitch-green border-t-transparent" />
         <p className="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Resultado</p>
         <h2 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">Cargando datos del partido...</h2>

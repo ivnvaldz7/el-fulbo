@@ -8,7 +8,15 @@ type Body = {
 };
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
-  const body = (await request.json()) as Body;
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return NextResponse.json(
+      { ok: false, error: { code: 'VALIDATION_ERROR', message: 'JSON malformado.' } },
+      { status: 400 }
+    );
+  }
   const supabase = createServerSupabaseClient();
 
   if (!body.action || !body.userId) {

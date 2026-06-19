@@ -42,7 +42,7 @@ export default async function PlayerProfileLayout({
   return (
     <ImmersiveScreen contentClassName="max-w-md mx-auto w-full">
       <PageHeader title="JUGADOR" backHref={`/groups/${params.id}/dashboard`} />
-      <div className="mb-6 mt-20 flex items-center gap-3 px-4">
+      <div className="mb-6 mt-16 flex items-center gap-3 px-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-white/5 font-headline text-2xl font-black text-white/20">
           {player.display_name.slice(0, 1).toUpperCase()}
         </div>

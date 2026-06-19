@@ -7,7 +7,7 @@ import {
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
-  const body = await request.json();
+  const body = await safeJson(request);
   const { asAdmin, ...rawInput } = body as Record<string, unknown>;
   const input = rawInput as SubmitOnboardingStatsInput;
   const supabase = createServerSupabaseClient();

@@ -13,7 +13,7 @@ export default async function NotificationSettingsPage() {
 
   const { data: isAdmin } = await supabase.rpc('is_group_admin', {
     gid: '00000000-0000-0000-0000-000000000000',
-  }).single();
+  }).maybeSingle();
 
   return (
     <NotificationSettingsClient

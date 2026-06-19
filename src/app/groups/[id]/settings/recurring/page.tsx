@@ -24,7 +24,7 @@ export default async function RecurringSchedulePage({ params }: { params: { id: 
     <ImmersiveScreen align="center" className="flex-col">
       <PageHeader title="PARTIDO FIJO" backHref={`/groups/${params.id}/dashboard`} />
 
-      <main className="mt-16 flex w-full max-w-[390px] flex-col px-6">
+      <main className="mt-16 flex w-full max-w-[390px] lg:max-w-[480px] flex-col">
         <section className="py-6">
           <h2 className="font-headline text-3xl font-bold uppercase italic leading-none text-white">
             Calendario fijo

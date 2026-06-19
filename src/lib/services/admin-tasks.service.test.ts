@@ -90,59 +90,59 @@ describe('getAdminTasksDetail', () => {
 describe('admin task mutations', () => {
   it('approves initial stats through the RPC', async () => {
     const supabase = supabaseWithRpc(null);
-    const result = await approveInitialStats(supabase, 'player-1');
+    const result = await approveInitialStats(supabase, '33333333-3333-3333-3333-333333333333');
 
     expect(result.ok).toBe(true);
-    expect(supabase.rpc).toHaveBeenCalledWith('approve_initial_stats', { p_player_id: 'player-1' });
+    expect(supabase.rpc).toHaveBeenCalledWith('approve_initial_stats', { p_player_id: '33333333-3333-3333-3333-333333333333' });
   });
 
   it('rejects initial stats through the RPC', async () => {
     const supabase = supabaseWithRpc(null);
-    const result = await rejectInitialStats(supabase, 'player-1', 'Volvé a cargarla');
+    const result = await rejectInitialStats(supabase, '33333333-3333-3333-3333-333333333333', 'Volvé a cargarla');
 
     expect(result.ok).toBe(true);
     expect(supabase.rpc).toHaveBeenCalledWith('reject_initial_stats', {
-      p_player_id: 'player-1',
+      p_player_id: '33333333-3333-3333-3333-333333333333',
       p_note: 'Volvé a cargarla',
     });
   });
 
   it('approves revisions through the RPC', async () => {
     const supabase = supabaseWithRpc(null);
-    const result = await approveStatRevision(supabase, 'revision-1');
+    const result = await approveStatRevision(supabase, '11111111-1111-1111-1111-111111111111');
 
     expect(result.ok).toBe(true);
-    expect(supabase.rpc).toHaveBeenCalledWith('approve_stat_revision', { p_request_id: 'revision-1' });
+    expect(supabase.rpc).toHaveBeenCalledWith('approve_stat_revision', { p_request_id: '11111111-1111-1111-1111-111111111111' });
   });
 
   it('rejects revisions through the RPC', async () => {
     const supabase = supabaseWithRpc(null);
-    const result = await rejectStatRevision(supabase, 'revision-1', null);
+    const result = await rejectStatRevision(supabase, '11111111-1111-1111-1111-111111111111', null);
 
     expect(result.ok).toBe(true);
     expect(supabase.rpc).toHaveBeenCalledWith('reject_stat_revision', {
-      p_request_id: 'revision-1',
+      p_request_id: '11111111-1111-1111-1111-111111111111',
       p_note: null,
     });
   });
 
   it('approves reintegrations through the RPC', async () => {
     const supabase = supabaseWithRpc(null);
-    const result = await approveReintegrationRequest(supabase, 'reintegration-1');
+    const result = await approveReintegrationRequest(supabase, '99999999-9999-9999-9999-999999999991');
 
     expect(result.ok).toBe(true);
     expect(supabase.rpc).toHaveBeenCalledWith('approve_reintegration_request', {
-      p_request_id: 'reintegration-1',
+      p_request_id: '99999999-9999-9999-9999-999999999991',
     });
   });
 
   it('rejects reintegrations through the RPC', async () => {
     const supabase = supabaseWithRpc(null);
-    const result = await rejectReintegrationRequest(supabase, 'reintegration-1', 'Esperá un poco');
+    const result = await rejectReintegrationRequest(supabase, '99999999-9999-9999-9999-999999999991', 'Esperá un poco');
 
     expect(result.ok).toBe(true);
     expect(supabase.rpc).toHaveBeenCalledWith('reject_reintegration_request', {
-      p_request_id: 'reintegration-1',
+      p_request_id: '99999999-9999-9999-9999-999999999991',
       p_note: 'Esperá un poco',
     });
   });

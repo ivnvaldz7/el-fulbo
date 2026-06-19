@@ -14,7 +14,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     );
   }
 
-  const body = await request.json();
+  const body = await safeJson(request);
   const parsed = createPhantomSchema.safeParse({ ...body, groupId: params.id });
 
   if (!parsed.success) {

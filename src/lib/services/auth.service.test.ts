@@ -17,7 +17,7 @@ function createUpsertMock(options?: {
   upsertError?: { message: string; code: string } | null;
 }) {
   const {
-    user = { id: 'user-1', email: 'test@example.com' },
+    user = { id: '44444444-4444-4444-4444-444444444441', email: 'test@example.com' },
     getUserError = null,
     upsertError = null,
   } = options ?? {};
@@ -128,14 +128,14 @@ describe('upsertCurrentUser', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.id).toBe('user-1');
+      expect(result.data.id).toBe('44444444-4444-4444-4444-444444444441');
     }
   });
 
   it('upserts the user record with metadata', async () => {
     const { supabase, upsert } = createUpsertMock({
       user: {
-        id: 'user-1',
+        id: '44444444-4444-4444-4444-444444444441',
         email: 'fulbito@example.com',
         user_metadata: { full_name: 'Fulbito García', avatar_url: 'https://example.com/avatar.jpg' },
       },
@@ -145,7 +145,7 @@ describe('upsertCurrentUser', () => {
 
     expect(supabase.from).toHaveBeenCalledWith('users');
     expect(upsert).toHaveBeenCalledWith({
-      id: 'user-1',
+      id: '44444444-4444-4444-4444-444444444441',
       email: 'fulbito@example.com',
       display_name: 'Fulbito García',
       photo_url: 'https://example.com/avatar.jpg',
@@ -155,7 +155,7 @@ describe('upsertCurrentUser', () => {
 
   it('falls back to email name when user_metadata is missing full_name', async () => {
     const { supabase, upsert } = createUpsertMock({
-      user: { id: 'user-2', email: 'fulbito@gmail.com', user_metadata: {} },
+      user: { id: '44444444-4444-4444-4444-444444444442', email: 'fulbito@gmail.com', user_metadata: {} },
     });
 
     await upsertCurrentUser(supabase);
@@ -198,7 +198,7 @@ describe('upsertCurrentUser', () => {
     const supabase = {
       auth: {
         getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: 'user-1', email: null } },
+          data: { user: { id: '44444444-4444-4444-4444-444444444441', email: null } },
           error: null,
         }),
       },
@@ -226,7 +226,7 @@ describe('upsertCurrentUser', () => {
     const name = 'a'.repeat(100);
     const { supabase, upsert } = createUpsertMock({
       user: {
-        id: 'user-1',
+        id: '44444444-4444-4444-4444-444444444441',
         email: 'test@example.com',
         user_metadata: { full_name: name },
       },

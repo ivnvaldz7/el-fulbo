@@ -14,7 +14,15 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = (await request.json()) as Partial<NotificationPreferences>;
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return NextResponse.json(
+      { ok: false, error: { code: 'VALIDATION_ERROR', message: 'JSON malformado.' } },
+      { status: 400 }
+    );
+  }
   const result = await saveNotificationPreferences(supabase, user.id, body);
 
   if (!result.ok) {

@@ -29,7 +29,7 @@ export async function getOwnersSettingsData(
 ): Promise<Result<OwnersSettingsData>> {
   const [{ data: isAdmin, error: adminError }, groupResponse, ownersResponse, candidatesResponse] = await Promise.all([
     supabase.rpc('is_group_admin', { gid: groupId }),
-    supabase.from('groups').select('id, name, admin_user_id').eq('id', groupId).single(),
+    supabase.from('groups').select('id, name, admin_user_id').eq('id', groupId).maybeSingle(),
     supabase
       .from('group_memberships')
       .select('user_id, assigned_at')

@@ -26,11 +26,11 @@ export function handleApiError(error: unknown, fallbackStatus = 500): NextRespon
   return errorResponse(appError, fallbackStatus);
 }
 
-export async function safeJson<T = unknown>(request: Request): Promise<T> {
+export async function safeJson<T = any>(request: Request): Promise<T> {
   try {
     return await request.json();
   } catch {
-    throw new Error('VALIDATION_ERROR: Invalid JSON');
+    return {} as T;
   }
 }
 
