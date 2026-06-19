@@ -16,8 +16,8 @@ describe('GroupDashboardInitialState', () => {
         groupName="Fulbito"
         modality="F5"
         activePlayers={0}
-        userRole="owner"
-        matchesToday={[]}
+        isAdminOrOwner={true}
+        upcomingEvents={[]}
       />,
     );
 
@@ -36,8 +36,8 @@ describe('GroupDashboardInitialState', () => {
         groupName="Fulbito"
         modality="F5"
         activePlayers={1}
-        userRole="owner"
-        matchesToday={[]}
+        isAdminOrOwner={true}
+        upcomingEvents={[]}
       />,
     );
 
@@ -52,8 +52,8 @@ describe('GroupDashboardInitialState', () => {
         groupName="Fulbito"
         modality="F5"
         activePlayers={2}
-        userRole="player"
-        matchesToday={[]}
+        isAdminOrOwner={false}
+        upcomingEvents={[]}
       />,
     );
 
@@ -69,8 +69,8 @@ describe('GroupDashboardInitialState', () => {
         modality="F5"
         activePlayers={3}
         adminPendingTotal={4}
-        userRole="owner"
-        matchesToday={[]}
+        isAdminOrOwner={true}
+        upcomingEvents={[]}
       />,
     );
 
@@ -85,8 +85,8 @@ describe('GroupDashboardInitialState', () => {
         groupName="Fulbito"
         modality="F5"
         activePlayers={10}
-        userRole="owner"
-        matchesToday={[]}
+        isAdminOrOwner={true}
+        upcomingEvents={[]}
         recentPlayedEvents={[
           {
             id: '11111111-1111-1111-1111-111111111111',
@@ -116,8 +116,8 @@ describe('GroupDashboardInitialState', () => {
         groupName="Fulbito"
         modality="F5"
         activePlayers={10}
-        userRole="owner"
-        matchesToday={[]}
+        isAdminOrOwner={true}
+        upcomingEvents={[]}
         shareablePlayer={{
           displayName: 'Juan',
           primaryPosition: 'DEL',

@@ -71,9 +71,8 @@ export default async function GroupDashboardPage({ params }: { params: { id: str
     redirect('/join');
   }
 
-  // Si no tiene membership (admin/owner) pero es jugador, su rol es 'player'
-  const userRole = membership ? membership.role : 'player';
-  const isAdminOrOwner = userRole === 'admin' || userRole === 'owner';
+  // Determinar si es admin/owner via RPC (chequea groups.admin_user_id + group_memberships + temporary_owners)
+  const { data: isAdminOrOwner } = await supabase.rpc('is_group_admin_or_owner', { gid: params.id });
 
   const pendingSummary = isAdminOrOwner ? await getPendingTasksSummary(supabase, params.id) : null;
   const adminPendingTotal = pendingSummary?.ok ? pendingSummary.data.total : 0;
@@ -81,20 +80,6 @@ export default async function GroupDashboardPage({ params }: { params: { id: str
     id: event.id as string,
     scheduledAt: event.scheduled_at as string,
   }));
-
-  const closestMatch = nextEvents[0];
-  const otherMatchesToday = nextEvents.filter((event, index) => {
-    if (index === 0) {
-      return false;
-    }
-
-    const eventDate = new Date(event.scheduledAt);
-    return (
-      eventDate.getFullYear() === startOfToday.getFullYear() &&
-      eventDate.getMonth() === startOfToday.getMonth() &&
-      eventDate.getDate() === startOfToday.getDate()
-    );
-  });
 
   // 3. Current MVP — last played event with an MVP
   const { data: currentMvpRaw } = await supabase
@@ -160,9 +145,8 @@ export default async function GroupDashboardPage({ params }: { params: { id: str
       modality={group.default_modality}
       activePlayers={count ?? 0}
       adminPendingTotal={adminPendingTotal}
-      userRole={userRole}
-      matchesToday={otherMatchesToday}
-      closestMatch={closestMatch}
+      isAdminOrOwner={isAdminOrOwner ?? false}
+      upcomingEvents={nextEvents}
       recentPlayedEvents={recentPlayedEvents}
       currentMvp={currentMvp}
       inviteCode={group.invite_code as string}

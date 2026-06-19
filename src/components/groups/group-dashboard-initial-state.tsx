@@ -53,9 +53,8 @@ type GroupDashboardInitialStateProps = {
   modality: string;
   activePlayers: number;
   adminPendingTotal?: number;
-  userRole: string;
-  closestMatch?: UpcomingEvent;
-  matchesToday: UpcomingEvent[];
+  isAdminOrOwner: boolean;
+  upcomingEvents: UpcomingEvent[];
   recentPlayedEvents?: RecentPlayedEvent[];
   currentMvp?: CurrentMvp;
   inviteCode: string;
@@ -75,9 +74,8 @@ export function GroupDashboardInitialState({
   modality,
   activePlayers,
   adminPendingTotal = 0,
-  userRole,
-  closestMatch,
-  matchesToday,
+  isAdminOrOwner,
+  upcomingEvents,
   recentPlayedEvents = [],
   currentMvp,
   inviteCode,
@@ -85,8 +83,7 @@ export function GroupDashboardInitialState({
   shareablePlayer = null,
 }: GroupDashboardInitialStateProps) {
   const showAdminPendingBanner = adminPendingTotal > 0;
-  const isAdminOrOwner = userRole === 'admin' || userRole === 'owner';
-  const hasClosestMatch = closestMatch !== undefined;
+  const hasUpcomingEvents = upcomingEvents.length > 0;
 
   return (
     <ImmersiveScreen contentClassName="mx-auto max-w-xl">
@@ -154,7 +151,7 @@ export function GroupDashboardInitialState({
           </div>
         ) : null}
 
-        {userRole === 'admin' || userRole === 'owner' ? (
+        {isAdminOrOwner ? (
           <div className="animate-stagger mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Link
               href={`/groups/${groupId}/admin-tasks`}
@@ -184,24 +181,45 @@ export function GroupDashboardInitialState({
         ) : null}
 
         <div className="mt-10">
-          {hasClosestMatch ? (
-            <>
-              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Próximo partido</p>
-              <Link
-                href={`/groups/${groupId}/events/${closestMatch.id}`}
-                className="btn-interactive mt-3 flex min-h-14 w-full items-center justify-between border border-white/10 bg-black/30 px-5 py-4 hover:border-white/30 hover:bg-white/5"
-              >
-                <div>
-                  <p className="font-headline text-lg font-black italic uppercase leading-none text-white">
-                    {new Date(closestMatch.scheduledAt).toLocaleDateString('es-AR')}
-                  </p>
-                  <p className="mt-1 font-mono text-[10px] font-bold uppercase text-white/50">
-                    {new Date(closestMatch.scheduledAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-pitch-green" />
-              </Link>
-            </>
+          {hasUpcomingEvents ? (
+            <div>
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Próximos partidos</p>
+              <ul className="mt-3 space-y-2">
+                {upcomingEvents.map((event, index) => (
+                  <li key={event.id}>
+                    <Link
+                      href={`/groups/${groupId}/events/${event.id}`}
+                      className={`btn-interactive flex min-h-14 w-full items-center justify-between border px-5 py-4 transition ${
+                        index === 0
+                          ? 'border-pitch-green/40 bg-pitch-green/10 hover:border-pitch-green/60 hover:bg-pitch-green/15'
+                          : 'border-white/10 bg-black/30 hover:border-white/30 hover:bg-white/5'
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <p
+                          className={`truncate font-headline text-lg font-black italic uppercase leading-none ${
+                            index === 0 ? 'text-white' : 'text-white/70'
+                          }`}
+                        >
+                          {new Date(event.scheduledAt).toLocaleDateString('es-AR', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long',
+                          })}
+                        </p>
+                        <p className="mt-1 font-mono text-[10px] font-bold uppercase text-white/50">
+                          {new Date(event.scheduledAt).toLocaleTimeString('es-AR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
+                      <ArrowRight className={`h-5 w-5 shrink-0 ${index === 0 ? 'text-pitch-green' : 'text-white/30'}`} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ) : (
             <div className="flex flex-col items-center gap-3 border border-dashed border-white/10 bg-white/[0.02] py-8">
               <div className="flex h-10 w-10 items-center justify-center border border-white/10 bg-white/5">
@@ -233,31 +251,6 @@ export function GroupDashboardInitialState({
             </Link>
           ) : null}
         </div>
-
-        {matchesToday.length > 0 && (
-          <div className="mt-6">
-            <h3 className="font-headline text-xl font-black italic uppercase leading-none text-white/80">Más partidos hoy</h3>
-            <ul className="mt-3 space-y-2">
-              {matchesToday.map((match) => (
-                <li key={match.id}>
-                  <Link
-                    href={`/groups/${groupId}/events/${match.id}`}
-                    className="btn-interactive flex min-h-11 items-center justify-between border border-white/10 bg-black/20 px-4 py-3 text-white/60 hover:border-white/30 hover:bg-white/5 hover:text-white/80"
-                  >
-                    <p className="font-headline text-base font-medium leading-relaxed">
-                      A las{' '}
-                      {new Date(match.scheduledAt).toLocaleTimeString('es-AR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
-                    <ArrowRight className="h-4 w-4 text-white/30" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
 
         {recentPlayedEvents.length > 0 ? (
           <div className="mt-10">

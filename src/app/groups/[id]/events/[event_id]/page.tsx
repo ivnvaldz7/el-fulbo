@@ -148,10 +148,7 @@ export default function EventViewPage() {
       setAttendees(nextAttendees);
       setCurrentPlayer(nextCurrentPlayer);
       setSelectedStatus(nextCurrentPlayer?.attendanceStatus ?? null);
-      setIsAdminOrOwner(
-        nextIsAdminOrOwner ||
-          (nextCurrentPlayer ? eventData.created_by_user_id === nextCurrentPlayer.userId : false),
-      );
+      setIsAdminOrOwner(nextIsAdminOrOwner);
       if (eventData.status === 'played') {
         const summaryResult = await eventsService.getPlayedMatchSummary(eventId);
         if (!summaryResult.ok) throw new Error(summaryResult.error.message);
@@ -286,7 +283,7 @@ export default function EventViewPage() {
 
       showEventNotification('event_cancelled', { eventName: event.field_name });
       toast.success('Partido cancelado.');
-      router.push(`/groups/${groupId}/dashboard`);
+      window.location.href = `/groups/${groupId}/dashboard`;
     } catch (cancelError) {
       console.error(cancelError);
       toast.error('No pudimos cancelar el partido.');
