@@ -46,6 +46,10 @@ export async function getCurrentUserPlayerInGroup(
     return { ok: false, error: mapSupabaseError(error) };
   }
 
+  if (!data) {
+    return { ok: false, error: { code: 'NOT_FOUND', message: 'No hay jugador en este grupo.' } };
+  }
+
   return { ok: true, data: mapPlayer(data) };
 }
 
