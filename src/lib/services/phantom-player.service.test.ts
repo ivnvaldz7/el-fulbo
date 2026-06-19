@@ -19,7 +19,6 @@ function makeFrom(data: unknown[] = [], error: unknown = null) {
     is: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
     maybeSingle: vi.fn().mockResolvedValue({ data: null, error }),
-    maybeSingle: vi.fn().mockResolvedValue({ data: null, error }),
   };
   chain.order = vi.fn().mockResolvedValue({ data, error });
   return vi.fn(() => chain);

@@ -165,8 +165,8 @@ export async function createNotification(
     .select('id')
     .maybeSingle();
 
-  if (error) return { ok: false, error: mapSupabaseError(error) };
-  return { ok: true, data: data.id as string };
+  if (error || !data) return { ok: false, error: mapSupabaseError(error ?? new Error('No data returned from insert')) };
+  return { ok: true, data: data.id };
 }
 
 export async function markNotificationPushed(

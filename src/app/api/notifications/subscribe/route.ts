@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { safeJson } from '@/lib/api-helpers';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { savePushSubscription, removePushSubscription } from '@/lib/services/push-subscription.service';
 

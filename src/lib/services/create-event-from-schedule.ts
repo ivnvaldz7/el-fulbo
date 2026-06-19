@@ -35,7 +35,7 @@ export function computeNextOccurrence(
   scheduledTime: string,
   now: Date,
 ): { date: Date; daysUntilEvent: number } {
-  const [schedHour, schedMin] = scheduledTime.split(':').map(Number);
+  const [schedHour = 0, schedMin = 0] = scheduledTime.split(':').map(Number);
 
   // 1. Hora actual en Argentina (restamos 3h a now)
   const argNow = new Date(now.getTime() - 3 * 3600_000);

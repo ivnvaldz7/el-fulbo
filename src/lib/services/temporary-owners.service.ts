@@ -54,8 +54,8 @@ export async function getMyTemporaryOwnerAssignment(
     .eq('user_id', user.id)
     .maybeSingle();
 
-  if (error) {
-    return { ok: false, error: mapSupabaseError(error) };
+  if (error || !data) {
+    return { ok: false, error: mapSupabaseError(error ?? new Error('Temporary owner invite not found')) };
   }
 
   const event = Array.isArray((data as any).events) ? (data as any).events[0] : (data as any).events;

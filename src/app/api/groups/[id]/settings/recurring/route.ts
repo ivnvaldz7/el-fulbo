@@ -39,6 +39,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         const { date: nextOccurrence, daysUntilEvent } = computeNextOccurrence(
           result.data.day_of_week,
           result.data.scheduled_time,
+          new Date(),
         );
 
         if (daysUntilEvent <= result.data.days_ahead) {

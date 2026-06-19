@@ -58,6 +58,10 @@ export async function getOwnersSettingsData(
     return { ok: false, error: mapSupabaseError(groupResponse.error) };
   }
 
+  if (!groupResponse.data) {
+    return { ok: false, error: { code: 'NOT_FOUND', message: 'Grupo no encontrado.' } };
+  }
+
   if (ownersResponse.error) {
     return { ok: false, error: mapSupabaseError(ownersResponse.error) };
   }
@@ -66,6 +70,7 @@ export async function getOwnersSettingsData(
     return { ok: false, error: mapSupabaseError(candidatesResponse.error) };
   }
 
+  const group = groupResponse.data;
   const playersByUserId = new Map(
     (candidatesResponse.data ?? []).map((row: any) => [row.user_id as string, row]),
   );
@@ -74,8 +79,8 @@ export async function getOwnersSettingsData(
   return {
     ok: true,
     data: {
-      groupId: groupResponse.data.id,
-      groupName: groupResponse.data.name,
+      groupId: group.id,
+      groupName: group.name,
       owners: (ownersResponse.data ?? []).map((row: any) => {
         const player = playersByUserId.get(row.user_id as string);
         return {
@@ -86,7 +91,7 @@ export async function getOwnersSettingsData(
         };
       }),
       candidates: (candidatesResponse.data ?? [])
-        .filter((row: any) => row.user_id !== groupResponse.data.admin_user_id && !ownerIds.has(row.user_id))
+        .filter((row: any) => row.user_id !== group.admin_user_id && !ownerIds.has(row.user_id))
         .map((row: any) => ({
           userId: row.user_id,
           displayName: (row.display_name as string | undefined) ?? 'Jugador',

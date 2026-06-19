@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { safeJson } from '@/lib/api-helpers';
 import {
   submitAdminOnboardingStats,
   submitOnboardingStats,

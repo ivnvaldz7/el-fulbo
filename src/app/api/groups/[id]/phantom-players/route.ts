@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { safeJson } from '@/lib/api-helpers';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { createPhantomPlayer } from '@/lib/services/phantom-player.service';
 import { createPhantomSchema } from '@/lib/validations/phantom-player';

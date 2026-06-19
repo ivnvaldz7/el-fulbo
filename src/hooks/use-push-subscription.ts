@@ -87,5 +87,7 @@ export function usePushSubscription() {
     });
   }, []);
 
-  return { permission, isSubscribed, isLoading, subscribe, unsubscribe };
+  const isSupported = permission !== 'unsupported';
+
+  return { permission, isSupported, isSubscribed, isLoading, subscribe, unsubscribe };
 }

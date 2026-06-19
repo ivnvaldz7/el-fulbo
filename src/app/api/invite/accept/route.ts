@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { safeJson } from '@/lib/api-helpers';
 import { acceptInviteForUser } from '@/lib/services/invite.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 

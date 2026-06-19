@@ -23,7 +23,6 @@ function makeSupabase(overrides: Record<string, unknown> = {}) {
     is: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
     maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-    maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     insert: vi.fn().mockReturnThis(),
     upsert: vi.fn().mockResolvedValue({ error: null }),
     update: vi.fn().mockReturnThis(),
