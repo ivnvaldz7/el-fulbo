@@ -71,31 +71,37 @@ export async function getOwnersSettingsData(
   }
 
   const group = groupResponse.data;
+  type PlayerRow = { user_id: string; display_name: string | null; photo_url: string | null };
+  type OwnerRow = { user_id: string; assigned_at: string };
+
+  const candidatesData = (candidatesResponse.data as PlayerRow[] | null) ?? [];
+  const ownersData = (ownersResponse.data as OwnerRow[] | null) ?? [];
+
   const playersByUserId = new Map(
-    (candidatesResponse.data ?? []).map((row: any) => [row.user_id as string, row]),
+    candidatesData.map((row) => [row.user_id, row]),
   );
-  const ownerIds = new Set((ownersResponse.data ?? []).map((row: any) => row.user_id as string));
+  const ownerIds = new Set(ownersData.map((row) => row.user_id));
 
   return {
     ok: true,
     data: {
       groupId: group.id,
       groupName: group.name,
-      owners: (ownersResponse.data ?? []).map((row: any) => {
-        const player = playersByUserId.get(row.user_id as string);
+      owners: ownersData.map((row) => {
+        const player = playersByUserId.get(row.user_id);
         return {
           userId: row.user_id,
-          displayName: (player?.display_name as string | undefined) ?? 'Jugador',
-          photoUrl: (player?.photo_url as string | null | undefined) ?? null,
+          displayName: player?.display_name ?? 'Jugador',
+          photoUrl: player?.photo_url ?? null,
           assignedAt: row.assigned_at,
         };
       }),
-      candidates: (candidatesResponse.data ?? [])
-        .filter((row: any) => row.user_id !== group.admin_user_id && !ownerIds.has(row.user_id))
-        .map((row: any) => ({
+      candidates: candidatesData
+        .filter((row) => row.user_id !== group.admin_user_id && !ownerIds.has(row.user_id))
+        .map((row) => ({
           userId: row.user_id,
-          displayName: (row.display_name as string | undefined) ?? 'Jugador',
-          photoUrl: (row.photo_url as string | null | undefined) ?? null,
+          displayName: row.display_name ?? 'Jugador',
+          photoUrl: row.photo_url ?? null,
         })),
     },
   };
