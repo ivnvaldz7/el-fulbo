@@ -14,7 +14,8 @@ export async function POST(request: Request) {
   const parsed = validateInviteSchema.safeParse(rawBody);
 
   if (!parsed.success) {
-    return errorResponse({ code: 'VALIDATION_ERROR', message: parsed.error.errors[0].message }, 400);
+    const firstError = parsed.error.errors[0];
+    return errorResponse({ code: 'VALIDATION_ERROR', message: firstError?.message ?? 'Datos inválidos' }, 400);
   }
 
   const result = await resolveInviteState(createServerSupabaseClient(), parsed.data.inviteCode);
