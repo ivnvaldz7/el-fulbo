@@ -10,6 +10,7 @@ import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 import { MvpVotingPanel } from '@/components/events/mvp-voting-panel';
+import { MvpAdminPanel } from '@/components/events/mvp-admin-panel';
 import { showEventNotification } from '@/lib/notifications';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import type { AttendanceStatus, Event, EventId, EventStatus, GroupId } from '@/lib/types';
@@ -298,6 +299,7 @@ export default function EventViewPage() {
     currentPlayer.statsStatus === 'pending_approval';
   const mvp = playedSummary.find((item) => item.isMvp) ?? null;
   const boostsApplied = playedSummary.filter((item) => item.boostApplied);
+  const is24hPassed = (event.played_at || event.scheduled_at) && (Date.now() > new Date(event.played_at ?? event.scheduled_at).getTime() + 24 * 60 * 60 * 1000);
 
   return (
     <ImmersiveScreen contentClassName="max-w-md mx-auto space-y-4">
@@ -458,21 +460,34 @@ export default function EventViewPage() {
                 </p>
               </div>
             ) : event.status === 'played' && !event.mvp_player_id ? (
-              hasVotedForMvp ? (
-                <div className="rounded-lg border border-amber-400/40 bg-amber-400/5 p-4 text-center">
-                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">Ya votaste</p>
-                  <p className="mt-2 text-sm text-white/60">Esperando al resto de los jugadores para revelar la figura del partido...</p>
-                </div>
-              ) : (
-                <MvpVotingPanel
-                  eventId={event.id}
-                  currentPlayerId={currentPlayer?.playerId ?? null}
-                  playedSummary={playedSummary}
-                  onVoteSubmitted={() => {
-                    void queryClient.invalidateQueries({ queryKey: ['event', eventId] });
-                  }}
-                />
-              )
+              <>
+                {isAdminOrOwner ? (
+                  <MvpAdminPanel eventId={event.id} playedSummary={playedSummary} />
+                ) : null}
+
+                {hasVotedForMvp ? (
+                  <div className="rounded-lg border border-amber-400/40 bg-amber-400/5 p-4 text-center mt-4">
+                    <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">Ya votaste</p>
+                    <p className="mt-2 text-sm text-white/60">Esperando al resto de los jugadores para revelar la figura del partido...</p>
+                  </div>
+                ) : is24hPassed ? (
+                  <div className="rounded-lg border border-red-500/40 bg-red-500/5 p-4 text-center mt-4">
+                    <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-red-400">Votación cerrada</p>
+                    <p className="mt-2 text-sm text-white/60">Pasaron las 24 horas y se cerró la votación.</p>
+                  </div>
+                ) : (
+                  <div className="mt-4">
+                    <MvpVotingPanel
+                      eventId={event.id}
+                      currentPlayerId={currentPlayer?.playerId ?? null}
+                      playedSummary={playedSummary}
+                      onVoteSubmitted={() => {
+                        void queryClient.invalidateQueries({ queryKey: ['event', eventId] });
+                      }}
+                    />
+                  </div>
+                )}
+              </>
             ) : null}
 
             {boostsApplied.length > 0 ? (

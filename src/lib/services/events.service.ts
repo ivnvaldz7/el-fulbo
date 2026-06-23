@@ -526,4 +526,33 @@ export class EventsService {
 
     return { ok: true, data: summary };
   }
+
+  async getMvpVotes(eventId: string): Promise<Result<{ playerId: string; votes: number }[]>> {
+    const { data, error } = await this.supabase
+      .from('event_mvp_votes')
+      .select('voted_player_id')
+      .eq('event_id', eventId);
+
+    if (error) return { ok: false, error: mapSupabaseError(error) };
+
+    const counts: Record<string, number> = {};
+    for (const row of data) {
+      counts[row.voted_player_id] = (counts[row.voted_player_id] || 0) + 1;
+    }
+
+    const summary = Object.entries(counts).map(([playerId, votes]) => ({ playerId, votes }));
+    summary.sort((a, b) => b.votes - a.votes);
+
+    return { ok: true, data: summary };
+  }
+
+  async closeMvpVoting(eventId: string, tiebreakerPlayerId: string | null = null): Promise<Result<void>> {
+    const { error } = await this.supabase.rpc('close_mvp_voting', {
+      p_event_id: eventId,
+      p_tiebreaker_player_id: tiebreakerPlayerId,
+    });
+
+    if (error) return { ok: false, error: mapSupabaseError(error) };
+    return { ok: true, data: undefined };
+  }
 }
