@@ -15,25 +15,35 @@ export async function createGroup(
   supabase: SupabaseClient,
   input: CreateGroupInput,
 ): Promise<Result<CreateGroupOutput>> {
-  const parsed = createGroupSchema.safeParse(input);
+  return new GroupsService(supabase).createGroup(input);
+}
 
-  if (!parsed.success) {
-    return { ok: false, error: validationError(parsed.error.flatten()) };
+export class GroupsService {
+  constructor(private supabase: SupabaseClient) {}
+
+  async createGroup(
+    input: CreateGroupInput,
+  ): Promise<Result<CreateGroupOutput>> {
+    const parsed = createGroupSchema.safeParse(input);
+
+    if (!parsed.success) {
+      return { ok: false, error: validationError(parsed.error.flatten()) };
+    }
+
+    const { data, error } = await this.supabase.rpc('create_group', {
+      p_name: parsed.data.name,
+      p_modality: parsed.data.modality,
+    });
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    const row = Array.isArray(data) ? data[0] : null;
+    if (!row?.group_id) {
+      return { ok: false, error: { code: 'INTERNAL_ERROR', message: 'Algo salio mal.' } };
+    }
+
+    return { ok: true, data: { groupId: row.group_id } };
   }
-
-  const { data, error } = await supabase.rpc('create_group', {
-    p_name: parsed.data.name,
-    p_modality: parsed.data.modality,
-  });
-
-  if (error) {
-    return { ok: false, error: mapSupabaseError(error) };
-  }
-
-  const row = Array.isArray(data) ? data[0] : null;
-  if (!row?.group_id) {
-    return { ok: false, error: { code: 'INTERNAL_ERROR', message: 'Algo salio mal.' } };
-  }
-
-  return { ok: true, data: { groupId: row.group_id } };
 }

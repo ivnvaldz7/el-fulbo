@@ -1,9 +1,11 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getAdminTasksDetail } from '@/lib/services/admin-tasks.service';
+import { getPendingPhantoms } from '@/lib/services/phantom-player.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { TaskActions } from './task-actions';
+import { PhantomResolutionWidget } from '@/components/phantom/phantom-resolution-widget';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
+import { PageHeader } from '@/components/ui/page-header';
 
 function formatRelative(dateIso: string) {
   const diffDays = Math.max(
@@ -65,30 +67,35 @@ function TaskSection({
 }
 
 export default async function AdminTasksPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient();
-  const detail = await getAdminTasksDetail(supabase, params.id);
+  const supabase = await createServerSupabaseClient();
+  const [detail, phantomsResult] = await Promise.all([
+    getAdminTasksDetail(supabase, params.id),
+    getPendingPhantoms(supabase, params.id),
+  ]);
 
   if (!detail.ok) {
     redirect(`/groups/${params.id}/dashboard`);
   }
 
+  const phantoms = phantomsResult.ok ? phantomsResult.data : [];
+
   return (
     <ImmersiveScreen align="center" className="flex-col">
-      <header className="fixed top-0 z-30 flex h-16 w-full max-w-[390px] items-center justify-between border-b-2 border-white/10 bg-absolute-dark px-4">
-        <Link href={`/groups/${params.id}/dashboard`} className="text-white active:scale-95 transition-transform">
-          <span className="material-symbols-outlined text-pitch-green">arrow_back</span>
-        </Link>
-        <h1 className="font-headline text-xl font-black italic uppercase tracking-tighter text-white">ADMIN</h1>
-        <div className="w-6"></div>
-      </header>
+      <PageHeader title="ADMIN" backHref={`/groups/${params.id}/dashboard`} />
 
-      <main className="mt-16 flex w-full max-w-[390px] flex-col px-6">
+      <main className="mt-16 flex w-full max-w-[390px] lg:max-w-[480px] flex-col">
         <section className="py-6">
           <h2 className="font-headline text-3xl font-bold uppercase italic leading-none text-white">PENDIENTES</h2>
           <p className="font-mono text-[10px] uppercase text-pitch-green mt-1">Gestión del grupo</p>
         </section>
 
         <div className="space-y-4 pb-12">
+          {phantoms.length > 0 && (
+            <PhantomResolutionWidget
+              groupId={params.id}
+              phantoms={phantoms}
+            />
+          )}
           <TaskSection
             title="Reintegros"
             items={detail.data.reintegrations}

@@ -4,7 +4,7 @@ import { FloatingPanel } from '@/components/ui/floating-panel';
 
 export default function InviteRequestSentPage() {
   return (
-    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px]">
+    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] lg:max-w-[480px]">
       <FloatingPanel className="text-center border-2 border-pitch-green/20">
         <header className="mb-6">
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Éxito</p>

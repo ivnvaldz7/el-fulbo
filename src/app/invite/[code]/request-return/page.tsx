@@ -8,7 +8,7 @@ import { FloatingPanel } from '@/components/ui/floating-panel';
 
 export default async function InviteRequestReturnPage({ params }: { params: { code: string } }) {
   const inviteCode = decodeURIComponent(params.code).toUpperCase();
-  const resolution = await resolveInviteState(createServerSupabaseClient(), inviteCode);
+  const resolution = await resolveInviteState(await createServerSupabaseClient(), inviteCode);
 
   if (!resolution.ok) {
     redirect('/join?error=invalid');
@@ -19,7 +19,7 @@ export default async function InviteRequestReturnPage({ params }: { params: { co
   }
 
   return (
-    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px]">
+    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] lg:max-w-[480px]">
       <FloatingPanel className="border-2 border-white/10">
         <header className="mb-8">
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Solicitud</p>

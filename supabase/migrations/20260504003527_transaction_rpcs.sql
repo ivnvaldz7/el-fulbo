@@ -1,0 +1,4 @@
+-- No-op migration.
+-- Returning SQL strings from RPCs does not create real transactional boundaries
+-- for Supabase client calls. These helpers were only used by a legacy
+-- matchmaking service that has been removed.

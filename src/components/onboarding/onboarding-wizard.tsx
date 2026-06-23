@@ -82,24 +82,30 @@ export function OnboardingWizard({
 }) {
   const router = useRouter();
   const storageKey = getOnboardingDraftKey(groupId);
-  const [draft, setDraft] = useState<Draft>(initialDraft);
-  const [message, setMessage] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [showSecondary, setShowSecondary] = useState(false);
 
-  useEffect(() => {
-    const stored = window.localStorage.getItem(storageKey);
-    if (!stored) return;
-
-    try {
-      const parsed = JSON.parse(stored) as Draft;
-      setDraft(parsed);
-      setShowSecondary(Boolean(parsed.secondaryPosition));
-      setMessage('Retomamos donde te quedaste');
-    } catch {
-      window.localStorage.removeItem(storageKey);
+  const [draftState] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = window.localStorage.getItem(storageKey);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as Draft;
+          return { draft: parsed, hasDraft: true };
+        } catch {
+          window.localStorage.removeItem(storageKey);
+        }
+      }
     }
-  }, [storageKey]);
+    return { draft: initialDraft(), hasDraft: false };
+  });
+
+  const [draft, setDraft] = useState<Draft>(draftState.draft);
+  const [message, setMessage] = useState<string | null>(
+    draftState.hasDraft ? 'Retomamos donde te quedaste' : null
+  );
+  const [submitting, setSubmitting] = useState(false);
+  const [showSecondary, setShowSecondary] = useState(Boolean(draftState.draft.secondaryPosition));
+
+
 
   useEffect(() => {
     window.localStorage.setItem(storageKey, JSON.stringify(draft));
@@ -167,7 +173,7 @@ export function OnboardingWizard({
   if (draft.step === 1) {
     return (
       <ImmersiveScreen align="center" className="flex-col">
-        <header className="fixed top-0 z-30 flex h-16 w-full max-w-[390px] items-center justify-between border-b-2 border-white/10 bg-absolute-dark px-4">
+        <header className="fixed left-1/2 top-0 z-30 flex h-16 w-full max-w-[390px] lg:max-w-[480px] -translate-x-1/2 items-center justify-between border-b-2 border-white/10 bg-absolute-dark px-4">
           <button className="text-white active:scale-95 transition-transform">
             <span className="material-symbols-outlined text-pitch-green">person</span>
           </button>
@@ -175,7 +181,7 @@ export function OnboardingWizard({
           <div className="w-6"></div>
         </header>
 
-        <main className="mt-16 flex w-full max-w-[390px] flex-col px-6">
+        <main className="mt-16 flex w-full max-w-[390px] lg:max-w-[480px] flex-col px-6">
           <section className="py-6">
             <h2 className="font-headline text-3xl font-bold uppercase italic leading-none text-white">CREÁ TU JUGADOR</h2>
             <p className="font-mono text-[10px] uppercase text-pitch-green mt-1">Paso 1: Tu posición</p>
@@ -253,7 +259,7 @@ export function OnboardingWizard({
 
   return (
     <ImmersiveScreen align="center" className="flex-col">
-      <header className="fixed top-0 z-30 flex h-16 w-full max-w-[390px] items-center justify-between border-b-2 border-white/10 bg-absolute-dark px-4">
+      <header className="fixed left-1/2 top-0 z-30 flex h-16 w-full max-w-[390px] lg:max-w-[480px] -translate-x-1/2 items-center justify-between border-b-2 border-white/10 bg-absolute-dark px-4">
         <button 
           onClick={() => setDraft((current) => ({ ...current, step: 1 }))}
           className="text-white active:scale-95 transition-transform"
@@ -264,7 +270,7 @@ export function OnboardingWizard({
         <div className="w-6"></div>
       </header>
 
-      <main className="mt-16 flex w-full max-w-[390px] flex-col px-6">
+      <main className="mt-16 flex w-full max-w-[390px] lg:max-w-[480px] flex-col px-6">
         <section className="py-6">
           <h2 className="font-headline text-3xl font-bold uppercase italic leading-none text-white">ARMÁ TU CARTA</h2>
           <p className="font-mono text-[10px] uppercase text-pitch-green mt-1">Paso 2: Tus habilidades</p>

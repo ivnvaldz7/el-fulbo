@@ -11,21 +11,33 @@ export default async function OnboardingStatsPage({
   params: { id: string };
   searchParams?: { as?: string };
 }) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const player = await getCurrentUserPlayerInGroup(supabase, params.id);
 
-  if (!player.ok) {
-    redirect('/join');
+  if (player.ok && player.data.statsStatus === 'approved') {
+    redirect(`/groups/${params.id}/dashboard`);
   }
 
-  if (player.data.statsStatus === 'approved') {
-    redirect(`/groups/${params.id}/dashboard`);
+  let displayName = '';
+  if (player.ok) {
+    displayName = player.data.displayName;
+  } else {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
+    
+    const { data: userData } = await supabase
+      .from('users')
+      .select('display_name')
+      .eq('id', user.id)
+      .single();
+      
+    displayName = userData?.display_name || user.user_metadata?.full_name || 'Jugador';
   }
 
   return (
     <OnboardingWizard
       groupId={params.id as GroupId}
-      displayName={player.data.displayName}
+      displayName={displayName}
       asAdmin={searchParams?.as === 'admin'}
     />
   );

@@ -1,0 +1,7 @@
+-- No-op migration.
+-- Original draft for feat-007 attempted to introduce `is_checked_in`
+-- and `ready_to_draw`, but the canonical schema already uses
+-- `event_attendances.checked_in` and the supported event status flow is
+-- `scheduled -> confirming -> checked_in -> drawn -> played/cancelled`.
+-- The legacy draft is intentionally neutralized to preserve migration history
+-- without corrupting future resets.

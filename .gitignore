@@ -66,3 +66,9 @@ public/workbox-*.js
 public/worker-*.js
 public/sw.js
 public/sw.js.map
+
+.vercel
+.env.local
+
+playwright-report/
+test-results/

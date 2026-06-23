@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { safeJson } from '@/lib/api-helpers';
 import {
   submitAdminOnboardingStats,
   submitOnboardingStats,
@@ -7,10 +8,10 @@ import {
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
-  const body = await request.json();
+  const body = await safeJson(request);
   const { asAdmin, ...rawInput } = body as Record<string, unknown>;
   const input = rawInput as SubmitOnboardingStatsInput;
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const result =
     asAdmin === true
       ? await submitAdminOnboardingStats(supabase, input)

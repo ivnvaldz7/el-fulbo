@@ -10,7 +10,7 @@ export type SubmitOnboardingStatsInput = SubmitOnboardingStatsData;
 
 export interface SubmitOnboardingStatsOutput {
   playerId: PlayerId;
-  status: 'pending_approval' | 'approved';
+  status: 'pending_approval' | 'approved' | 'rejected';
 }
 
 export function getOnboardingDraftKey(groupId: GroupId | string) {

@@ -30,8 +30,8 @@ describe('CreateGroupForm', () => {
     render(<CreateGroupForm />);
 
     expect(screen.getByLabelText('Nombre del grupo')).toBeInTheDocument();
-    expect(screen.getByLabelText('Modalidad')).toHaveValue('F5');
-    expect(screen.getByRole('button', { name: 'Crear grupo' })).toBeEnabled();
+    expect(screen.getByLabelText('Modalidad default')).toHaveValue('F5');
+    expect(screen.getByRole('button', { name: /crear grupo/i })).toBeEnabled();
   });
 
   it('updates the group name input and stores the draft', () => {
@@ -52,10 +52,10 @@ describe('CreateGroupForm', () => {
     fireEvent.change(screen.getByLabelText('Nombre del grupo'), {
       target: { value: 'Fulbito' },
     });
-    fireEvent.submit(screen.getByRole('button', { name: 'Crear grupo' }).closest('form')!);
+    fireEvent.submit(screen.getByRole('button', { name: /crear grupo/i }).closest('form')!);
 
-    expect(await screen.findByText('Creando tu grupo')).toBeInTheDocument();
-    expect(screen.getByText('Un toque mas y esta listo')).toBeInTheDocument();
+    expect(await screen.findByText('Fundando grupo')).toBeInTheDocument();
+    expect(screen.getByText('Un toque más y entramos...')).toBeInTheDocument();
   });
 
   it('calls createGroup on submit and redirects to admin onboarding', async () => {
@@ -68,7 +68,7 @@ describe('CreateGroupForm', () => {
     fireEvent.change(screen.getByLabelText('Nombre del grupo'), {
       target: { value: 'Fulbito' },
     });
-    fireEvent.submit(screen.getByRole('button', { name: 'Crear grupo' }).closest('form')!);
+    fireEvent.submit(screen.getByRole('button', { name: /crear grupo/i }).closest('form')!);
 
     await waitFor(() => {
       expect(createGroupMock).toHaveBeenCalledWith(supabaseClient, {
@@ -89,11 +89,11 @@ describe('CreateGroupForm', () => {
       target: { value: 'Fulbito' },
     });
 
-    const form = screen.getByRole('button', { name: 'Crear grupo' }).closest('form')!;
+    const form = screen.getByRole('button', { name: /crear grupo/i }).closest('form')!;
     fireEvent.submit(form);
     fireEvent.submit(form);
 
-    expect(await screen.findByText('Creando tu grupo')).toBeInTheDocument();
+    expect(await screen.findByText('Fundando grupo')).toBeInTheDocument();
     expect(createGroupMock).toHaveBeenCalledTimes(1);
   });
 
@@ -107,11 +107,11 @@ describe('CreateGroupForm', () => {
     fireEvent.change(screen.getByLabelText('Nombre del grupo'), {
       target: { value: 'Fulbito' },
     });
-    fireEvent.submit(screen.getByRole('button', { name: 'Crear grupo' }).closest('form')!);
+    fireEvent.submit(screen.getByRole('button', { name: /crear grupo/i }).closest('form')!);
 
     expect(await screen.findByText('No pudimos crear el grupo.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Crear grupo' })).toBeEnabled();
-    expect(screen.queryByText('Creando tu grupo')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /crear grupo/i })).toBeEnabled();
+    expect(screen.queryByText('Fundando grupo')).not.toBeInTheDocument();
     expect(pushMock).not.toHaveBeenCalled();
   });
 });

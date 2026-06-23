@@ -13,7 +13,7 @@ Permitir a cada Player y a los miembros del grupo ver las estadísticas agregada
 - **Entidades:** [`entities.md`](../01-domain/entities.md) — `PlayerStatsAggregate`.
 - **Tipos:** [`types.ts`](../04-contracts/types.ts) — `PlayerStatsAggregate`.
 - **Schema:** [`db-schema.md`](../04-contracts/db-schema.md) — VIEW `player_stats_aggregate`.
-- **Decisiones del engram:** `dec-141` a `dec-144`.
+- **Decisiones del engram:** `dec-141` a `dec-144`, `dec-145` (stats rejection cycle).
 
 ---
 
@@ -178,6 +178,37 @@ async function fetchPlayerStats(playerId: PlayerId): Promise<PlayerStatsAggregat
 - Después de `update_attendance` (feat-006): las bajas tardías se actualizan.
 
 **No hay triggers ni cronjobs adicionales.** La VIEW es siempre consistente con la data base.
+
+### Etapa 5 — Ciclo de rechazo de carta inicial
+
+El Admin puede rechazar la carta que un jugador propuso durante el onboarding, cerrando el ciclo para que el jugador pueda corregir y re-enviar.
+
+**Flujo:**
+
+1. **Player** carga sus stats iniciales → `stats_status = 'pending_approval'`.
+2. **Admin** revisa la carta en `/groups/{id}/pending` y hace clic en **"Rechazar carta"**.
+3. **RPC `reject_initial_stats(player_id)`:**
+   - Setea `stats_status = 'rejected'`.
+   - Crea notificación tipo `'stats_rejected'` con deeplink a `/groups/{id}/pending`.
+4. **Player** ve en su pantalla de carta pendiente: **"CARTA RECHAZADA"** con botón **"VOLVER A CARGAR"**.
+5. **Player** corrige y re-envía.
+6. **RPC `submit_onboarding_stats`** acepta inputs con `stats_status IN ('pending_approval', 'rejected')` (si está `'rejected'`, lo pasa a `'pending_approval'` y actualiza stats).
+7. **Admin** vuelve a revisar. El ciclo se repite hasta que el Admin apruebe.
+
+**Edge cases del ciclo:**
+
+| Caso | Comportamiento |
+|------|----------------|
+| Admin rechaza, player nunca re-envía | La carta queda `'rejected'` permanentemente. El Admin puede aprobar manualmente desde el panel. |
+| Admin rechaza y después se arrepiente | Puede aprobar directamente desde el panel de pendientes. |
+| Player re-envía stats drásticamente diferentes | El Admin ve la diff y decide. No hay límite de re-intentos. |
+| Admin rechaza mientras el player está en la página | No hay tiempo real. El player ve el cambio al recargar o al recibir la notificación. |
+
+**Tipos de notificación adicionales:**
+
+| Tipo | Push | In-app | Deeplink |
+|------|------|--------|----------|
+| `stats_rejected` | ❌ | ✅ | `/groups/{id}/pending` |
 
 ---
 

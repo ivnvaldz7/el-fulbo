@@ -19,7 +19,7 @@ export function AcceptInviteButton({ inviteCode }: { inviteCode: string }) {
     });
     const body = (await response.json()) as {
       ok: boolean;
-      data?: { groupId: string; alreadyMember: boolean };
+      data?: { groupId: string; alreadyMember: boolean; needsOnboarding: boolean };
       error?: { message: string };
     };
 
@@ -29,11 +29,11 @@ export function AcceptInviteButton({ inviteCode }: { inviteCode: string }) {
       return;
     }
 
-    router.push(
-      body.data.alreadyMember
-        ? `/groups/${body.data.groupId}/dashboard`
-        : `/groups/${body.data.groupId}/onboarding-stats`,
-    );
+    if (body.data.needsOnboarding) {
+      router.push(`/groups/${body.data.groupId}/onboarding-stats`);
+    } else {
+      router.push(`/groups/${body.data.groupId}/dashboard`);
+    }
   }
 
   return (
@@ -42,11 +42,11 @@ export function AcceptInviteButton({ inviteCode }: { inviteCode: string }) {
         type="button"
         onClick={acceptInvite}
         disabled={loading}
-        className="min-h-12 w-full rounded-card bg-noche px-5 py-3 text-sm font-black text-cal disabled:cursor-not-allowed disabled:opacity-50"
+        className="btn-interactive flex h-16 w-full items-center justify-center bg-pitch-green font-headline text-2xl font-bold italic uppercase tracking-tight text-black transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {loading ? 'Uniéndote...' : 'Unite al fulbito'}
       </button>
-      {error ? <p className="text-sm font-bold text-derrota">{error}</p> : null}
+      {error ? <p className="text-center font-mono text-[10px] font-bold uppercase text-pitch-green italic">{error}</p> : null}
     </div>
   );
 }

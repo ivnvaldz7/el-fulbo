@@ -40,11 +40,33 @@ export async function getCurrentUserPlayerInGroup(
     .eq('group_id', groupId)
     .eq('user_id', user.id)
     .is('archived_at', null)
-    .single();
+    .maybeSingle();
 
   if (error) {
     return { ok: false, error: mapSupabaseError(error) };
   }
 
+  if (!data) {
+    return { ok: false, error: { code: 'NOT_FOUND', message: 'No hay jugador en este grupo.' } };
+  }
+
   return { ok: true, data: mapPlayer(data) };
+}
+
+export async function getPlayersInGroup(
+  supabase: SupabaseClient,
+  groupId: GroupId | string,
+): Promise<Result<Player[]>> {
+  const { data, error } = await supabase
+    .from('players')
+    .select('*')
+    .eq('group_id', groupId)
+    .is('archived_at', null)
+    .order('display_name', { ascending: true });
+
+  if (error) {
+    return { ok: false, error: mapSupabaseError(error) };
+  }
+
+  return { ok: true, data: data.map(mapPlayer) };
 }

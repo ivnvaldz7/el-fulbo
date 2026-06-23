@@ -134,7 +134,7 @@ describe('resolveInviteState', () => {
     }
   });
 
-  it('maps expelled cooldown state', async () => {
+  it('maps expelled users without pending request as can_request', async () => {
     const supabase = supabaseWithRpc({
       valid: true,
       group: {
@@ -145,22 +145,22 @@ describe('resolveInviteState', () => {
         admin_name: 'Iván',
         active_players_count: 8,
       },
-      user_status: 'expelled_cooldown',
-      extras: {
-        cooldown_expires_at: '2026-05-30T12:00:00.000Z',
-        last_rejection_at: '2026-04-30T12:00:00.000Z',
-        last_rejection_note: 'Todavía no.',
-      },
+      user_status: 'expelled_can_request',
     });
 
     const result = await resolveInviteState(supabase, 'FULBO-ABC123');
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data).toMatchObject({
-        kind: 'expelled_cooldown',
-        cooldown: {
-          lastRejectionNote: 'Todavía no.',
+      expect(result.data).toEqual({
+        kind: 'expelled_can_request',
+        preview: {
+          groupId: '11111111-1111-4111-8111-111111111111',
+          groupName: 'Fulbo del martes',
+          defaultModality: 'F5',
+          logoUrl: null,
+          adminName: 'Iván',
+          activePlayers: 8,
         },
       });
     }

@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Space+Grotesk:wght@300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block');
 
 @tailwind base;
 @tailwind components;
@@ -12,6 +13,35 @@
 
 * {
   box-sizing: border-box;
+}
+
+/* 
+ * Focus indicators — Emil Design Engineering
+ * :focus-visible ensures rings only show on keyboard nav, not mouse clicks
+ */
+:focus-visible {
+  outline: 2px solid #22C55E;
+  outline-offset: 2px;
+}
+
+/* Remove default UA focus outlines on mouse focus; :focus-visible handles it */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* 
+ * Custom focus ring for elements where the default outline doesn't look right
+ * (e.g. buttons with custom styling). Add this class to override.
+ */
+.focus-ring-pitch:focus-visible {
+  outline: 2px solid #22C55E;
+  outline-offset: 2px;
+  border-radius: 0;
+}
+
+.focus-ring-white:focus-visible {
+  outline: 2px solid #FFFFFF;
+  outline-offset: 2px;
 }
 
 body {
@@ -31,6 +61,54 @@ a {
   text-decoration: none;
 }
 
+/* Page entrance animation — fade in + slide up */
+@keyframes fade-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-slide-up {
+  animation: fade-slide-up 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Stagger child entrance — applied to container, children get delayed animations */
+@keyframes fade-slide-up-stagger {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-stagger > * {
+  animation: fade-slide-up-stagger 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-stagger > *:nth-child(1) { animation-delay: 50ms; }
+.animate-stagger > *:nth-child(2) { animation-delay: 100ms; }
+.animate-stagger > *:nth-child(3) { animation-delay: 150ms; }
+.animate-stagger > *:nth-child(4) { animation-delay: 200ms; }
+.animate-stagger > *:nth-child(5) { animation-delay: 250ms; }
+.animate-stagger > *:nth-child(6) { animation-delay: 300ms; }
+.animate-stagger > *:nth-child(7) { animation-delay: 350ms; }
+.animate-stagger > *:nth-child(8) { animation-delay: 400ms; }
+
+@keyframes success-pulse {
+  0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+  40%  { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(74, 222, 128, 0.25); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+}
+.animate-success-pulse {
+  animation: success-pulse 0.5s ease-out forwards;
+}
+
 button,
 input,
 select,
@@ -39,9 +117,102 @@ textarea {
   border-radius: 0 !important;
 }
 
+/* Reduced motion — respects user's OS setting */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Skip link — hidden until focused for keyboard users */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 8px;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: #22C55E;
+  color: #0A0A0A;
+  font-family: 'Lexend', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.skip-link:focus {
+  top: 8px;
+}
+
+/* 
+ * Motion tokens — Emil Design Engineering
+ * Easing curves for micro-interactions
+ */
+:root {
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+}
+
+/* Component-level motion — applies to all interactive elements */
+@layer components {
+  .btn-interactive {
+    transition: transform var(--duration-fast) var(--ease-out-expo),
+                background-color var(--duration-fast) ease,
+                border-color var(--duration-fast) ease,
+                color var(--duration-fast) ease,
+                opacity var(--duration-fast) ease;
+  }
+
+  .btn-interactive:hover {
+    transform: scale(1.02);
+  }
+
+  .btn-interactive:active {
+    transform: scale(0.97);
+  }
+
+  .link-interactive {
+    transition: color var(--duration-fast) ease,
+                border-color var(--duration-fast) ease,
+                opacity var(--duration-fast) ease;
+  }
+}
+
 /* Custom Utilities for the Brutalist Look */
 @layer utilities {
   .text-glow-green {
     text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+  }
+
+  .transition-fast {
+    transition-duration: var(--duration-fast);
+    transition-timing-function: var(--ease-out-expo);
+  }
+
+  .transition-normal {
+    transition-duration: var(--duration-normal);
+    transition-timing-function: var(--ease-out-expo);
+  }
+
+  /* Prevent orphan words in headings */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Cap body text line length for readability */
+  .max-ch-65 {
+    max-width: 65ch;
+  }
+
+  .max-ch-75 {
+    max-width: 75ch;
   }
 }

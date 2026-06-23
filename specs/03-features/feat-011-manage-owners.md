@@ -288,6 +288,18 @@ const assignOwnerSchema = z.object({
 - Solo Admin puede ejecutar `assign_owner` / `remove_owner`.
 - Owner temporal confirmado dentro de `expires_at` pasa el check `is_group_owner`.
 
+## Estado de implementación real
+
+- `supabase/migrations/20260506233000_feat_011_fixed_owners.sql` implementa `assign_owner` y `remove_owner`.
+- `src/app/groups/[id]/settings/owners/page.tsx` + `owners-settings-client.tsx` cubren la gestión de owners fijos desde UI real.
+- `supabase/migrations/20260506235500_feat_011_temporary_owners.sql` implementa:
+  - `designate_temporary_owners`
+  - `respond_temporary_owner_invite`
+  - `process_temporary_owner_jobs`
+- `src/app/temporary-owner/[event_id]/page.tsx` implementa la pantalla de aceptación/rechazo del owner temporal.
+- `src/app/api/jobs/temporary-owners/route.ts` expone el job para scheduler externo y `vercel.json` lo programa cada 15 minutos.
+- El permiso base ya queda cubierto por `public.is_group_owner`, que acepta `temporary_owners.confirmed_at` no nulo y `expires_at > now()`.
+
 ---
 
 ## Copy
@@ -309,13 +321,13 @@ const assignOwnerSchema = z.object({
 
 ## Criterios de aceptación
 
-- [ ] Admin puede designar hasta 2 Owners desde settings.
-- [ ] Admin no puede ser Owner.
-- [ ] Players fantasma no son candidatos.
-- [ ] Cronjob de 15 min detecta events sin admin+owners y designa temporales.
-- [ ] Criterio: 2 más antiguos con `going`.
-- [ ] Escalación automática si rechazan.
-- [ ] Notification urgente al admin si nadie acepta.
-- [ ] Expiración 24h post-partido.
-- [ ] Permisos de owner temporal equivalentes a owner fijo.
-- [ ] Tests pasan.
+- [x] Admin puede designar hasta 2 Owners desde settings.
+- [x] Admin no puede ser Owner.
+- [x] Players fantasma no son candidatos.
+- [x] Cronjob de 15 min detecta events sin admin+owners y designa temporales.
+- [x] Criterio: 2 más antiguos con `going`.
+- [x] Escalación automática si rechazan.
+- [x] Notification urgente al admin si nadie acepta.
+- [x] Expiración 24h post-partido.
+- [x] Permisos de owner temporal equivalentes a owner fijo.
+- [x] Tests pasan.

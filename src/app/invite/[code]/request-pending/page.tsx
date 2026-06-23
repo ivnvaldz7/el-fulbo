@@ -14,7 +14,7 @@ function daysAgoLabel(dateIso: string) {
 
 export default async function InviteRequestPendingPage({ params }: { params: { code: string } }) {
   const inviteCode = decodeURIComponent(params.code).toUpperCase();
-  const resolution = await resolveInviteState(createServerSupabaseClient(), inviteCode);
+  const resolution = await resolveInviteState(await createServerSupabaseClient(), inviteCode);
 
   if (!resolution.ok) {
     redirect('/join?error=invalid');
@@ -25,7 +25,7 @@ export default async function InviteRequestPendingPage({ params }: { params: { c
   }
 
   return (
-    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px]">
+    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] lg:max-w-[480px]">
       <FloatingPanel className="text-center border-2 border-pitch-green/20">
         <header className="mb-6">
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Pendiente</p>

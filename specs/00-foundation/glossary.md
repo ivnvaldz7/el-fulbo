@@ -36,8 +36,8 @@ Términos que usa todo el sistema con una **única definición** para evitar amb
 
 ## Ciclo del partido
 
-- **Modalidad:** formato del partido. Valores: F5, F6, F8, F11.
-- **Formación:** distribución por posición según modalidad. F5 (1-1-2-1), F6 (1-2-2-1), F8 (1-3-3-1), F11 (1-4-3-3).
+- **Modalidad:** formato del partido. Valores: F5, F6, F7, F8, F9, F11.
+- **Formación:** distribución por posición según modalidad. F5 (1-1-2-1), F6 (1-2-2-1), F7 (1-2-3-1), F8 (1-3-3-1), F9 (1-3-3-2), F11 (1-4-3-3).
 - **Evento (Match):** instancia de un partido con fecha, hora, cancha + link a Maps, modalidad, lista de confirmados.
 - **Confirmación:** respuesta del jugador al evento: `going` (voy), `not_going` (no voy), `maybe` (tal vez). Puede cambiarse hasta el check-in.
 - **Check-in:** proceso del Admin (u Owner) en la cancha: pasa lista de quién está físicamente presente. Solo los marcados entran al sorteo.

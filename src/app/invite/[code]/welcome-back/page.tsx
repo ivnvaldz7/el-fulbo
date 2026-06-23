@@ -19,7 +19,7 @@ function timeAgoLabel(dateIso: string) {
 
 export default async function InviteWelcomeBackPage({ params }: { params: { code: string } }) {
   const inviteCode = decodeURIComponent(params.code).toUpperCase();
-  const resolution = await resolveInviteState(createServerSupabaseClient(), inviteCode);
+  const resolution = await resolveInviteState(await createServerSupabaseClient(), inviteCode);
 
   if (!resolution.ok) {
     redirect('/join?error=invalid');
@@ -32,7 +32,7 @@ export default async function InviteWelcomeBackPage({ params }: { params: { code
   const { preview, archivedPlayer } = resolution.data;
 
   return (
-    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px]">
+    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] lg:max-w-[480px]">
       <div className="mb-8 flex justify-center">
         <PlayerCardPreview
           name={archivedPlayer.displayName}

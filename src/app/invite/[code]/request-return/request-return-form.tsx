@@ -37,23 +37,23 @@ export function RequestReturnForm({ inviteCode }: { inviteCode: string }) {
   return (
     <form onSubmit={handleSubmit} className="mt-8 space-y-4">
       <label className="block">
-        <span className="mb-2 block text-sm font-bold text-noche">Contale algo al admin si querés</span>
+        <span className="mb-2 block font-mono text-[10px] font-bold uppercase text-white/40">Contale algo al admin si querés</span>
         <textarea
           value={message}
           onChange={(event) => setMessage(event.target.value)}
           maxLength={200}
           placeholder="Un mensaje para el admin (opcional)"
-          className="min-h-32 w-full rounded-card border border-black/15 bg-white px-4 py-3 text-sm outline-none focus:border-cancha"
+          className="min-h-32 w-full border border-white/10 bg-black/30 px-4 py-3 font-headline text-base font-medium text-white outline-none placeholder:text-white/20"
         />
       </label>
       <button
         type="submit"
         disabled={loading}
-        className="min-h-12 w-full rounded-card bg-noche px-5 py-3 text-sm font-black text-cal disabled:cursor-not-allowed disabled:opacity-50"
+        className="btn-interactive flex h-14 w-full items-center justify-center bg-pitch-green font-headline text-lg font-bold italic uppercase text-black transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {loading ? 'Mandando...' : 'Mandar solicitud'}
       </button>
-      {error ? <p className="text-sm font-bold text-derrota">{error}</p> : null}
+      {error ? <p className="text-center font-mono text-[10px] font-bold uppercase text-pitch-green italic">{error}</p> : null}
     </form>
   );
 }

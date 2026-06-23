@@ -32,7 +32,7 @@ Una PWA instalable que unifica todo el ciclo del fulbito amateur en una sola exp
 - Confirmación individual de asistencia (voy / no voy / tal vez).
 - Notificación al Admin cuando alguien se baja.
 - Check-in en la cancha antes de sortear.
-- Sorteo respetando posiciones, cupos y modalidad (F5/F6/F8/F11).
+- Sorteo respetando posiciones, cupos y modalidad (F5/F6/F7/F8/F9/F11).
 - Player fantasma para completar equipos de último momento.
 - Carga de resultado + elección de MVP.
 - Aplicación automática de boosts post-partido.

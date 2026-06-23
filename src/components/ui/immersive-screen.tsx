@@ -27,12 +27,11 @@ export function ImmersiveScreen({
 
   return (
     <main
-      className={`relative flex min-h-screen overflow-hidden bg-absolute-dark bg-cover bg-center px-4 ${alignmentClass} ${className}`}
+      className={`relative flex min-h-screen overflow-x-hidden bg-absolute-dark bg-cover bg-center px-4 ${alignmentClass} ${className}`}
       style={style}
     >
       <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
-      <div className={`relative z-10 w-full ${contentClassName}`}>{children}</div>
+      <div className={`relative z-10 w-full overflow-x-hidden ${contentClassName}`}>{children}</div>
     </main>
   );
 }
-

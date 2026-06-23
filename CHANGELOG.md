@@ -2,6 +2,262 @@
 
 Registro de cambios importantes del proyecto. Formato: `[versión] - YYYY-MM-DD`.
 
+## [0.2.3] - 2026-05-07 — migración UI completa a Nocturnal Pitch
+
+- Migradas todas las páginas dinámicas al design system Nocturnal Pitch:
+  - Flujo de evento: `new`, `detail`, `check-in`, `draw`, `teams`, `result`, `edit`
+  - Jugadores: layout compartido con `ImmersiveScreen`, `player-stats-view` sin `rounded-lg`
+  - Otros: `export`, `notifications`, `notification-settings`, `convert-phantom`
+- Patrón aplicado: `ImmersiveScreen` como wrapper de página; secciones con `border border-white/10 bg-concrete-overlay p-5` (sin `rounded-lg`); loading/error states con spinner NP
+- Excepción documentada: páginas con sticky header (`export`, `notifications`, `notification-settings`) usan `bg-absolute-dark` directamente — `ImmersiveScreen` tiene `overflow-hidden` que rompe el `position: sticky`
+- Corregido token fantasma `bg-concrete-base` que NO estaba definido en `tailwind.config.ts` y aparecía en 3 componentes cliente
+
+## [0.2.2] - 2026-05-07 — TypeScript cleanup + 140 tests pasando
+
+- Pasada completa de limpieza de TypeScript: de ~60 errores a 0
+- 140 unit tests pasando, 0 fallando
+- `Player` interface migrada a camelCase (`userId`, `displayName`, `primaryPosition`, etc.) en `src/lib/types.ts`
+- Alineados todos los servicios y componentes con el nuevo contrato de tipos
+
+## [0.2.1] - 2026-05-07 — cierre de feat-015 + stats individuales del jugador
+
+- Cerrada `feat-015-player-stats` con perfil de jugador y estadísticas agregadas.
+- Migración `20260507002000_feat_015_player_stats.sql`:
+  - RPC `get_player_stats(p_player_id uuid)` con check de membresía de grupo (`security definer`)
+  - `GRANT EXECUTE` a rol `authenticated`
+  - La VIEW `player_stats_aggregate` ya existía; esta migración la expone segura vía RPC
+- Tipo `PlayerStatsAggregate` agregado a `src/lib/types.ts`
+- Servicio `src/lib/services/player-stats.service.ts`:
+  - `fetchPlayerStats(supabase, playerId)` → `Result<PlayerStatsAggregate>`
+  - `winPercentage` calculado en cliente (null si matchesPlayed = 0)
+- Layout `src/app/groups/[id]/players/[player_id]/layout.tsx`:
+  - Header con avatar inicial + nombre del jugador
+  - Tabs "Carta" / "Estadísticas" compartidas entre páginas
+  - Redirige si el user no es miembro del grupo o el jugador no existe
+- Página de carta: `src/app/groups/[id]/players/[player_id]/page.tsx`
+  - Reutiliza `PlayerCardPreview` existente
+- Página de stats: `src/app/groups/[id]/players/[player_id]/stats/page.tsx`
+  - Carga server-side vía `fetchPlayerStats`
+  - Redirige al dashboard si falla (no expone errores al usuario)
+- Componentes nuevos:
+  - `src/components/players/player-profile-tabs.tsx` — tabs activos por pathname
+  - `src/components/players/player-stats-view.tsx` — grids de counters (partidos, reconocimientos, participación) + empty state + `relativeTime` helper inline
+- Edge cases manejados: 0 partidos (empty state), attendance_rate null (muestra `—`), last_mvp_at null (muestra `—`)
+- Tests: `src/lib/services/player-stats.service.test.ts` (6 casos: mapeo completo, winPercentage null, error DB, data null, attendance null, last_mvp null)
+
+## [0.1.4] - 2026-05-06 — cierre de feat-008 + cobertura RPC real
+
+- Cerrada `feat-008-load-result-and-mvp` de punta a punta:
+  - RPC transaccional `load_match_result`
+  - cálculo de boosts y decremento de boosts activos
+  - notificaciones `mvp_awarded`, `boost_applied` y `match_result_loaded`
+  - UI de carga de resultado en `/groups/[id]/events/[event_id]/result`
+  - resumen post-partido en la página del evento
+- Agregados tests focalizados para el slice de resultado:
+  - `src/lib/match-result.test.ts`
+  - `src/lib/services/events.load-match-result.test.ts`
+  - `tests/integration/feat-008-load-match-result-rpc.test.ts`
+- Agregada cobertura real de `supabase.rpc(...)` para:
+  - `update_attendance`
+  - `confirm_draw`
+  - `load_match_result`
+- Corregidos helpers canónicos de permisos de grupo mediante migración compensatoria:
+  - `supabase/migrations/20260505232000_fix_is_group_owner_function.sql`
+- Documentación sincronizada con el estado real:
+  - `context/current-state.md`
+  - `context/handoff.md`
+  - `specs/03-features/feat-006-confirm-attendance.md`
+  - `specs/03-features/feat-008-load-result-and-mvp.md`
+
+## [0.1.5] - 2026-05-06 — cierre real de feat-009 + dashboard canónico
+
+- Cerrada `feat-009-boost-system` con el slice visual/documental que faltaba:
+  - helper compartido `src/lib/boost.ts` para boost activo, clamp visual a 99 y copy de partidos restantes
+  - `PlayerCardPreview` con badges `+N`, highlight de MVP boost y chip de duración
+  - reutilización del helper en `src/lib/draw.ts` para evitar duplicar reglas de boost
+- Migrado el dashboard del grupo fuera del modelo legacy `matches`:
+  - `src/app/groups/[id]/dashboard/page.tsx` ahora consulta `events`
+  - `src/components/groups/group-dashboard-initial-state.tsx` renderiza “Últimos partidos” con score, MVP y boosts aplicados
+- Agregados/actualizados tests focalizados:
+  - `src/lib/boost.test.ts`
+  - `src/components/cards/player-card-preview.test.tsx`
+  - `src/components/groups/group-dashboard-initial-state.test.tsx`
+- Documentación sincronizada con el estado real:
+  - `context/current-state.md`
+  - `context/handoff.md`
+  - `specs/03-features/feat-009-boost-system.md`
+
+## [0.1.6] - 2026-05-06 — cierre de feat-010 + share de imagen
+
+- Cerrada `feat-010-share-card` con share de imagen para la propia card y el resumen post-partido.
+- Agregado helper `src/lib/share.ts` para:
+  - Web Share API con `files`
+  - fallback a descarga cuando no hay file share
+  - manejo silencioso de cancelación del share sheet
+- Agregados componentes shareables:
+  - `src/components/share/shareable-card.tsx`
+  - `src/components/share/player-card-share-panel.tsx`
+  - `src/components/share/shareable-match-summary.tsx`
+  - `src/components/share/share-match-summary-button.tsx`
+- El dashboard del grupo ahora expone **"Compartir mi card"** usando la card real del jugador actual.
+- `/groups/[id]/events/[event_id]` ahora comparte una imagen del resumen del partido en vez de texto plano.
+- Tests focalizados agregados/validados:
+  - `src/lib/share.test.ts`
+  - `src/components/share/shareable-card.test.tsx`
+  - `src/components/groups/group-dashboard-initial-state.test.tsx`
+- Documentación sincronizada:
+  - `context/current-state.md`
+  - `context/handoff.md`
+  - `specs/03-features/feat-010-share-card.md`
+
+## [0.2.0] - 2026-05-07 — cierre de feat-014 + export de datos
+
+- Cerrada `feat-014-export-data` con generación de ZIP completo server-side.
+- `jszip` + `@types/jszip` agregados a `package.json`.
+- Servicio `src/lib/services/export.service.ts`:
+  - `fetchGroupData` — query paralela de todas las tablas del grupo
+  - `anonymizeData` — reemplaza user IDs por referencias secuenciales (`user_1`, `user_2`…)
+  - `toCsv` — serializer CSV propio (sin deps extra), escapa comas, comillas y saltos de línea
+  - `buildGroupZip` — genera ZIP con JSZip: README.txt, metadata.json, LICENSE.txt, json/ y csv/
+  - `exportFileName` — slugifica el nombre del grupo + fecha para el nombre del archivo
+- API route `GET /api/groups/[id]/export`:
+  - Verifica auth + permiso (admin o owner) con cliente user-scoped
+  - Fetch de datos con service role client para evitar restricciones de RLS
+  - Retorna ZIP como `application/zip` con `Content-Disposition` para descarga automática
+- Página `src/app/groups/[id]/settings/export/page.tsx`:
+  - Server component que verifica permisos y redirige si no corresponde
+- `src/app/groups/[id]/settings/export/export-page-client.tsx`:
+  - Botón "Generar y descargar" con download automático vía blob URL
+  - Fallback: muestra link manual si el download automático falla (adblocker, etc.)
+  - Toast de éxito y de error
+- Tests: `src/lib/services/export.service.test.ts`
+  - anonymizeData: anon IDs consistentes, display_name preservado, owner vs admin
+  - exportFileName: slug, diacríticos, extensión
+- Documentación sincronizada: CHANGELOG, current-state.md, handoff.md
+
+## [0.1.9] - 2026-05-07 — cierre de feat-013 + player fantasma
+
+- Cerrada `feat-013-phantom-player` con flujo completo de creación, resolución y conversión.
+- Migración `20260507001000_feat_013_phantom_player.sql`:
+  - tabla `phantom_conversion_tokens` con token, expiración y uso único
+  - RPCs: `create_phantom_player`, `archive_phantom_player`, `delete_phantom_player`, `initiate_phantom_conversion`, `complete_phantom_conversion`, `archive_stale_phantoms`
+- Servicio `src/lib/services/phantom-player.service.ts` con todas las operaciones CRUD y el helper para cron.
+- Validaciones `src/lib/validations/phantom-player.ts` con schemas Zod.
+- API routes:
+  - `POST /api/groups/[id]/phantom-players` — crear fantasma
+  - `DELETE /api/groups/[id]/phantom-players/[playerId]` — hard delete
+  - `POST /api/groups/[id]/phantom-players/[playerId]/archive` — archivar
+  - `POST /api/groups/[id]/phantom-players/[playerId]/convert` — iniciar conversión (genera token, loguea URL)
+  - `POST /api/convert-phantom/[token]` — aceptar conversión
+  - `GET /api/jobs/archive-phantoms` — cron diario 5 AM
+- UI:
+  - `src/components/phantom/add-phantom-modal.tsx` — modal con nombre + posición
+  - `src/components/phantom/phantom-resolution-widget.tsx` — widget con convert/archive/delete + confirmación doble para delete
+  - `src/app/convert-phantom/[token]/page.tsx` + client — pantalla de aceptación del magic link
+- Integración en páginas existentes:
+  - `check-in/page.tsx` — botón "Agregar jugador fantasma" + modal + badge FANTASMA en la lista
+  - `admin-tasks/page.tsx` — sección de fantasmas pendientes con `PhantomResolutionWidget`
+- `EventAttendee` en `events.service.ts` extendido con `isPhantom`
+- `vercel.json` con cron `archive-phantoms` diario a las 5 AM
+- Tests: `src/lib/services/phantom-player.service.test.ts`
+- Documentación sincronizada: CHANGELOG, current-state.md, handoff.md
+
+## [0.1.8] - 2026-05-07 — cierre de feat-012 + sistema de notificaciones
+
+- Cerrada `feat-012-notifications` con infraestructura completa de push, in-app y digest.
+- Migración `20260507000000_feat_012_notification_preferences.sql`:
+  - tabla `user_notification_preferences` con push, reminders, digest y timezone
+  - RLS en `notifications`, `push_subscriptions` y `user_notification_preferences`
+  - RPCs: `mark_notification_read`, `mark_all_notifications_read`, `get_unread_notification_count`, `upsert_push_subscription`, `delete_push_subscription`
+- Service worker extendido:
+  - `worker/index.js` con handlers de `push` y `notificationclick`
+  - deep-link a pantalla correspondiente al hacer tap en la notificación
+- Servicios nuevos:
+  - `src/lib/services/notifications.service.ts` (CRUD completo)
+  - `src/lib/services/push-subscription.service.ts` (subscribe/unsubscribe/archive)
+  - `src/lib/services/push-sender.service.ts` (envío con web-push, retry, archivo de suscripciones stale)
+  - `src/lib/supabase/service.ts` (cliente service role para jobs)
+- Utilidad `src/lib/notifications-deeplink.ts` con `getNotificationDeepLink` y `getNotificationCopy` para todos los tipos del enum.
+- API routes nuevos:
+  - `POST /api/notifications/subscribe` — registrar subscription
+  - `DELETE /api/notifications/subscribe` — dar de baja
+  - `GET /api/notifications` — lista paginada + unread count
+  - `PATCH /api/notifications/[id]/read` — marcar leída
+  - `POST /api/notifications/read-all` — marcar todas como leídas
+  - `POST /api/settings/notifications` — guardar preferencias
+  - `GET /api/jobs/push-delivery` — cron cada 5 min para entregar pushes pendientes
+  - `GET /api/jobs/daily-digest` — digest diario a las 9 AM (admins)
+  - `GET /api/jobs/weekly-digest` — digest semanal domingos 10 AM
+- Hooks:
+  - `src/hooks/use-push-subscription.ts`
+  - `src/hooks/use-notifications.ts` con Supabase Realtime
+- Componentes:
+  - `src/components/notifications/notification-badge.tsx` — campana con badge de count
+  - `src/components/notifications/notification-item.tsx` — ítem con deep-link y marca de leído
+  - `src/components/notifications/push-optin-banner.tsx` — banner opt-in con cooldown de 30 días
+- Páginas:
+  - `src/app/notifications/page.tsx` + client
+  - `src/app/settings/notifications/page.tsx` + client (con toggle push, reminders y digest)
+- `vercel.json` actualizado con 3 crons nuevos
+- `web-push` + `@types/web-push` agregados a `package.json`
+- Tests:
+  - `src/lib/notifications-deeplink.test.ts`
+  - `src/lib/services/notifications.service.test.ts`
+  - `src/lib/services/push-subscription.service.test.ts`
+- Documentación sincronizada:
+  - `context/current-state.md`
+  - `context/handoff.md`
+
+## [0.1.7] - 2026-05-06 — cierre de feat-011 + owners temporales
+
+- Cerrada `feat-011-manage-owners` con flujo funcional para owners fijos y temporales.
+- Agregados RPCs:
+  - `assign_owner`
+  - `remove_owner`
+  - `designate_temporary_owners`
+  - `respond_temporary_owner_invite`
+  - `process_temporary_owner_jobs`
+- Agregada UI real para owners fijos:
+  - `src/app/groups/[id]/settings/owners/page.tsx`
+  - `src/app/groups/[id]/settings/owners/owners-settings-client.tsx`
+- Agregada UI real para owner temporal:
+  - `src/app/temporary-owner/[event_id]/page.tsx`
+  - `src/app/temporary-owner/[event_id]/temporary-owner-client.tsx`
+- Agregados endpoints:
+  - `src/app/api/groups/[id]/owners/route.ts`
+  - `src/app/api/temporary-owner/[eventId]/route.ts`
+  - `src/app/api/jobs/temporary-owners/route.ts`
+- Agregado `vercel.json` para correr el job de temporary owners cada 15 minutos.
+- Tests focalizados agregados/validados:
+  - `src/lib/services/owners.service.test.ts`
+  - `src/lib/services/temporary-owners.service.test.ts`
+- Documentación sincronizada:
+  - `context/current-state.md`
+  - `context/handoff.md`
+  - `specs/03-features/feat-011-manage-owners.md`
+
+## [0.1.3] - 2026-05-05 — saneamiento documental feat-006 + limpieza base feat-007
+
+- Documentado el estado operativo real de `feat-006` para transferencia en:
+  - `context/feat-006-transfer.md`
+- Actualizado `specs/03-features/feat-006-confirm-attendance.md` con nota explícita de source of truth y estado operativo actual.
+- Consolidado que `feat-006` usa:
+  - `going | not_going | maybe`
+  - `event_attendances`
+  - RPC `public.update_attendance`
+  - UI en `src/app/groups/[id]/events/[event_id]/page.tsx`
+- Dejado asentado que el último rerun focal de `feat-006` quedó bloqueado por entorno local (`ECONNREFUSED 127.0.0.1:54322`), no por regresión lógica.
+- Limpiados artefactos legacy/stale de `feat-007` que mezclaban un dominio falso (`matches`, `group_members`, `profiles`, `is_checked_in`, RPCs de transacción falsas) con el modelo canónico actual.
+- Implementado el slice canónico inicial de `feat-007`:
+  - ruta de check-in admin/owner
+  - ruta de sorteo cliente
+  - ruta de equipos confirmados
+  - algoritmo en `src/lib/draw.ts`
+  - RPC `confirm_draw`
+- Validaciones:
+  - `src/lib/draw.test.ts` ✅
+  - `tests/integration/feat-007-confirm-draw-rpc.test.ts` bloqueado por entorno local (`ECONNREFUSED 127.0.0.1:54322`)
+
 ## [0.1.2] - 2026-05-02 — corrección de estado + regla de registro
 
 - Iniciada la pasada de fundación visual mobile-first para bajar el mockup a UI real.

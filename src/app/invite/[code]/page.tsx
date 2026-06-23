@@ -8,10 +8,11 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { AcceptInviteButton } from './accept-invite-button';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { FloatingPanel } from '@/components/ui/floating-panel';
+import { AppShareButton } from '@/components/share/app-share-button';
 
 export default async function InvitePage({ params }: { params: { code: string } }) {
   const inviteCode = decodeURIComponent(params.code).toUpperCase();
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const resolution = await resolveInviteState(supabase, inviteCode);
 
   if (!resolution.ok) {
@@ -54,15 +55,11 @@ export default async function InvitePage({ params }: { params: { code: string } 
     redirect(`/invite/${inviteCode}/request-pending`);
   }
 
-  if (resolution.data.kind === 'expelled_cooldown') {
-    redirect(`/invite/${inviteCode}/cooldown`);
-  }
-
   const preview = resolution.data.preview;
   const isAnonymous = resolution.data.kind === 'anonymous';
 
   return (
-    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px]">
+    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] lg:max-w-[480px]">
       <FloatingPanel className="border-2 border-white/10">
         <header className="mb-8">
           <Link href="/" className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
@@ -107,6 +104,7 @@ export default async function InvitePage({ params }: { params: { code: string } 
           ) : (
             <AcceptInviteButton inviteCode={inviteCode} />
           )}
+          <AppShareButton />
         </div>
       </FloatingPanel>
     </ImmersiveScreen>

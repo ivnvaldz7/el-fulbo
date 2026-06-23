@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Modality } from '@/lib/types';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
@@ -10,29 +10,32 @@ import { createGroupSchema } from '@/lib/validations/group';
 const modalityOptions: Array<{ value: Modality; label: string }> = [
   { value: 'F5', label: 'F5 - 5 vs 5' },
   { value: 'F6', label: 'F6 - 6 vs 6' },
+  { value: 'F7', label: 'F7 - 7 vs 7' },
   { value: 'F8', label: 'F8 - 8 vs 8' },
+  { value: 'F9', label: 'F9 - 9 vs 9' },
   { value: 'F11', label: 'F11 - 11 vs 11' },
 ];
 
 export function CreateGroupForm() {
   const router = useRouter();
-  const [name, setName] = useState('');
-  const [modality, setModality] = useState<Modality>('F5');
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
+  const getDraft = () => {
+    if (typeof window === 'undefined') return { name: '', modality: 'F5' as Modality };
     const stored = window.localStorage.getItem(CREATE_GROUP_DRAFT_KEY);
-    if (!stored) return;
-
+    if (!stored) return { name: '', modality: 'F5' as Modality };
     try {
       const draft = JSON.parse(stored) as { name?: string; modality?: Modality };
-      setName(draft.name ?? '');
-      setModality(draft.modality ?? 'F5');
+      return { name: draft.name ?? '', modality: draft.modality ?? ('F5' as Modality) };
     } catch {
       window.localStorage.removeItem(CREATE_GROUP_DRAFT_KEY);
+      return { name: '', modality: 'F5' as Modality };
     }
-  }, []);
+  };
+
+  const draft = useMemo(() => getDraft(), []);
+  const [name, setName] = useState(draft.name);
+  const [modality, setModality] = useState<Modality>(draft.modality);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     window.localStorage.setItem(CREATE_GROUP_DRAFT_KEY, JSON.stringify({ name, modality }));

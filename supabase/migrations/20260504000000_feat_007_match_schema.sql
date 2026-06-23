@@ -1,0 +1,5 @@
+-- No-op migration.
+-- Original draft referenced obsolete tables/columns (`group_members`, `profiles`,
+-- `matches`, `match_players`) that do not belong to the current V2 model.
+-- The canonical feat-007 flow operates on `events`, `event_attendances` and
+-- `match_participations`, so this migration is intentionally neutralized.

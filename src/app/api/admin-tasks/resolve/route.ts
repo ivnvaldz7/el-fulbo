@@ -17,8 +17,16 @@ type Body = {
 };
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as Body;
-  const supabase = createServerSupabaseClient();
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return NextResponse.json(
+      { ok: false, error: { code: 'VALIDATION_ERROR', message: 'JSON malformado.' } },
+      { status: 400 }
+    );
+  }
+  const supabase = await createServerSupabaseClient();
 
   if (!body.taskType || !body.decision || !body.id) {
     return NextResponse.json(

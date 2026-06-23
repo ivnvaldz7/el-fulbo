@@ -3,5 +3,3 @@ coverage
 dist
 node_modules
 playwright-report
-public/sw.js
-public/workbox-*.js

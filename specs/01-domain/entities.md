@@ -33,7 +33,7 @@ Unidad lógica con roster, eventos y configuración.
 **Campos:**
 - `id` — UUID
 - `name` — string, 1–40 chars
-- `default_modality` — enum: `F5` | `F6` | `F8` | `F11`
+- `default_modality` — enum: `F5` | `F6` | `F7` | `F8` | `F9` | `F11`
 - `logo_url` — string nullable
 - `admin_user_id` — FK a User (el Admin actual; cambia solo con transferencia)
 - `invite_code` — string único (código corto para compartir, ej. `FULBO-7X2K`)
@@ -85,7 +85,7 @@ Ficha del User dentro de un Group específico.
 - `photo_url` — string nullable
 - `primary_position` — enum: `ARQ` | `DEF` | `MED` | `DEL`
 - `secondary_position` — enum nullable: `ARQ` | `DEF` | `MED` | `DEL`
-- `stats_status` — enum: `pending_approval` | `approved`
+- `stats_status` — enum: `pending_approval` | `approved` | `rejected`
 - `stats` — JSONB con las 6 stats según posición (campo o arquero)
 - `current_boost` — JSONB nullable (boost activo, null si no hay)
 - `is_phantom` — boolean (true si fue creado como player fantasma)
@@ -189,7 +189,7 @@ Un partido con evento, confirmaciones, sorteo y resultado.
 **Campos:**
 - `id` — UUID
 - `group_id` — FK a Group
-- `modality` — enum: `F5` | `F6` | `F8` | `F11`
+- `modality` — enum: `F5` | `F6` | `F7` | `F8` | `F9` | `F11`
 - `field_name` — string, 1–60 chars
 - `field_maps_url` — string nullable (link a Google Maps)
 - `scheduled_at` — timestamp
@@ -278,7 +278,7 @@ Registro de notificaciones enviadas al User.
 **Campos:**
 - `id` — UUID
 - `user_id` — FK a User
-- `type` — enum: `event_created` | `event_cancelled` | `attendance_changed` | `someone_dropped` | `owner_temporary_assigned` | `stats_pending_approval` | `stats_approved` | `stats_revision_requested` | `stats_revision_resolved` | `stats_changed_log` | `mvp_awarded` | `boost_applied` | `weekly_digest`
+- `type` — enum: `event_created` | `event_cancelled` | `attendance_changed` | `someone_dropped` | `owner_temporary_assigned` | `stats_pending_approval` | `stats_approved` | `stats_revision_requested` | `stats_revision_resolved` | `stats_changed_log` | `mvp_awarded` | `boost_applied` | `stats_rejected` | `weekly_digest`
 - `payload` — JSONB (datos contextuales)
 - `read_at` — timestamp nullable
 - `pushed_at` — timestamp nullable (cuando se envió el push)

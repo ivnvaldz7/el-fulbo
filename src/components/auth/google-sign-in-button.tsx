@@ -13,6 +13,10 @@ export function GoogleSignInButton({ nextPath }: { nextPath: string }) {
     setLoading(true);
     setError(null);
 
+    // Guardar el nextPath en una cookie antes del redirect a Google.
+    // La cookie sobrevive al OAuth redirect chain donde el query param `next` se pierde.
+    document.cookie = `pending_next=${encodeURIComponent(nextPath)}; path=/; max-age=300; SameSite=Lax`;
+
     const result = await signInWithGoogle(createBrowserSupabaseClient(), nextPath);
     if (!result.ok) {
       setError(result.error.message);
@@ -29,12 +33,12 @@ export function GoogleSignInButton({ nextPath }: { nextPath: string }) {
         type="button"
         onClick={handleClick}
         disabled={loading}
-        className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-card bg-noche px-5 py-3 text-sm font-black text-cal shadow-sm transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
+        className="btn-interactive flex min-h-14 w-full items-center justify-center gap-2 border-2 border-white/10 bg-black/30 px-5 font-headline text-sm font-bold italic uppercase text-white hover:bg-white/10 hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-40"
       >
         <LogIn className="h-4 w-4" aria-hidden="true" />
         {loading ? 'Abriendo Google...' : 'Entrar con Google para unirme'}
       </button>
-      {error ? <p className="text-sm font-semibold text-derrota">{error}</p> : null}
+      {error ? <p className="text-sm font-semibold text-pitch-green">{error}</p> : null}
     </div>
   );
 }

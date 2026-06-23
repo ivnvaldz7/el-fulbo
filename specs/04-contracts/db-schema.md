@@ -21,20 +21,20 @@ create extension if not exists "pgcrypto";
 ## 2. Enums
 
 ```sql
-create type modality as enum ('F5', 'F6', 'F8', 'F11');
+create type modality as enum ('F5', 'F6', 'F7', 'F8', 'F9', 'F11');
 create type player_position as enum ('ARQ', 'DEF', 'MED', 'DEL');
 create type group_role as enum ('admin', 'owner');
 create type event_status as enum ('scheduled', 'confirming', 'checked_in', 'drawn', 'played', 'cancelled');
 create type attendance_status as enum ('going', 'not_going', 'maybe');
 create type participation_team as enum ('A', 'B', 'substitute');
-create type stats_status as enum ('pending_approval', 'approved');
+create type stats_status as enum ('pending_approval', 'approved', 'rejected');
 create type revision_status as enum ('pending', 'approved', 'rejected');
 create type boost_reason as enum ('victory_mvp', 'victory', 'draw_mvp', 'loss_mvp');
 create type notification_type as enum (
   'event_created', 'event_cancelled', 'attendance_changed', 'someone_dropped',
   'owner_temporary_assigned', 'stats_pending_approval', 'stats_approved',
   'stats_revision_requested', 'stats_revision_resolved', 'stats_changed_log',
-  'mvp_awarded', 'boost_applied', 'weekly_digest'
+  'mvp_awarded', 'boost_applied', 'stats_rejected', 'weekly_digest'
 );
 ```
 

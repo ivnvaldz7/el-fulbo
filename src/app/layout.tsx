@@ -1,11 +1,23 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { AppProviders } from '@/lib/providers/app-providers';
+import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
   title: 'El Fulbo',
   description: 'Organizá el fulbito sin perseguir gente por WhatsApp.',
-  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'El Fulbo',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#1f7a4d',
 };
 
 export default function RootLayout({
@@ -16,7 +28,15 @@ export default function RootLayout({
   return (
     <html lang="es-AR">
       <body>
-        <AppProviders>{children}</AppProviders>
+        <a href="#main-content" className="skip-link">
+          Ir al contenido principal
+        </a>
+        <AppProviders>
+          <div id="main-content" tabIndex={-1} className="outline-none">
+            {children}
+          </div>
+        </AppProviders>
+        <Toaster />
       </body>
     </html>
   );

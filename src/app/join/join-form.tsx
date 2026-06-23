@@ -31,7 +31,11 @@ export function JoinForm() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ inviteCode: parsed.data }),
     });
-    const body = (await response.json()) as { ok: boolean; error?: { message: string } };
+    const body = (await response.json()) as {
+      ok: boolean;
+      error?: { message: string };
+      data?: { kind: string; preview?: { groupId: string } };
+    };
 
     if (!response.ok || !body.ok) {
       setError(
@@ -42,6 +46,43 @@ export function JoinForm() {
       return;
     }
 
+    const kind = body.data?.kind;
+    const groupId = body.data?.preview?.groupId;
+
+    // Already a member → directo al dashboard
+    if (kind === 'active_member' && groupId) {
+      router.push(`/groups/${groupId}/dashboard`);
+      return;
+    }
+
+    // Usuario logueado sin carta → aceptar invitación e ir a onboarding o dashboard
+    if (kind === 'new' && groupId) {
+      const acceptRes = await fetch('/api/invite/accept', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inviteCode: parsed.data }),
+      });
+      const acceptBody = (await acceptRes.json()) as {
+        ok: boolean;
+        data?: { groupId: string; needsOnboarding: boolean };
+        error?: { message: string };
+      };
+
+      if (!acceptRes.ok || !acceptBody.ok || !acceptBody.data) {
+        setError(acceptBody.error?.message ?? 'No pudimos sumarte al grupo.');
+        setLoading(false);
+        return;
+      }
+
+      if (acceptBody.data.needsOnboarding) {
+        router.push(`/groups/${acceptBody.data.groupId}/onboarding-stats`);
+      } else {
+        router.push(`/groups/${acceptBody.data.groupId}/dashboard`);
+      }
+      return;
+    }
+
+    // Para el resto (anonymous, expelled, group_full, etc.) → flujo actual
     router.push(`/invite/${parsed.data}`);
   }
 

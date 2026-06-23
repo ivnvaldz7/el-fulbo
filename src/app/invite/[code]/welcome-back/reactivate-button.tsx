@@ -45,11 +45,11 @@ export function ReactivateButton({
         type="button"
         onClick={handleReactivate}
         disabled={loading}
-        className="min-h-12 w-full rounded-card bg-noche px-5 py-3 text-sm font-black text-cal disabled:cursor-not-allowed disabled:opacity-50"
+        className="btn-interactive flex h-14 w-full items-center justify-center bg-pitch-green font-headline text-lg font-bold italic uppercase text-black transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {loading ? 'Volviendo...' : 'Volver al grupo'}
       </button>
-      {error ? <p className="text-sm font-bold text-derrota">{error}</p> : null}
+      {error ? <p className="text-center font-mono text-[10px] font-bold uppercase text-pitch-green italic">{error}</p> : null}
     </div>
   );
 }
