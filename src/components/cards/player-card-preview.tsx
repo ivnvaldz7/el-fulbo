@@ -1,4 +1,6 @@
 import { applyBoostToStats, calculateBoostedOverall, getActiveBoost, getBoostRemainingLabel, isMvpBoost } from '@/lib/boost';
+import React from 'react';
+import Image from 'next/image';
 import type { CurrentBoost, PlayerPosition, PlayerStats } from '@/lib/types';
 import { getCardTier, getTierStyles } from '@/lib/utils/card-tiers';
 
@@ -57,7 +59,9 @@ export function PlayerCardPreview({
         </div>
         <div className="flex flex-grow items-center justify-center pl-2 pt-2">
           {photoUrl ? (
-            <img src={photoUrl} alt={name} className="h-28 w-28 object-cover grayscale brightness-90 contrast-125" crossOrigin="anonymous" />
+            <div className="relative h-28 w-28">
+              <Image src={photoUrl} alt={name} fill sizes="112px" className="object-cover grayscale brightness-90 contrast-125 rounded" crossOrigin="anonymous" unoptimized />
+            </div>
           ) : (
             <div className="flex h-28 w-28 items-center justify-center bg-white/5 text-5xl font-black text-white/20 grayscale">
               {name.slice(0, 1).toUpperCase()}

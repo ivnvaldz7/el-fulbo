@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft, User, Edit2 } from 'lucide-react';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { FloatingPanel } from '@/components/ui/floating-panel';
@@ -60,9 +61,9 @@ export default async function GroupPlayersPage({ params }: { params: { id: strin
                 href={`/groups/${params.id}/players/${player.id}`}
                 className="flex items-center gap-3 flex-1 hover:opacity-80 transition-opacity"
               >
-                <div className="flex h-10 w-10 overflow-hidden items-center justify-center rounded-full bg-white/10">
+                <div className="relative flex h-10 w-10 overflow-hidden items-center justify-center rounded-full bg-white/10">
                   {player.photoUrl ? (
-                    <img src={player.photoUrl} alt="" className="h-full w-full object-cover" />
+                    <Image src={player.photoUrl} alt="" fill sizes="40px" className="object-cover" unoptimized />
                   ) : (
                     <User className="h-5 w-5 text-white/50" />
                   )}

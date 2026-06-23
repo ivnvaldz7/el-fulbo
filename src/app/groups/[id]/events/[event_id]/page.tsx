@@ -154,6 +154,17 @@ export default function EventViewPage() {
 
   const [savingAttendance, setSavingAttendance] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [is24hPassed, setIs24hPassed] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (event?.played_at || event?.scheduled_at) {
+        const targetTime = new Date(event.played_at ?? event.scheduled_at).getTime() + 24 * 60 * 60 * 1000;
+        setIs24hPassed(Date.now() > targetTime);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [event?.played_at, event?.scheduled_at]);
 
   useEffect(() => {
     const channel = supabase
@@ -299,7 +310,6 @@ export default function EventViewPage() {
     currentPlayer.statsStatus === 'pending_approval';
   const mvp = playedSummary.find((item) => item.isMvp) ?? null;
   const boostsApplied = playedSummary.filter((item) => item.boostApplied);
-  const is24hPassed = (event.played_at || event.scheduled_at) && (Date.now() > new Date(event.played_at ?? event.scheduled_at).getTime() + 24 * 60 * 60 * 1000);
 
   return (
     <ImmersiveScreen contentClassName="max-w-md mx-auto space-y-4">

@@ -1,6 +1,7 @@
 import { applyBoostToStats, calculateBoostedOverall, getActiveBoost, getBoostRemainingLabel, isMvpBoost } from '@/lib/boost';
 import type { CurrentBoost, PlayerPosition, PlayerStats } from '@/lib/types';
 import { getCardTier, getTierStyles } from '@/lib/utils/card-tiers';
+import Image from 'next/image';
 
 export function ShareableCard({
   name,
@@ -50,12 +51,12 @@ export function ShareableCard({
 
       <div className="relative z-10 mt-12 flex flex-1 flex-col items-center px-16 text-center">
         <div
-          className={`flex h-[420px] w-[420px] items-center justify-center rounded-full border text-[180px] font-black uppercase overflow-hidden ${
+          className={`relative flex h-[420px] w-[420px] items-center justify-center rounded-full border text-[180px] font-black uppercase overflow-hidden ${
             mvp ? 'border-amber-300/70 bg-amber-300/10 text-amber-200' : 'border-white/10 bg-white/5 text-white/30'
           }`}
         >
           {photoUrl ? (
-            <img src={photoUrl} alt={name} className="h-full w-full object-cover grayscale brightness-90 contrast-125" crossOrigin="anonymous" />
+            <Image src={photoUrl} alt={name} fill sizes="420px" className="object-cover grayscale brightness-90 contrast-125" crossOrigin="anonymous" unoptimized />
           ) : (
             name.slice(0, 1).toUpperCase()
           )}

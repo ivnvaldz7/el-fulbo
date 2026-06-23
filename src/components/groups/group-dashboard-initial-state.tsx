@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, Home } from 'lucide-react';
 import { FloatingPanel } from '@/components/ui/floating-panel';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
@@ -112,14 +113,17 @@ export function GroupDashboardInitialState({
             <div className="mt-4 flex items-center gap-5">
               <Link
                 href={`/groups/${groupId}/players/${currentMvp.mvpPlayer.id}`}
-                className="flex h-16 w-16 shrink-0 items-center justify-center border-2 border-amber-300/50 bg-amber-300/10 text-2xl font-black text-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.2)] hover:opacity-80 transition-opacity"
+                className="relative flex h-16 w-16 shrink-0 items-center justify-center border-2 border-amber-300/50 bg-amber-300/10 text-2xl font-black text-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.2)] hover:opacity-80 transition-opacity"
               >
                 {currentMvp.mvpPlayer.photoUrl ? (
-                  <img
+                  <Image
                     src={currentMvp.mvpPlayer.photoUrl}
                     alt={currentMvp.mvpPlayer.displayName}
-                    className="h-full w-full object-cover grayscale brightness-90 contrast-125"
+                    fill
+                    sizes="64px"
+                    className="object-cover grayscale brightness-90 contrast-125"
                     crossOrigin="anonymous"
+                    unoptimized
                   />
                 ) : (
                   currentMvp.mvpPlayer.displayName.slice(0, 1).toUpperCase()
