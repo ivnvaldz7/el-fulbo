@@ -3,7 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { markAllNotificationsRead } from '@/lib/services/notifications.service';
 
 export async function POST() {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {

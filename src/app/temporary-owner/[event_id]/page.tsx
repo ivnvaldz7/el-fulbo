@@ -5,7 +5,7 @@ import { getMyTemporaryOwnerAssignment } from '@/lib/services/temporary-owners.s
 import { TemporaryOwnerClient } from './temporary-owner-client';
 
 export default async function TemporaryOwnerPage({ params }: { params: { event_id: string } }) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const result = await getMyTemporaryOwnerAssignment(supabase, params.event_id);
 
   if (!result.ok) {

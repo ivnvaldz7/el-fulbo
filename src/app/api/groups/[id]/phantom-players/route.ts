@@ -5,7 +5,7 @@ import { createPhantomPlayer } from '@/lib/services/phantom-player.service';
 import { createPhantomSchema } from '@/lib/validations/phantom-player';
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {

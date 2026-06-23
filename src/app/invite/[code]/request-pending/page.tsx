@@ -14,7 +14,7 @@ function daysAgoLabel(dateIso: string) {
 
 export default async function InviteRequestPendingPage({ params }: { params: { code: string } }) {
   const inviteCode = decodeURIComponent(params.code).toUpperCase();
-  const resolution = await resolveInviteState(createServerSupabaseClient(), inviteCode);
+  const resolution = await resolveInviteState(await createServerSupabaseClient(), inviteCode);
 
   if (!resolution.ok) {
     redirect('/join?error=invalid');

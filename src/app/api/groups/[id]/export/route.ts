@@ -14,7 +14,7 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
-    const userSupabase = createServerSupabaseClient();
+    const userSupabase = await createServerSupabaseClient();
     const { data: { user } } = await userSupabase.auth.getUser();
 
     if (!user) {

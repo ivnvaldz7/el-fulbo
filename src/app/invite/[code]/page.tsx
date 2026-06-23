@@ -12,7 +12,7 @@ import { AppShareButton } from '@/components/share/app-share-button';
 
 export default async function InvitePage({ params }: { params: { code: string } }) {
   const inviteCode = decodeURIComponent(params.code).toUpperCase();
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const resolution = await resolveInviteState(supabase, inviteCode);
 
   if (!resolution.ok) {

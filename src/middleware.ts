@@ -24,7 +24,7 @@ function applyRateLimit(ip: string): boolean {
 
 export async function middleware(request: NextRequest) {
   // Rate Limiting (Simple In-Memory Edge Cache)
-  const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? 'unknown';
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
   if (ip !== 'unknown' && !applyRateLimit(ip)) {
     return new NextResponse('Too Many Requests', { status: 429 });
   }

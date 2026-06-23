@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     return errorResponse({ code: 'VALIDATION_ERROR', message: firstError?.message ?? 'Datos inválidos' }, 400);
   }
 
-  const result = await resolveInviteState(createServerSupabaseClient(), parsed.data.inviteCode);
+  const result = await resolveInviteState(await createServerSupabaseClient(), parsed.data.inviteCode);
 
   if (!result.ok) {
     return NextResponse.json(result, { status: 400 });

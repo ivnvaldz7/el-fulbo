@@ -11,7 +11,7 @@ export default async function OnboardingStatsPage({
   params: { id: string };
   searchParams?: { as?: string };
 }) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const player = await getCurrentUserPlayerInGroup(supabase, params.id);
 
   if (player.ok && player.data.statsStatus === 'approved') {

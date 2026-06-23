@@ -16,7 +16,7 @@ export async function POST(request: Request, { params }: { params: { eventId: st
       { status: 400 }
     );
   }
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   if (typeof body.accept !== 'boolean') {
     return NextResponse.json(

@@ -4,7 +4,7 @@ import { getNotificationPreferences } from '@/lib/services/notifications.service
 import { NotificationSettingsClient } from './notification-settings-client';
 
 export default async function NotificationSettingsPage() {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/welcome');
 

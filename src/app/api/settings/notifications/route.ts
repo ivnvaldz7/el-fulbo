@@ -4,7 +4,7 @@ import { saveNotificationPreferences } from '@/lib/services/notifications.servic
 import type { NotificationPreferences } from '@/lib/services/notifications.service';
 
 export async function POST(request: Request) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {

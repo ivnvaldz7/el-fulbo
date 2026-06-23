@@ -3,7 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { errorResponse, successResponse } from '@/lib/api-helpers';
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {

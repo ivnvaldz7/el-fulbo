@@ -8,7 +8,7 @@ import { getPlayersInGroup } from '@/lib/services/player.service';
 import { RemovePlayerButton } from './remove-player-button';
 
 export default async function GroupPlayersPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

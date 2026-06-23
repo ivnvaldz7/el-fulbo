@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: { eventId: string } },
 ) {
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const eventsService = new EventsService(supabase);
     const result = await eventsService.getEventAttendees(params.eventId);
     if (!result.ok) return errorResponse(result.error);

@@ -6,7 +6,7 @@ import { RecurringClient } from './recurring-client';
 import type { RecurringSchedule } from './recurring-client';
 
 export default async function RecurringSchedulePage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/welcome');
 

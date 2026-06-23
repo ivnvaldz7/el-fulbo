@@ -17,7 +17,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
       { status: 400 }
     );
   }
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   if (!body.action || !body.userId) {
     return NextResponse.json(

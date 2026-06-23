@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   if (!body.taskType || !body.decision || !body.id) {
     return NextResponse.json(

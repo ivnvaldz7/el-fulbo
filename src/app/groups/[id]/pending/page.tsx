@@ -7,7 +7,7 @@ import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { FloatingPanel } from '@/components/ui/floating-panel';
 
 export default async function PendingPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const player = await getCurrentUserPlayerInGroup(supabase, params.id);
 
   if (!player.ok) {

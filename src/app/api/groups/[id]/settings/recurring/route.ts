@@ -9,7 +9,7 @@ import { computeNextOccurrence } from '@/lib/services/create-event-from-schedule
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const result = await getRecurringSchedules(supabase, params.id);
 
     if (!result.ok) return errorResponse(result.error, 400);
@@ -21,7 +21,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const body = await req.json();
 
     const result = await createRecurringSchedule(supabase, params.id, body);
@@ -93,7 +93,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { searchParams } = new URL(req.url);
     const scheduleId = searchParams.get('scheduleId');
 

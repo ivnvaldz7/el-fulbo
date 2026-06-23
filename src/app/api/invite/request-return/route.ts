@@ -5,7 +5,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   const body = (await safeJson(request)) as { inviteCode?: string; message?: string | null };
-  const result = await createReintegrationRequest(createServerSupabaseClient(), {
+  const result = await createReintegrationRequest(await createServerSupabaseClient(), {
     inviteCode: body.inviteCode ?? '',
     message: body.message ?? null,
   });

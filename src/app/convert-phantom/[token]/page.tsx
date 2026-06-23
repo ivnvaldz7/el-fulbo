@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default async function ConvertPhantomPage({ params }: Props) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   const tokenResult = await getTokenInfo(supabase, params.token);

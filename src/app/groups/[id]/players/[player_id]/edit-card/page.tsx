@@ -8,7 +8,7 @@ export default async function EditPlayerCardPage({
 }: {
   params: { id: string; player_id: string };
 }) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

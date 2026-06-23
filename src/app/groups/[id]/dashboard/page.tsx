@@ -6,7 +6,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { CurrentBoost, PlayerPosition, PlayerStats } from '@/lib/types';
 
 export default async function GroupDashboardPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -174,7 +174,7 @@ export default async function GroupDashboardPage({ params }: { params: { id: str
  * Also uses the already-fetched mvp_player_id to skip re-fetching events.
  */
 async function getBatchRecentEvents(
-  supabase: ReturnType<typeof createServerSupabaseClient>,
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
   playedEvents: {
     id: string | number;
     field_name: string | number | null;

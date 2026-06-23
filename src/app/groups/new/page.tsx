@@ -5,7 +5,7 @@ import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { FloatingPanel } from '@/components/ui/floating-panel';
 
 export default async function NewGroupPage() {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
   return (

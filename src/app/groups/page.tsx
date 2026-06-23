@@ -8,7 +8,7 @@ import { DeleteGroupButton } from '@/components/groups/delete-group-button';
 import { AppShareButton } from '@/components/share/app-share-button';
 
 export default async function GroupsHubPage() {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
