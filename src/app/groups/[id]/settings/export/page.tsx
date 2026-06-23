@@ -2,7 +2,8 @@ import { redirect } from 'next/navigation';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { ExportPageClient } from './export-page-client';
 
-export default async function ExportPage({ params }: { params: { id: string } }) {
+export default async function ExportPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/welcome');

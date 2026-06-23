@@ -6,7 +6,8 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { FloatingPanel } from '@/components/ui/floating-panel';
 
-export default async function PendingPage({ params }: { params: { id: string } }) {
+export default async function PendingPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = await createServerSupabaseClient();
   const player = await getCurrentUserPlayerInGroup(supabase, params.id);
 

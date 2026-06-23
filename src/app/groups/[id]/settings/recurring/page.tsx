@@ -5,7 +5,8 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { RecurringClient } from './recurring-client';
 import type { RecurringSchedule } from './recurring-client';
 
-export default async function RecurringSchedulePage({ params }: { params: { id: string } }) {
+export default async function RecurringSchedulePage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/welcome');

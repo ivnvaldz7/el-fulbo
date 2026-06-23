@@ -4,8 +4,9 @@ import { completeConversion } from '@/lib/services/phantom-player.service';
 
 export async function POST(
   _request: Request,
-  { params }: { params: { token: string } },
+  { params }: { params: Promise<{ token: string }> },
 ) {
+  const { token } = await params;
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -16,7 +17,7 @@ export async function POST(
     );
   }
 
-  const result = await completeConversion(supabase, params.token);
+  const result = await completeConversion(supabase, token);
 
   if (!result.ok) {
     return NextResponse.json(result, { status: 400 });

@@ -1,9 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Space+Grotesk:wght@300..700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-pitch-green: #22c55e;
+  --color-absolute-dark: #0a0a0a;
+  --color-concrete-overlay: #1a1a1a;
+
+  --color-fulbo-bg: #0a0a0a;
+  --color-fulbo-panel: #1a1a1a;
+  --color-fulbo-cta: #22c55e;
+  --color-fulbo-accent: #f59e0b;
+  --color-fulbo-text: #ffffff;
+  --color-fulbo-muted: #869585;
+
+  --font-sans: "Lexend", system-ui, sans-serif;
+  --font-mono: "Space Grotesk", monospace;
+  --font-headline: "Lexend", sans-serif;
+
+  --radius-card: 0px;
+  --radius-panel: 0px;
+
+  --border-width-3: 3px;
+}
 
 :root {
   color-scheme: dark;

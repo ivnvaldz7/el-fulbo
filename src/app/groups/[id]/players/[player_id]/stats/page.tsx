@@ -3,11 +3,12 @@ import { PlayerStatsView } from '@/components/players/player-stats-view';
 import { fetchPlayerStats } from '@/lib/services/player-stats.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
-export default async function PlayerStatsPage({
-  params,
-}: {
-  params: { id: string; player_id: string };
-}) {
+interface PageProps {
+  params: Promise<{ id: string; player_id: string }>;
+}
+
+export default async function PlayerStatsPage(props: PageProps) {
+  const params = await props.params;
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },

@@ -8,7 +8,8 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getPlayersInGroup } from '@/lib/services/player.service';
 import { RemovePlayerButton } from './remove-player-button';
 
-export default async function GroupPlayersPage({ params }: { params: { id: string } }) {
+export default async function GroupPlayersPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },

@@ -10,9 +10,8 @@ import {
 import { handleApiError, errorResponse } from '@/lib/api-helpers';
 
 export async function GET(
-  _request: Request,
-  { params }: { params: { id: string } },
-) {
+  _request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const userSupabase = await createServerSupabaseClient();
     const { data: { user } } = await userSupabase.auth.getUser();

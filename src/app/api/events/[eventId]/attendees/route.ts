@@ -4,9 +4,8 @@ import { EventsService } from '@/lib/services/events.service';
 import { handleApiError, successResponse, errorResponse } from '@/lib/api-helpers';
 
 export async function GET(
-  _request: Request,
-  { params }: { params: { eventId: string } },
-) {
+  _request: Request, props: { params: Promise<{ eventId: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createServerSupabaseClient();
     const eventsService = new EventsService(supabase);

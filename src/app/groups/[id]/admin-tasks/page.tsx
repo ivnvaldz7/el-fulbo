@@ -66,7 +66,8 @@ function TaskSection({
   );
 }
 
-export default async function AdminTasksPage({ params }: { params: { id: string } }) {
+export default async function AdminTasksPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = await createServerSupabaseClient();
   const [detail, phantomsResult] = await Promise.all([
     getAdminTasksDetail(supabase, params.id),

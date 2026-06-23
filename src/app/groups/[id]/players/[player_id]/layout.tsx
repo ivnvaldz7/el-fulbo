@@ -4,13 +4,9 @@ import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
-export default async function PlayerProfileLayout({
-  children,
-  params,
-}: {
-  children: React.ReactNode;
-  params: { id: string; player_id: string };
-}) {
+export default async function PlayerProfileLayout(props: { children: React.ReactNode; params: Promise<{ id: string; player_id: string }> }) {
+  const { children } = props;
+  const params = await props.params;
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
