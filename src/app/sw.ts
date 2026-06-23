@@ -36,7 +36,6 @@ self.addEventListener('notificationclick', (event) => {
   const notificationEvent = event as NotificationEvent;
   notificationEvent.notification.close();
   // clients is a ServiceWorkerGlobalScope API — only available in webworker context
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ctx = self as any;
   event.waitUntil(
     ctx.clients.matchAll({ type: 'window' }).then((windowClients: any[]) => {
