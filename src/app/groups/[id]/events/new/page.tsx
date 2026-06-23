@@ -49,43 +49,28 @@ export default function NewEventPage() {
   const CREATE_EVENT_DRAFT_KEY = `event-draft-${groupId}`;
   const { dateString: defaultDate, timeString: defaultTime } = getNextSaturday20h();
 
-  const [date, setDate] = useState(defaultDate);
-  const [time, setTime] = useState(defaultTime);
-  const [modality, setModality] = useState<EventModality>('F5');
-  const [locationName, setLocationName] = useState('');
-  const [googleMapsLink, setGoogleMapsLink] = useState('');
-  const [notes, setNotes] = useState('');
+  const [draftState] = useState(() => {
+    if (typeof window !== 'undefined' && groupId) {
+      const stored = window.localStorage.getItem(`event-draft-${groupId}`);
+      if (stored) {
+        try {
+          return JSON.parse(stored) as CreateEventData;
+        } catch {
+          window.localStorage.removeItem(`event-draft-${groupId}`);
+        }
+      }
+    }
+    return {} as Partial<CreateEventData>;
+  });
+
+  const [date, setDate] = useState(draftState.date ?? defaultDate);
+  const [time, setTime] = useState(draftState.time ?? defaultTime);
+  const [modality, setModality] = useState<EventModality>(draftState.modality ?? 'F5');
+  const [locationName, setLocationName] = useState(draftState.locationName ?? '');
+  const [googleMapsLink, setGoogleMapsLink] = useState(draftState.googleMapsLink ?? '');
+  const [notes, setNotes] = useState(draftState.notes ?? '');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!groupId) return; // Wait until groupId is available
-
-    const stored = window.localStorage.getItem(CREATE_EVENT_DRAFT_KEY);
-    if (!stored) {
-      // If no draft, ensure default values are set
-      setDate(defaultDate);
-      setTime(defaultTime);
-      setModality('F5'); // Default modality
-      return;
-    }
-
-    try {
-      const draft = JSON.parse(stored) as CreateEventData;
-      setDate(draft.date ?? defaultDate);
-      setTime(draft.time ?? defaultTime);
-      setModality(draft.modality ?? 'F5');
-      setLocationName(draft.locationName ?? '');
-      setGoogleMapsLink(draft.googleMapsLink ?? '');
-      setNotes(draft.notes ?? '');
-    } catch {
-      window.localStorage.removeItem(CREATE_EVENT_DRAFT_KEY);
-      // Fallback to default values on error
-      setDate(defaultDate);
-      setTime(defaultTime);
-      setModality('F5');
-    }
-  }, [groupId, CREATE_EVENT_DRAFT_KEY, defaultDate, defaultTime]);
 
   useEffect(() => {
     if (!groupId) return; // Wait until groupId is available

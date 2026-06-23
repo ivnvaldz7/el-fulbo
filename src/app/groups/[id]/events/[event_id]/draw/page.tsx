@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { drawTeams } from '@/lib/draw';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
@@ -22,51 +23,49 @@ export default function EventDrawPage() {
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const eventsService = useMemo(() => new EventsService(supabase), [supabase]);
 
-  const [event, setEvent] = useState<Event | null>(null);
-  const [result, setResult] = useState<DrawResult | null>(null);
-  const [seed, setSeed] = useState('');
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['event-draw', eventId],
+    queryFn: async () => {
+      const [eventResult, playersResult] = await Promise.all([
+        eventsService.getEventById(eventId),
+        eventsService.getDrawPlayers(eventId),
+      ]);
+
+      if (!eventResult.ok) throw new Error(eventResult.error.message);
+      if (!playersResult.ok) throw new Error(playersResult.error.message);
+
+      return {
+        event: eventResult.data,
+        players: playersResult.data,
+      };
+    },
+  });
+
+  const [seed, setSeed] = useState(() => buildSeed());
   const [saving, setSaving] = useState(false);
   const [teamAName, setTeamAName] = useState('Equipo A');
   const [teamBName, setTeamBName] = useState('Equipo B');
-  const [playerNames, setPlayerNames] = useState<Record<string, string>>({});
 
-  async function runDraw(nextSeed = buildSeed()) {
-    const [eventResult, playersResult] = await Promise.all([
-      eventsService.getEventById(eventId),
-      eventsService.getDrawPlayers(eventId),
-    ]);
+  const event = data?.event ?? null;
 
-    if (!eventResult.ok) throw new Error(eventResult.error.message);
-    if (!playersResult.ok) throw new Error(playersResult.error.message);
-
-    const nextEvent = eventResult.data;
-    const players = playersResult.data;
-
-    const nextResult = drawTeams({
-      modality: nextEvent.modality,
+  const result = useMemo(() => {
+    const players = data?.players ?? [];
+    if (!event || players.length === 0) return null;
+    return drawTeams({
+      modality: event.modality,
       players,
-      seed: nextSeed,
+      seed,
     });
+  }, [event, data?.players, seed]);
 
-    setEvent(nextEvent);
-    setSeed(nextSeed);
-    setResult(nextResult);
-    setPlayerNames(
-      Object.fromEntries(players.map((player) => [player.id, player.display_name])),
-    );
-    setLoading(false);
+  const playerNames = useMemo(() => {
+    const players = data?.players ?? [];
+    return Object.fromEntries(players.map((player) => [player.id, player.display_name]));
+  }, [data?.players]);
+
+  function runDraw() {
+    setSeed(buildSeed());
   }
-
-  useEffect(() => {
-    void runDraw().catch((error) => {
-      console.error(error);
-      toast.error('No pudimos preparar el sorteo.');
-      setLoading(false);
-    });
-    // runDraw se define inline y cambia en cada render — incluirla causaría loop infinito
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId, eventsService]);
 
   async function handleConfirm() {
     if (!result) {
@@ -190,7 +189,7 @@ export default function EventDrawPage() {
         <div className="grid gap-3 md:grid-cols-2">
           <button
             type="button"
-            onClick={() => void runDraw()}
+            onClick={runDraw}
             disabled={saving}
             className="border border-white/10 bg-white/[0.06] px-4 py-4 font-headline text-xl font-black italic uppercase"
           >

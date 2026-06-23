@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { getTeamSize, type Event, type EventId, type GroupId } from '@/lib/types';
@@ -23,16 +24,11 @@ export default function EventCheckInPage() {
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const eventsService = useMemo(() => new EventsService(supabase), [supabase]);
 
-  const [event, setEvent] = useState<Event | null>(null);
-  const [attendees, setAttendees] = useState<EventAttendee[]>([]);
-  const [isAdminOrOwner, setIsAdminOrOwner] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [showPhantomModal, setShowPhantomModal] = useState(false);
+  const queryClient = useQueryClient();
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['event-checkin', eventId],
+    queryFn: async () => {
       const eventResult = await eventsService.getEventById(eventId);
       if (!eventResult.ok) throw new Error(eventResult.error.message);
       const nextEvent = eventResult.data;
@@ -45,20 +41,20 @@ export default function EventCheckInPage() {
       if (!attendeesResult.ok) throw new Error(attendeesResult.error.message);
       if (!adminResult.ok) throw new Error(adminResult.error.message);
 
-      setEvent(nextEvent);
-      setAttendees(attendeesResult.data.filter((attendee) => attendee.status !== 'not_going'));
-      setIsAdminOrOwner(adminResult.data);
-    } catch (error) {
-      console.error(error);
-      toast.error('No pudimos cargar el check-in.');
-    } finally {
-      setLoading(false);
-    }
-  }, [eventId, eventsService]);
+      return {
+        event: nextEvent,
+        attendees: attendeesResult.data.filter((attendee) => attendee.status !== 'not_going'),
+        isAdminOrOwner: adminResult.data,
+      };
+    },
+  });
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const event = data?.event ?? null;
+  const attendees = data?.attendees ?? [];
+  const isAdminOrOwner = data?.isAdminOrOwner ?? false;
+
+  const [saving, setSaving] = useState(false);
+  const [showPhantomModal, setShowPhantomModal] = useState(false);
 
   useEffect(() => {
     const channel = supabase
@@ -66,14 +62,14 @@ export default function EventCheckInPage() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'event_attendances', filter: `event_id=eq.${eventId}` },
-        () => void load(),
+        () => void queryClient.invalidateQueries({ queryKey: ['event-checkin', eventId] }),
       )
       .subscribe();
 
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [eventId, load, supabase]);
+  }, [eventId, queryClient, supabase]);
 
   const checkedCount = attendees.filter((attendee) => attendee.checkedIn).length;
   const minimumPlayers = event ? getTeamSize(event.modality) * 2 : 0;
@@ -88,7 +84,7 @@ export default function EventCheckInPage() {
         checkedIn,
       });
       if (!result.ok) throw new Error(result.error.message);
-      await load();
+      await queryClient.invalidateQueries({ queryKey: ['event-checkin', eventId] });
     } catch (error) {
       console.error(error);
       toast.error('No pudimos actualizar el check-in.');
@@ -102,7 +98,7 @@ export default function EventCheckInPage() {
     try {
       const result = await eventsService.markAllGoingCheckedIn(eventId);
       if (!result.ok) throw new Error(result.error.message);
-      await load();
+      await queryClient.invalidateQueries({ queryKey: ['event-checkin', eventId] });
     } catch (error) {
       console.error(error);
       toast.error("No pudimos marcar todos los 'voy'.");
@@ -188,7 +184,7 @@ export default function EventCheckInPage() {
             groupId={groupId}
             eventId={eventId}
             onClose={() => setShowPhantomModal(false)}
-            onCreated={() => { setShowPhantomModal(false); void load(); }}
+            onCreated={() => { setShowPhantomModal(false); void queryClient.invalidateQueries({ queryKey: ['event-checkin', eventId] }); }}
           />
         )}
 

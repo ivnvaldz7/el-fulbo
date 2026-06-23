@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import EventAttendeesList from '@/components/EventAttendeesList/EventAttendeesList';
 import { ShareMatchSummaryButton } from '@/components/share/share-match-summary-button';
@@ -90,40 +91,11 @@ export default function EventViewPage() {
 
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const eventsService = useMemo(() => new EventsService(supabase), [supabase]);
+  const queryClient = useQueryClient();
 
-  const [event, setEvent] = useState<Event | null>(null);
-  const [groupName, setGroupName] = useState('El Fulbo');
-  const [attendees, setAttendees] = useState<EventAttendee[]>([]);
-  const [currentPlayer, setCurrentPlayer] = useState<CurrentPlayerAttendanceContext | null>(null);
-  const [playedSummary, setPlayedSummary] = useState<PlayedMatchSummaryItem[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState<AttendanceStatus | null>(null);
-  const [isAdminOrOwner, setIsAdminOrOwner] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [savingAttendance, setSavingAttendance] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-
-  const refreshAttendees = useCallback(async () => {
-    if (!event) return;
-    const [attendeesResult, playerResult] = await Promise.all([
-      eventsService.getEventAttendees(eventId),
-      eventsService.getCurrentPlayerAttendanceContext(event.group_id, eventId),
-    ]);
-    if (!attendeesResult.ok || !playerResult.ok) return;
-    setAttendees(attendeesResult.data);
-    setCurrentPlayer(playerResult.data);
-    if (playerResult.data) {
-      setSelectedStatus(playerResult.data.attendanceStatus);
-    }
-  }, [eventId, eventsService, event]);
-
-  const [hasVotedForMvp, setHasVotedForMvp] = useState(false);
-
-  const loadEvent = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
+  const { data, isLoading: loading, error } = useQuery({
+    queryKey: ['event', eventId],
+    queryFn: async () => {
       const eventResult = await eventsService.getEventById(eventId);
       if (!eventResult.ok) throw new Error(eventResult.error.message);
       const eventData = eventResult.data;
@@ -139,45 +111,48 @@ export default function EventViewPage() {
       if (!playerResult.ok) throw new Error(playerResult.error.message);
       if (!adminResult.ok) throw new Error(adminResult.error.message);
 
-      const nextAttendees = attendeesResult.data;
-      const nextCurrentPlayer = playerResult.data;
-      const nextIsAdminOrOwner = adminResult.data;
+      let playedSummary: PlayedMatchSummaryItem[] = [];
+      let hasVotedForMvp = false;
 
-      setEvent(eventData);
-      setGroupName(groupResponse.data?.name ?? 'El Fulbo');
-      setAttendees(nextAttendees);
-      setCurrentPlayer(nextCurrentPlayer);
-      setSelectedStatus(nextCurrentPlayer?.attendanceStatus ?? null);
-      setIsAdminOrOwner(nextIsAdminOrOwner);
       if (eventData.status === 'played') {
         const summaryResult = await eventsService.getPlayedMatchSummary(eventId);
         if (!summaryResult.ok) throw new Error(summaryResult.error.message);
-        setPlayedSummary(summaryResult.data);
-        
-        if (nextCurrentPlayer && !eventData.mvp_player_id) {
+        playedSummary = summaryResult.data;
+
+        if (playerResult.data && !eventData.mvp_player_id) {
           const { data: vote } = await supabase
             .from('event_mvp_votes')
             .select('voter_player_id')
             .eq('event_id', eventId)
-            .eq('voter_player_id', nextCurrentPlayer.playerId)
+            .eq('voter_player_id', playerResult.data.playerId)
             .maybeSingle();
-          setHasVotedForMvp(!!vote);
+          hasVotedForMvp = !!vote;
         }
-      } else {
-        setPlayedSummary([]);
       }
-    } catch (loadError) {
-      console.error(loadError);
-      setError('No pudimos cargar el partido.');
-      toast.error('No pudimos cargar el partido.');
-    } finally {
-      setLoading(false);
-    }
-  }, [eventId, eventsService, supabase]);
 
-  useEffect(() => {
-    void loadEvent();
-  }, [loadEvent]);
+      return {
+        event: eventData,
+        groupName: groupResponse.data?.name ?? 'El Fulbo',
+        attendees: attendeesResult.data,
+        currentPlayer: playerResult.data,
+        isAdminOrOwner: adminResult.data,
+        playedSummary,
+        hasVotedForMvp,
+      };
+    },
+  });
+
+  const event = data?.event ?? null;
+  const groupName = data?.groupName ?? 'El Fulbo';
+  const attendees = data?.attendees ?? [];
+  const currentPlayer = data?.currentPlayer ?? null;
+  const playedSummary = data?.playedSummary ?? [];
+  const isAdminOrOwner = data?.isAdminOrOwner ?? false;
+  const hasVotedForMvp = data?.hasVotedForMvp ?? false;
+  const selectedStatus = currentPlayer?.attendanceStatus ?? null;
+
+  const [savingAttendance, setSavingAttendance] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   useEffect(() => {
     const channel = supabase
@@ -191,7 +166,7 @@ export default function EventViewPage() {
           filter: `event_id=eq.${eventId}`,
         },
         () => {
-          void refreshAttendees();
+          void queryClient.invalidateQueries({ queryKey: ['event', eventId] });
         },
       )
       .subscribe();
@@ -199,7 +174,7 @@ export default function EventViewPage() {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [eventId, refreshAttendees, supabase]);
+  }, [eventId, queryClient, supabase]);
 
   async function handleAttendanceChange(nextStatus: AttendanceStatus) {
     if (!event || !currentPlayer) {
@@ -210,8 +185,8 @@ export default function EventViewPage() {
       return;
     }
 
-    const previousStatus = selectedStatus;
-    const previousAttendees = attendees;
+    const previousData = queryClient.getQueryData(['event', eventId]);
+
     const optimisticAttendee: EventAttendee = {
       playerId: currentPlayer.playerId,
       userId: currentPlayer.userId,
@@ -227,18 +202,25 @@ export default function EventViewPage() {
     };
 
     setSavingAttendance(true);
-    setSelectedStatus(nextStatus);
-    setAttendees((current) => {
-      const existingIndex = current.findIndex((attendee) => attendee.playerId === currentPlayer.playerId);
-      if (existingIndex === -1) {
-        return [...current, optimisticAttendee];
-      }
 
-      return current.map((attendee) =>
-        attendee.playerId === currentPlayer.playerId
-          ? { ...attendee, status: nextStatus, checkedIn: false, checkedInAt: null }
-          : attendee,
-      );
+    queryClient.setQueryData(['event', eventId], (oldData: any) => {
+      if (!oldData) return oldData;
+      
+      const current = oldData.attendees as EventAttendee[];
+      const existingIndex = current.findIndex((attendee) => attendee.playerId === currentPlayer.playerId);
+      const newAttendees = existingIndex === -1 
+        ? [...current, optimisticAttendee]
+        : current.map((attendee) =>
+            attendee.playerId === currentPlayer.playerId
+              ? { ...attendee, status: nextStatus, checkedIn: false, checkedInAt: null }
+              : attendee
+          );
+
+      return {
+        ...oldData,
+        currentPlayer: { ...oldData.currentPlayer, attendanceStatus: nextStatus },
+        attendees: newAttendees,
+      };
     });
 
     try {
@@ -248,20 +230,11 @@ export default function EventViewPage() {
       });
       if (!result.ok) throw new Error(result.error.message);
 
-      setCurrentPlayer((value) =>
-        value
-          ? {
-              ...value,
-              attendanceStatus: nextStatus,
-            }
-          : value,
-      );
       toast.success('Guardamos tu respuesta.');
-      void refreshAttendees();
+      void queryClient.invalidateQueries({ queryKey: ['event', eventId] });
     } catch (updateError: any) {
       console.error(updateError);
-      setSelectedStatus(previousStatus);
-      setAttendees(previousAttendees);
+      queryClient.setQueryData(['event', eventId], previousData);
       toast.error(updateError?.message ?? 'No pudimos guardar tu respuesta, reintentá.');
     } finally {
       setSavingAttendance(false);
@@ -496,9 +469,7 @@ export default function EventViewPage() {
                   currentPlayerId={currentPlayer?.playerId ?? null}
                   playedSummary={playedSummary}
                   onVoteSubmitted={() => {
-                    setHasVotedForMvp(true);
-                    // Also reload to check if voting closed
-                    void loadEvent();
+                    void queryClient.invalidateQueries({ queryKey: ['event', eventId] });
                   }}
                 />
               )

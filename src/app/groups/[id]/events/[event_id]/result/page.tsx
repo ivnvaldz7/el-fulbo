@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { useQuery } from '@tanstack/react-query';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { EventsService, type DrawTeamSummary } from '@/lib/services/events.service';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
-import type { Event, EventId, GroupId, PlayerId } from '@/lib/types';
+import type { EventId, GroupId, PlayerId } from '@/lib/types';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 
@@ -29,32 +30,9 @@ export default function EventResultPage() {
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const eventsService = useMemo(() => new EventsService(supabase), [supabase]);
 
-  const [event, setEvent] = useState<Event | null>(null);
-  const [teams, setTeams] = useState<DrawTeamSummary[]>([]);
-  const [isAdminOrOwner, setIsAdminOrOwner] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [teamAScore, setTeamAScore] = useState(0);
-  const [teamBScore, setTeamBScore] = useState(0);
-  const [mvpPlayerId, setMvpPlayerId] = useState<PlayerId | null>(null);
-  const [notes, setNotes] = useState('');
-  const [draftLoaded, setDraftLoaded] = useState(false);
-
-  const participants = useMemo(
-    () =>
-      teams.flatMap((team) =>
-        team.players.map((player) => ({
-          ...player,
-          teamName: team.name,
-        })),
-      ),
-    [teams],
-  );
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['event-result', eventId],
+    queryFn: async () => {
       const eventResult = await eventsService.getEventById(eventId);
       if (!eventResult.ok) throw new Error(eventResult.error.message);
       const nextEvent = eventResult.data;
@@ -67,60 +45,70 @@ export default function EventResultPage() {
       if (!teamsResult.ok) throw new Error(teamsResult.error.message);
       if (!adminResult.ok) throw new Error(adminResult.error.message);
 
-      setEvent(nextEvent);
-      setTeams(teamsResult.data);
-      setIsAdminOrOwner(adminResult.data);
-    } catch (error) {
-      console.error(error);
-      toast.error('No pudimos cargar el resultado.');
-    } finally {
-      setLoading(false);
+      return {
+        event: nextEvent,
+        teams: teamsResult.data,
+        isAdminOrOwner: adminResult.data,
+      };
+    },
+    meta: {
+      errorMessage: 'No pudimos cargar el resultado.',
+    },
+  });
+
+  const event = data?.event ?? null;
+  const isAdminOrOwner = data?.isAdminOrOwner ?? false;
+
+  const [draftState] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const raw = window.localStorage.getItem(getDraftKey(eventId));
+      if (raw) {
+        try {
+          return { draft: JSON.parse(raw) as DraftState, hasDraft: true };
+        } catch {
+          window.localStorage.removeItem(getDraftKey(eventId));
+        }
+      }
     }
-  }, [eventId, eventsService]);
+    return { hasDraft: false, draft: undefined };
+  });
+
+  const [saving, setSaving] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [teamAScore, setTeamAScore] = useState(draftState.draft?.teamAScore ?? 0);
+  const [teamBScore, setTeamBScore] = useState(draftState.draft?.teamBScore ?? 0);
+  const [mvpPlayerId, setMvpPlayerId] = useState<PlayerId | null>(draftState.draft?.mvpPlayerId ?? null);
+  const [notes, setNotes] = useState(draftState.draft?.notes ?? '');
+
+  const participants = useMemo(() => {
+    const teams = data?.teams ?? [];
+    return teams.flatMap((team) =>
+      team.players.map((player) => ({
+        ...player,
+        teamName: team.name,
+      })),
+    );
+  }, [data?.teams]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
-
-  useEffect(() => {
-    if (draftLoaded || typeof window === 'undefined') {
-      return;
-    }
-
-    const raw = window.localStorage.getItem(getDraftKey(eventId));
-    if (!raw) {
-      setDraftLoaded(true);
-      return;
-    }
-
-    try {
-      const draft = JSON.parse(raw) as DraftState;
-      setTeamAScore(draft.teamAScore ?? 0);
-      setTeamBScore(draft.teamBScore ?? 0);
-      setMvpPlayerId(draft.mvpPlayerId ?? null);
-      setNotes(draft.notes ?? '');
+    if (draftState.hasDraft) {
       toast.success('Retomamos el resultado que estabas cargando');
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setDraftLoaded(true);
     }
-  }, [draftLoaded, eventId]);
+  }, [draftState.hasDraft]);
 
   useEffect(() => {
-    if (!draftLoaded || typeof window === 'undefined') {
-      return;
-    }
-
-    const draft: DraftState = {
-      teamAScore,
-      teamBScore,
-      mvpPlayerId,
-      notes,
-    };
-
-    window.localStorage.setItem(getDraftKey(eventId), JSON.stringify(draft));
-  }, [draftLoaded, eventId, mvpPlayerId, notes, teamAScore, teamBScore]);
+    if (typeof window === 'undefined') return;
+    const handler = setTimeout(() => {
+      const draft: DraftState = {
+        teamAScore,
+        teamBScore,
+        mvpPlayerId,
+        notes,
+      };
+      window.localStorage.setItem(getDraftKey(eventId), JSON.stringify(draft));
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [eventId, mvpPlayerId, notes, teamAScore, teamBScore]);
 
   function validateBeforeConfirm() {
     if (teamAScore < 0 || teamAScore > 99 || teamBScore < 0 || teamBScore > 99) {

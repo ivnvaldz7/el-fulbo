@@ -20,17 +20,13 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
 export type PermissionState = 'default' | 'granted' | 'denied' | 'unsupported';
 
 export function usePushSubscription() {
-  const [permission, setPermission] = useState<PermissionState>('default');
+  const [permission, setPermission] = useState<PermissionState>(() => {
+    if (typeof window === 'undefined') return 'default';
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) return 'unsupported';
+    return Notification.permission as PermissionState;
+  });
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-      setPermission('unsupported');
-      return;
-    }
-    setPermission(Notification.permission as PermissionState);
-  }, []);
 
   const subscribe = useCallback(async (): Promise<boolean> => {
     if (!('serviceWorker' in navigator) || !VAPID_PUBLIC_KEY) return false;

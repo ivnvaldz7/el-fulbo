@@ -39,18 +39,6 @@ export default function EventForm({
   const [fieldMapsUrl, setFieldMapsUrl] = useState(initialData?.field_maps_url ?? '');
   const [notes, setNotes] = useState(initialData?.notes ?? '');
 
-  useEffect(() => {
-    if (!initialData) {
-      return;
-    }
-
-    setFieldName(initialData.field_name);
-    setScheduledAt(toInputDateTime(initialData.scheduled_at));
-    setModality(initialData.modality);
-    setFieldMapsUrl(initialData.field_maps_url ?? '');
-    setNotes(initialData.notes ?? '');
-  }, [initialData]);
-
   const preview = useMemo<Event>(() => {
     const base = initialData ?? {
       id: '',

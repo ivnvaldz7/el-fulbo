@@ -82,24 +82,30 @@ export function OnboardingWizard({
 }) {
   const router = useRouter();
   const storageKey = getOnboardingDraftKey(groupId);
-  const [draft, setDraft] = useState<Draft>(initialDraft);
-  const [message, setMessage] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [showSecondary, setShowSecondary] = useState(false);
 
-  useEffect(() => {
-    const stored = window.localStorage.getItem(storageKey);
-    if (!stored) return;
-
-    try {
-      const parsed = JSON.parse(stored) as Draft;
-      setDraft(parsed);
-      setShowSecondary(Boolean(parsed.secondaryPosition));
-      setMessage('Retomamos donde te quedaste');
-    } catch {
-      window.localStorage.removeItem(storageKey);
+  const [draftState] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = window.localStorage.getItem(storageKey);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as Draft;
+          return { draft: parsed, hasDraft: true };
+        } catch {
+          window.localStorage.removeItem(storageKey);
+        }
+      }
     }
-  }, [storageKey]);
+    return { draft: initialDraft(), hasDraft: false };
+  });
+
+  const [draft, setDraft] = useState<Draft>(draftState.draft);
+  const [message, setMessage] = useState<string | null>(
+    draftState.hasDraft ? 'Retomamos donde te quedaste' : null
+  );
+  const [submitting, setSubmitting] = useState(false);
+  const [showSecondary, setShowSecondary] = useState(Boolean(draftState.draft.secondaryPosition));
+
+
 
   useEffect(() => {
     window.localStorage.setItem(storageKey, JSON.stringify(draft));
