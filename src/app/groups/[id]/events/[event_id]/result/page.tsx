@@ -14,7 +14,6 @@ import { PageHeader } from '@/components/ui/page-header';
 type DraftState = {
   teamAScore: number;
   teamBScore: number;
-  mvpPlayerId: PlayerId | null;
   notes: string;
 };
 
@@ -77,18 +76,7 @@ export default function EventResultPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [teamAScore, setTeamAScore] = useState(draftState.draft?.teamAScore ?? 0);
   const [teamBScore, setTeamBScore] = useState(draftState.draft?.teamBScore ?? 0);
-  const [mvpPlayerId, setMvpPlayerId] = useState<PlayerId | null>(draftState.draft?.mvpPlayerId ?? null);
   const [notes, setNotes] = useState(draftState.draft?.notes ?? '');
-
-  const participants = useMemo(() => {
-    const teams = data?.teams ?? [];
-    return teams.flatMap((team) =>
-      team.players.map((player) => ({
-        ...player,
-        teamName: team.name,
-      })),
-    );
-  }, [data?.teams]);
 
   useEffect(() => {
     if (draftState.hasDraft) {
@@ -102,22 +90,16 @@ export default function EventResultPage() {
       const draft: DraftState = {
         teamAScore,
         teamBScore,
-        mvpPlayerId,
         notes,
       };
       window.localStorage.setItem(getDraftKey(eventId), JSON.stringify(draft));
     }, 500);
     return () => clearTimeout(handler);
-  }, [eventId, mvpPlayerId, notes, teamAScore, teamBScore]);
+  }, [eventId, notes, teamAScore, teamBScore]);
 
   function validateBeforeConfirm() {
     if (teamAScore < 0 || teamAScore > 99 || teamBScore < 0 || teamBScore > 99) {
       toast.error('El score tiene que estar entre 0 y 99.');
-      return false;
-    }
-
-    if (mvpPlayerId && !participants.some((player) => player.playerId === mvpPlayerId)) {
-      toast.error('Elegí un MVP que haya jugado.');
       return false;
     }
 
@@ -140,7 +122,7 @@ export default function EventResultPage() {
         eventId,
         teamAScore,
         teamBScore,
-        mvpPlayerId,
+        mvpPlayerId: null,
         notes: notes.trim() || null,
       });
       if (!result.ok) throw new Error(result.error.message);
@@ -290,35 +272,6 @@ export default function EventResultPage() {
           ) : null}
         </section>
 
-        <section className="border border-white/10 bg-concrete-overlay p-5">
-          <h2 className="font-headline text-2xl font-black italic uppercase">¿Quién fue la figura?</h2>
-          <p className="mt-1 text-sm text-white/60">
-            {isAdminOrOwner
-              ? 'Elegí un jugador de cualquier equipo. Si no elegís a nadie, los jugadores podrán votar desde la app.'
-              : 'Votá por el jugador que creés que fue la figura del partido.'}
-          </p>
-
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {participants.map((player) => {
-              const selected = mvpPlayerId === player.playerId;
-              return (
-                <button
-                  key={player.playerId}
-                  type="button"
-                  onClick={() => setMvpPlayerId(player.playerId)}
-                  className={`border px-4 py-3 text-left ${
-                    selected ? 'border-amber-400 bg-amber-400/15' : 'border-white/10 bg-white/[0.04]'
-                  }`}
-                >
-                  <p className="font-semibold text-white break-words">{player.displayName}</p>
-                  <p className="text-xs uppercase tracking-[0.18em] text-white/45">
-                    {player.teamName} · {player.assignedPosition ?? 'SIN POS'}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-        </section>
 
         {isAdminOrOwner ? (
           <>

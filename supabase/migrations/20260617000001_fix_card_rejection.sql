@@ -12,7 +12,7 @@
 --    desaparecen automáticamente
 
 -- 1. Agregar 'rejected' al enum
-alter type public.stats_status add value 'rejected';
+alter type public.stats_status add value if not exists 'rejected';
 
 -- 2. Actualizar reject_initial_stats para que cambie el estado
 create or replace function public.reject_initial_stats(
