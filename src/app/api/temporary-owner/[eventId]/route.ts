@@ -6,7 +6,8 @@ type Body = {
   accept?: boolean;
 };
 
-export async function POST(request: Request, { params }: { params: { eventId: string } }) {
+export async function POST(request: Request, props: { params: Promise<{ eventId: string }> }) {
+  const params = await props.params;
   let body;
   try {
     body = await request.json();

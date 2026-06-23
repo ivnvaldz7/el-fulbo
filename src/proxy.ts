@@ -22,7 +22,7 @@ function applyRateLimit(ip: string): boolean {
   return true;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Rate Limiting (Simple In-Memory Edge Cache)
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
   if (ip !== 'unknown' && !applyRateLimit(ip)) {

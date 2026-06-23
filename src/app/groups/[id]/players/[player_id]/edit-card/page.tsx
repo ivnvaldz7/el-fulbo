@@ -3,11 +3,12 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { EditCardForm } from './edit-card-form';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 
-export default async function EditPlayerCardPage({
-  params,
-}: {
-  params: { id: string; player_id: string };
-}) {
+type PageProps = {
+  params: Promise<{ id: string; player_id: string }>;
+};
+
+export default async function EditPlayerCardPage(props: PageProps) {
+  const params = await props.params;
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },

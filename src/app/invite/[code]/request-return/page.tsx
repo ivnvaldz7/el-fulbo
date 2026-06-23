@@ -6,7 +6,8 @@ import { RequestReturnForm } from './request-return-form';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { FloatingPanel } from '@/components/ui/floating-panel';
 
-export default async function InviteRequestReturnPage({ params }: { params: { code: string } }) {
+export default async function InviteRequestReturnPage(props: { params: Promise<{ code: string }> }) {
+  const params = await props.params;
   const inviteCode = decodeURIComponent(params.code).toUpperCase();
   const resolution = await resolveInviteState(await createServerSupabaseClient(), inviteCode);
 

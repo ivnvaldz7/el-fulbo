@@ -5,9 +5,8 @@ import { initiateConversion } from '@/lib/services/phantom-player.service';
 import { convertPhantomSchema } from '@/lib/validations/phantom-player';
 
 export async function POST(
-  request: Request,
-  { params }: { params: { id: string; playerId: string } },
-) {
+  request: Request, props: { params: Promise<{ id: string; playerId: string }> }) {
+  const params = await props.params;
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
 

@@ -4,10 +4,11 @@ import { getTokenInfo } from '@/lib/services/phantom-player.service';
 import { ConvertPhantomClient } from './convert-phantom-client';
 
 interface Props {
-  params: { token: string };
+  params: Promise<{ token: string }>;
 }
 
-export default async function ConvertPhantomPage({ params }: Props) {
+export default async function ConvertPhantomPage(props: Props) {
+  const params = await props.params;
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
 

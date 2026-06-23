@@ -17,7 +17,8 @@ function timeAgoLabel(dateIso: string) {
   return `${months} mes${months === 1 ? '' : 'es'}`;
 }
 
-export default async function InviteWelcomeBackPage({ params }: { params: { code: string } }) {
+export default async function InviteWelcomeBackPage(props: { params: Promise<{ code: string }> }) {
+  const params = await props.params;
   const inviteCode = decodeURIComponent(params.code).toUpperCase();
   const resolution = await resolveInviteState(await createServerSupabaseClient(), inviteCode);
 

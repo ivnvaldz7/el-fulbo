@@ -4,13 +4,14 @@ import { getCurrentUserPlayerInGroup } from '@/lib/services/player.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { GroupId } from '@/lib/types';
 
-export default async function OnboardingStatsPage({
-  params,
-  searchParams,
-}: {
-  params: { id: string };
-  searchParams?: { as?: string };
-}) {
+interface PageProps {
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ as?: string }>;
+}
+
+export default async function OnboardingStatsPage(props: PageProps) {
+  const params = await props.params;
+  const searchParams = await props.searchParams;
   const supabase = await createServerSupabaseClient();
   const player = await getCurrentUserPlayerInGroup(supabase, params.id);
 

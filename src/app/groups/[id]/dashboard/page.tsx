@@ -5,7 +5,8 @@ import { getCurrentUserPlayerInGroup } from '@/lib/services/player.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { CurrentBoost, PlayerPosition, PlayerStats } from '@/lib/types';
 
-export default async function GroupDashboardPage({ params }: { params: { id: string } }) {
+export default async function GroupDashboardPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },

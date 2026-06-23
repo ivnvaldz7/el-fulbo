@@ -5,7 +5,8 @@ import { OwnersSettingsClient } from './owners-settings-client';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getOwnersSettingsData } from '@/lib/services/owners.service';
 
-export default async function OwnersSettingsPage({ params }: { params: { id: string } }) {
+export default async function OwnersSettingsPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = await createServerSupabaseClient();
   const result = await getOwnersSettingsData(supabase, params.id);
 

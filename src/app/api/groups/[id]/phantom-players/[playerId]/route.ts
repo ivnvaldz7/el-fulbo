@@ -3,9 +3,8 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { deletePhantomPlayer } from '@/lib/services/phantom-player.service';
 
 export async function DELETE(
-  _request: Request,
-  { params }: { params: { id: string; playerId: string } },
-) {
+  _request: Request, props: { params: Promise<{ id: string; playerId: string }> }) {
+  const params = await props.params;
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
 
