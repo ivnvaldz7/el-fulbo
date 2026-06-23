@@ -218,33 +218,77 @@ export default function EventResultPage() {
           <p className="mt-2 text-sm text-white/70">{new Date(event.scheduled_at).toLocaleString('es-AR')}</p>
         </header>
 
-        <section className="border border-white/10 bg-concrete-overlay p-5">
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-            <div>
-              <p className="font-headline text-xl font-black italic uppercase">{event.team_a_name ?? 'Equipo A'}</p>
+        <section className="border border-white/10 bg-concrete-overlay p-5 md:p-8">
+          <div className="flex flex-col gap-10 md:flex-row md:items-center md:justify-center md:gap-16">
+            <div className="flex flex-col items-center gap-4">
+              <p className="font-headline text-2xl font-black italic uppercase text-center text-white max-w-[200px] truncate">{event.team_a_name ?? 'Equipo A'}</p>
+              <div className="flex items-center gap-6 border-2 border-white/10 bg-black/40 px-4 py-2 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setTeamAScore(Math.max(0, teamAScore - 1))}
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-white/5 text-2xl font-bold text-white hover:bg-white/20 active:scale-95 transition-all"
+                >
+                  -
+                </button>
+                <span className="w-16 text-center font-headline text-6xl font-black italic text-white">{teamAScore}</span>
+                <button
+                  type="button"
+                  onClick={() => setTeamAScore(teamAScore + 1)}
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-2xl font-bold text-white hover:bg-white/20 active:scale-95 transition-all"
+                >
+                  +
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <input
-                type="number"
-                min={0}
-                max={99}
-                value={teamAScore}
-                onChange={(eventChange) => setTeamAScore(Number(eventChange.target.value || 0))}
-                className="w-20 border border-white/10 bg-white/5 p-3 text-center text-3xl font-black text-white"
-              />
-              <span className="text-2xl font-black text-white/70">-</span>
-              <input
-                type="number"
-                min={0}
-                max={99}
-                value={teamBScore}
-                onChange={(eventChange) => setTeamBScore(Number(eventChange.target.value || 0))}
-                className="w-20 border border-white/10 bg-white/5 p-3 text-center text-3xl font-black text-white"
-              />
+
+            <div className="flex justify-center md:block">
+              <span className="font-headline text-3xl font-black italic text-white/20">VS</span>
             </div>
-            <div className="text-right">
-              <p className="font-headline text-xl font-black italic uppercase">{event.team_b_name ?? 'Equipo B'}</p>
+
+            <div className="flex flex-col items-center gap-4">
+              <p className="font-headline text-2xl font-black italic uppercase text-center text-white max-w-[200px] truncate">{event.team_b_name ?? 'Equipo B'}</p>
+              <div className="flex items-center gap-6 border-2 border-white/10 bg-black/40 px-4 py-2 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setTeamBScore(Math.max(0, teamBScore - 1))}
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-white/5 text-2xl font-bold text-white hover:bg-white/20 active:scale-95 transition-all"
+                >
+                  -
+                </button>
+                <span className="w-16 text-center font-headline text-6xl font-black italic text-white">{teamBScore}</span>
+                <button
+                  type="button"
+                  onClick={() => setTeamBScore(teamBScore + 1)}
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-2xl font-bold text-white hover:bg-white/20 active:scale-95 transition-all"
+                >
+                  +
+                </button>
+              </div>
             </div>
+          </div>
+
+          <div className="mt-10 flex flex-col sm:flex-row justify-center gap-3 border-t border-white/10 pt-6">
+            <button
+              type="button"
+              onClick={() => { setTeamAScore(1); setTeamBScore(0); }}
+              className="btn-interactive border border-white/10 bg-white/5 px-4 py-3 font-mono text-xs font-bold uppercase text-white hover:bg-white/10"
+            >
+              Ganó {event.team_a_name ?? 'Equipo A'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setTeamAScore(0); setTeamBScore(0); }}
+              className="btn-interactive border border-white/10 bg-white/5 px-4 py-3 font-mono text-xs font-bold uppercase text-white hover:bg-white/10"
+            >
+              Empate
+            </button>
+            <button
+              type="button"
+              onClick={() => { setTeamAScore(0); setTeamBScore(1); }}
+              className="btn-interactive border border-white/10 bg-white/5 px-4 py-3 font-mono text-xs font-bold uppercase text-white hover:bg-white/10"
+            >
+              Ganó {event.team_b_name ?? 'Equipo B'}
+            </button>
           </div>
         </section>
 

@@ -5,8 +5,8 @@ test.describe('Home page', () => {
     await page.goto('/');
 
     // The brand is rendered as two lines: "EL" and "FULBO"
-    await expect(page.getByText('EL')).toBeVisible();
-    await expect(page.getByText('FULBO')).toBeVisible();
+    await expect(page.getByText('EL', { exact: true })).toBeVisible();
+    await expect(page.getByText('FULBO', { exact: true })).toBeVisible();
   });
 
   test('has an ENTRAR button that links to /login', async ({ page }) => {

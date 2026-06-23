@@ -69,3 +69,6 @@ public/sw.js.map
 
 .vercel
 .env.local
+
+playwright-report/
+test-results/

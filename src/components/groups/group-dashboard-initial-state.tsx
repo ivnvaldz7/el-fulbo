@@ -105,7 +105,10 @@ export function GroupDashboardInitialState({
             </p>
 
             <div className="mt-4 flex items-center gap-5">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center border-2 border-amber-300/50 bg-amber-300/10 text-2xl font-black text-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.2)]">
+              <Link
+                href={`/groups/${groupId}/players/${currentMvp.mvpPlayer.id}`}
+                className="flex h-16 w-16 shrink-0 items-center justify-center border-2 border-amber-300/50 bg-amber-300/10 text-2xl font-black text-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.2)] hover:opacity-80 transition-opacity"
+              >
                 {currentMvp.mvpPlayer.photoUrl ? (
                   <img
                     src={currentMvp.mvpPlayer.photoUrl}
@@ -116,11 +119,13 @@ export function GroupDashboardInitialState({
                 ) : (
                   currentMvp.mvpPlayer.displayName.slice(0, 1).toUpperCase()
                 )}
-              </div>
+              </Link>
               <div className="min-w-0">
-                <h2 className="truncate font-headline text-2xl font-black italic uppercase leading-none text-white">
-                  {currentMvp.mvpPlayer.displayName}
-                </h2>
+                <Link href={`/groups/${groupId}/players/${currentMvp.mvpPlayer.id}`} className="hover:opacity-80 transition-opacity">
+                  <h2 className="truncate font-headline text-2xl font-black italic uppercase leading-none text-white">
+                    {currentMvp.mvpPlayer.displayName}
+                  </h2>
+                </Link>
                 <p className="mt-1 font-mono text-xs font-bold uppercase text-amber-300/80">
                   {currentMvp.mvpPlayer.primaryPosition} · Overall {Math.round(
                     Object.values(currentMvp.mvpPlayer.stats).reduce((a, b) => a + Number(b), 0) / 6 * 10

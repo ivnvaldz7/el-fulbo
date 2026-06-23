@@ -56,7 +56,10 @@ export default async function GroupPlayersPage({ params }: { params: { id: strin
               key={player.id}
               className="flex items-center justify-between border border-white/10 bg-black/30 p-4 transition-colors"
             >
-              <div className="flex items-center gap-3">
+              <Link
+                href={`/groups/${params.id}/players/${player.id}`}
+                className="flex items-center gap-3 flex-1 hover:opacity-80 transition-opacity"
+              >
                 <div className="flex h-10 w-10 overflow-hidden items-center justify-center rounded-full bg-white/10">
                   {player.photoUrl ? (
                     <img src={player.photoUrl} alt="" className="h-full w-full object-cover" />
@@ -70,13 +73,13 @@ export default async function GroupPlayersPage({ params }: { params: { id: strin
                     {player.primaryPosition} {player.isPhantom ? '(Invitado)' : ''}
                   </p>
                 </div>
-              </div>
+              </Link>
 
               <div className="flex items-center gap-2">
                 <Link
-                  href={`/groups/${params.id}/players/${player.id}/stats`}
+                  href={`/groups/${params.id}/players/${player.id}/edit-card`}
                   className="flex h-10 w-10 items-center justify-center border border-white/10 bg-black/40 text-white/50 transition-colors hover:bg-white/10 hover:text-white active:scale-95"
-                  title="Editar stats"
+                  title="Editar carta"
                 >
                   <Edit2 className="h-4 w-4" />
                 </Link>
