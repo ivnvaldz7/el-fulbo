@@ -284,7 +284,7 @@ export default function EventViewPage() {
     return (
       <ImmersiveScreen align="center" contentClassName="max-w-md mx-auto">
         <div className="border border-red-500/30 bg-red-500/10 p-5 text-center text-red-100">
-          {error ?? 'No se pudo cargar el partido.'}
+          {error instanceof Error ? error.message : 'No se pudo cargar el partido.'}
         </div>
       </ImmersiveScreen>
     );
