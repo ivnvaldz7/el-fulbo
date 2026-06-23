@@ -194,7 +194,7 @@ async function getBatchRecentEvents(
   teamAScore: number;
   teamBScore: number;
   mvpName: string | null;
-  boostsLine: string | null;
+  boostsApplied: Array<{ displayName: string; modifiers: Array<{ stat: string; delta: number }> }>;
   playedAtLabel: string;
 }[]> {
   const eventIds = playedEvents.map((e) => String(e.id));
@@ -266,16 +266,13 @@ async function getBatchRecentEvents(
       teamAScore: Number(event.team_a_score ?? 0),
       teamBScore: Number(event.team_b_score ?? 0),
       mvpName,
-      boostsLine:
-        boostsApplied.length > 0
-          ? `Subieron de nivel: ${boostsApplied
-              .map((item) =>
-                `${item.displayName} (${Object.entries(item.boostApplied ?? {})
-                  .map(([stat, delta]) => `${stat.toUpperCase()} +${delta}`)
-                  .join(', ')})`,
-              )
-              .join(' · ')}`
-          : null,
+      boostsApplied: boostsApplied.map((item) => ({
+        displayName: item.displayName,
+        modifiers: Object.entries(item.boostApplied ?? {}).map(([stat, delta]) => ({
+          stat: stat.toUpperCase(),
+          delta,
+        })),
+      })),
       playedAtLabel: new Date(
         (event.played_at as string) ?? (event.scheduled_at as string),
       ).toLocaleDateString('es-AR'),

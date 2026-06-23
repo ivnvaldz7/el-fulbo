@@ -96,7 +96,15 @@ describe('GroupDashboardInitialState', () => {
             teamAScore: 3,
             teamBScore: 1,
             mvpName: 'Juan',
-            boostsLine: 'Subieron de nivel: Juan (PAC +3, SHO +3)',
+            boostsApplied: [
+              {
+                displayName: 'Juan',
+                modifiers: [
+                  { stat: 'PAC', delta: 3 },
+                  { stat: 'SHO', delta: 3 },
+                ],
+              },
+            ],
             playedAtLabel: '06/05/2026',
           },
         ]}
@@ -106,7 +114,8 @@ describe('GroupDashboardInitialState', () => {
     expect(screen.getByText('Últimos partidos')).toBeInTheDocument();
     expect(screen.getByText('Cancha 5')).toBeInTheDocument();
     expect(screen.getByText(/Juan fue la figura/i)).toBeInTheDocument();
-    expect(screen.getByText(/Subieron de nivel: Juan/i)).toBeInTheDocument();
+    expect(screen.getByText(/Subieron de nivel/i)).toBeInTheDocument();
+    expect(screen.getByText(/PAC \+3/)).toBeInTheDocument();
   });
 
   it('renders the own card share button when shareable player exists', () => {

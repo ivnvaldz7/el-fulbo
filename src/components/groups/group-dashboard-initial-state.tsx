@@ -15,6 +15,11 @@ type UpcomingEvent = {
   scheduledAt: string;
 };
 
+type BoostItem = {
+  displayName: string;
+  modifiers: Array<{ stat: string; delta: number }>;
+};
+
 type RecentPlayedEvent = {
   id: string;
   fieldName: string;
@@ -23,7 +28,7 @@ type RecentPlayedEvent = {
   teamAScore: number;
   teamBScore: number;
   mvpName: string | null;
-  boostsLine: string | null;
+  boostsApplied: BoostItem[];
   playedAtLabel: string;
 };
 
@@ -271,7 +276,21 @@ export function GroupDashboardInitialState({
                     {event.teamAName} {event.teamAScore} - {event.teamBScore} {event.teamBName}
                   </p>
                   {event.mvpName ? <p className="mt-2 text-sm text-amber-300">🏆 {event.mvpName} fue la figura.</p> : null}
-                  {event.boostsLine ? <p className="mt-1 text-sm text-emerald-300">📈 {event.boostsLine}</p> : null}
+                  {event.boostsApplied.length > 0 ? (
+                    <div className="mt-2 space-y-1">
+                      <p className="text-xs font-semibold text-emerald-300">📈 Subieron de nivel:</p>
+                      <ul className="space-y-0.5">
+                        {event.boostsApplied.map((boost, idx) => (
+                          <li key={idx} className="text-xs text-emerald-300/80">
+                            {boost.displayName} —{' '}
+                            {boost.modifiers
+                              .map((m) => `${m.stat} +${m.delta}`)
+                              .join(', ')}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
                 </li>
               ))}
             </ul>
