@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { createNotification } from './notifications.service';
 
 export interface ScheduleData {
   id: string;
@@ -146,22 +147,21 @@ export async function tryCreateEventFromSchedule(
   }
 
   if (players?.length) {
-    const { error: notifError } = await supabase.from('notifications').insert(
-      players.map((p) => ({
-        user_id: p.user_id,
-        type: 'event_created',
-        payload: {
+    const results = await Promise.all(
+      players.map((p) =>
+        createNotification(supabase, p.user_id!, 'event_created', {
           event_id: eventRow.id,
           group_id: schedule.group_id,
           field_name: schedule.field_name,
           scheduled_at: nextOccurrence.toISOString(),
           is_recurring: true,
-        },
-      })),
+        })
+      )
     );
 
-    if (notifError) {
-      return { created: false, error: `Notification insert failed: ${notifError.message}` };
+    const firstError = results.find((r) => !r.ok)?.error;
+    if (firstError) {
+      return { created: false, error: `Notification insert failed: ${firstError.message}` };
     }
   }
 

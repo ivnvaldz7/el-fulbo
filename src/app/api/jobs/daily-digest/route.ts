@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServiceSupabaseClient } from '@/lib/supabase/service';
 import { successResponse, cronAuthError } from '@/lib/api-helpers';
+import { createNotification } from '@/lib/services/notifications.service';
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
@@ -106,21 +107,17 @@ export async function GET(request: Request) {
 
       if (!hasActivity) continue;
 
-      const { error: insertError } = await supabase.from('notifications').insert({
-        user_id: userId,
-        type: 'weekly_digest',
-        payload: {
-          pending_stats: pendingStats.count ?? 0,
-          pending_revisions: pendingRevisions.count ?? 0,
-          pending_reintegrations: pendingReintegrations.count ?? 0,
-          upcoming_events: upcomingEvents.count ?? 0,
-          digest_type: 'daily',
-          groups_count: groupIds.length,
-        },
+      const res = await createNotification(supabase, userId, 'weekly_digest', {
+        pending_stats: pendingStats.count ?? 0,
+        pending_revisions: pendingRevisions.count ?? 0,
+        pending_reintegrations: pendingReintegrations.count ?? 0,
+        upcoming_events: upcomingEvents.count ?? 0,
+        digest_type: 'daily',
+        groups_count: groupIds.length,
       });
 
-      if (insertError) {
-        errors.push(`Failed to insert notification for user ${userId}: ${insertError.message}`);
+      if (!res.ok) {
+        errors.push(`Failed to insert notification for user ${userId}: ${res.error.message}`);
         continue;
       }
 

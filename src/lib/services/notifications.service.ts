@@ -182,6 +182,9 @@ export async function markNotificationPushed(
   return { ok: true, data: undefined };
 }
 
+/**
+ * @deprecated Use specific notification service wrappers or queue architecture instead.
+ */
 export async function getPendingPushNotifications(
   supabase: SupabaseClient,
   limit = 100,
