@@ -12,6 +12,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { MvpVotingPanel } from '@/components/events/mvp-voting-panel';
 import { MvpAdminPanel } from '@/components/events/mvp-admin-panel';
 import { showEventNotification } from '@/lib/notifications';
+import { PushOptinBanner } from '@/components/notifications/push-optin-banner';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import type { AttendanceStatus, Event, EventId, EventStatus, GroupId } from '@/lib/types';
 import {
@@ -384,6 +385,12 @@ export default function EventViewPage() {
               {helperCopy(event.status, currentPlayer, selectedStatus)}
             </p>
           </div>
+
+          {(selectedStatus === 'going' || selectedStatus === 'maybe' || selectedStatus === 'waitlist') && (
+            <div className="mb-4">
+              <PushOptinBanner />
+            </div>
+          )}
 
           <div className="grid grid-cols-3 gap-2">
             {ATTENDANCE_OPTIONS.map((option) => {

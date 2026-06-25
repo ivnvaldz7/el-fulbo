@@ -10,6 +10,7 @@ import { InviteShareButton } from '@/components/groups/invite-share-button';
 import { CopyAliasButton } from '@/components/groups/copy-alias-button';
 import type { CurrentBoost, PlayerPosition, PlayerStats } from '@/lib/types';
 import toast from 'react-hot-toast';
+import { PushOptinBanner } from '@/components/notifications/push-optin-banner';
 
 type UpcomingEvent = {
   id: string;
@@ -99,6 +100,11 @@ export function GroupDashboardInitialState({
             <Home className="h-4 w-4" /> Volver a mis equipos
           </Link>
         </div>
+
+        <div className="mb-6">
+          <PushOptinBanner />
+        </div>
+
         <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-pitch-green">{modality}</p>
         <h1 className="mt-2 font-headline text-4xl font-black italic uppercase leading-none text-white text-glow-green text-balance">{groupName}</h1>
 
