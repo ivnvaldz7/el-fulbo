@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { PlayerCardPreview } from '@/components/cards/player-card-preview';
 import { PhotoUpload } from '@/components/players/photo-upload';
 import { ReliabilityBadge } from '@/components/players/reliability-badge';
+import { LeaveGroupButton } from '@/components/players/leave-group-button';
 import { fetchPlayerStats } from '@/lib/services/player-stats.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
@@ -70,6 +71,10 @@ export default async function PlayerProfilePage({
         >
           Editar Carta (Modo Dios)
         </a>
+      )}
+
+      {!isAdminOrOwner && user.id === player.user_id && (
+        <LeaveGroupButton playerId={params.player_id} groupId={params.id} />
       )}
     </div>
   );
