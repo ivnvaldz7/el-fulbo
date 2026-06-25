@@ -21,7 +21,7 @@ describe('PlayerCardPreview', () => {
     expect(screen.getByText('Boost: 3 partidos más')).toBeInTheDocument();
     expect(screen.getByText('+3')).toBeInTheDocument();
     expect(screen.getByText('+1')).toBeInTheDocument();
-    expect(screen.getByText('83')).toBeInTheDocument();
+    expect(screen.getByText('11')).toBeInTheDocument();
   });
 
   it('does not render boost UI without an active boost', () => {

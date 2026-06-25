@@ -73,7 +73,7 @@ export default async function PlayerProfilePage({
         </a>
       )}
 
-      {!isAdminOrOwner && user.id === player.user_id && (
+      {user.id === player.user_id && (
         <LeaveGroupButton playerId={params.player_id} groupId={params.id} />
       )}
     </div>

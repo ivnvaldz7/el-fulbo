@@ -80,7 +80,7 @@ export function ShareableCard({
           return (
             <div key={key} className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-7 text-center">
               <div className="flex items-center justify-center gap-3">
-                <span className="font-mono text-[56px] font-black text-white">{Math.round(Number(boostedValue ?? value) * 10)}</span>
+                <span className="font-mono text-[56px] font-black text-white">{Math.round(Number(boostedValue ?? value))}</span>
                 {boostDelta > 0 ? (
                   <span className={`font-mono text-[28px] font-bold ${boostDelta >= 3 ? 'text-amber-300' : 'text-emerald-300'}`}>
                     +{boostDelta}

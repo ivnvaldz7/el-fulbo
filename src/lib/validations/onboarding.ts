@@ -12,21 +12,21 @@ export const reintegrationRequestSchema = z.object({
 });
 
 export const fieldStatsSchema = z.object({
-  pac: z.number().int().min(1).max(8),
-  sho: z.number().int().min(1).max(8),
-  pas: z.number().int().min(1).max(8),
-  dri: z.number().int().min(1).max(8),
-  def: z.number().int().min(1).max(8),
-  phy: z.number().int().min(1).max(8),
+  pac: z.number().int().min(1).max(99),
+  sho: z.number().int().min(1).max(99),
+  pas: z.number().int().min(1).max(99),
+  dri: z.number().int().min(1).max(99),
+  def: z.number().int().min(1).max(99),
+  phy: z.number().int().min(1).max(99),
 });
 
 export const goalkeeperStatsSchema = z.object({
-  div: z.number().int().min(1).max(8),
-  han: z.number().int().min(1).max(8),
-  kic: z.number().int().min(1).max(8),
-  ref: z.number().int().min(1).max(8),
-  spd: z.number().int().min(1).max(8),
-  pos: z.number().int().min(1).max(8),
+  div: z.number().int().min(1).max(99),
+  han: z.number().int().min(1).max(99),
+  kic: z.number().int().min(1).max(99),
+  ref: z.number().int().min(1).max(99),
+  spd: z.number().int().min(1).max(99),
+  pos: z.number().int().min(1).max(99),
 });
 
 export const playerPositionSchema = z.enum(['ARQ', 'DEF', 'MED', 'DEL']);

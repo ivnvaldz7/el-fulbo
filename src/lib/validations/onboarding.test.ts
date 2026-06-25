@@ -8,15 +8,15 @@ import {
 describe('onboarding validations', () => {
   const groupId = '11111111-1111-4111-8111-111111111111';
 
-  it('accepts field stats with all values at onboarding max 8', () => {
+  it('accepts field stats with all values at onboarding max 99', () => {
     expect(
-      fieldStatsSchema.safeParse({ pac: 8, sho: 8, pas: 8, dri: 8, def: 8, phy: 8 }).success,
+      fieldStatsSchema.safeParse({ pac: 99, sho: 99, pas: 99, dri: 99, def: 99, phy: 99 }).success,
     ).toBe(true);
   });
 
-  it('rejects field stats above onboarding max 8', () => {
+  it('rejects field stats above onboarding max 99', () => {
     expect(
-      fieldStatsSchema.safeParse({ pac: 9, sho: 8, pas: 8, dri: 8, def: 8, phy: 8 }).success,
+      fieldStatsSchema.safeParse({ pac: 100, sho: 50, pas: 50, dri: 50, def: 50, phy: 50 }).success,
     ).toBe(false);
   });
 
@@ -59,9 +59,9 @@ describe('onboarding validations', () => {
     ).toBe(false);
   });
 
-  it('keeps goalkeeper stat max at 8 too', () => {
+  it('accepts goalkeeper stats at max 99', () => {
     expect(
-      goalkeeperStatsSchema.safeParse({ div: 8, han: 8, kic: 8, ref: 8, spd: 8, pos: 8 }).success,
+      goalkeeperStatsSchema.safeParse({ div: 99, han: 99, kic: 99, ref: 99, spd: 99, pos: 99 }).success,
     ).toBe(true);
   });
 });
