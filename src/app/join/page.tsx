@@ -3,11 +3,10 @@ import { JoinForm } from './join-form';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { FloatingPanel } from '@/components/ui/floating-panel';
 
-export default function JoinPage({
-  searchParams,
-}: {
-  searchParams?: { error?: string };
+export default async function JoinPage(props: {
+  searchParams?: Promise<{ error?: string }>;
 }) {
+  const searchParams = await props.searchParams;
   const error =
     searchParams?.error === 'invalid'
       ? 'No encontramos ese código. Revisá el link o pedile uno nuevo a quien organiza.'

@@ -6,16 +6,17 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { FloatingPanel } from '@/components/ui/floating-panel';
 
-export default async function PendingPage({ params }: { params: { id: string } }) {
+export default async function PendingPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createServerSupabaseClient();
-  const player = await getCurrentUserPlayerInGroup(supabase, params.id);
+  const { id } = await params;
+  const player = await getCurrentUserPlayerInGroup(supabase, id);
 
   if (!player.ok) {
     redirect('/');
   }
 
   if (player.data.statsStatus === 'approved') {
-    redirect(`/groups/${params.id}/dashboard`);
+    redirect(`/groups/${id}/dashboard`);
   }
 
   const isRejected = player.data.statsStatus === 'rejected';
@@ -48,14 +49,14 @@ export default async function PendingPage({ params }: { params: { id: string } }
         <div className="mt-8 flex flex-col gap-3">
           {isRejected ? (
             <Link
-              href={`/groups/${params.id}/onboarding-stats`}
+              href={`/groups/${id}/onboarding-stats`}
               className="btn-interactive flex min-h-14 w-full items-center justify-center bg-pitch-green px-8 font-headline text-lg font-bold italic uppercase text-black transition-transform active:scale-95"
             >
               VOLVER A CARGAR
             </Link>
           ) : null}
           <Link
-            href={`/groups/${params.id}/dashboard`}
+            href={`/groups/${id}/dashboard`}
             className="btn-interactive flex min-h-14 w-full items-center justify-center border-2 border-white/10 bg-transparent px-8 font-headline text-sm font-bold italic uppercase text-white hover:bg-white/10 hover:border-white/30"
           >
             EXPLORAR EL GRUPO

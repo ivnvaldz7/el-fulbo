@@ -7,7 +7,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getPlayersInGroup } from '@/lib/services/player.service';
 import { RemovePlayerButton } from './remove-player-button';
 
-export default async function GroupPlayersPage({ params }: { params: { id: string } }) {
+export default async function GroupPlayersPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
@@ -16,21 +16,22 @@ export default async function GroupPlayersPage({ params }: { params: { id: strin
   if (!user) {
     redirect('/');
   }
+  const { id } = await params;
 
   const { data: membership } = await supabase
     .from('group_memberships')
     .select('role')
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .eq('user_id', user.id)
     .maybeSingle();
 
   const isAdminOrOwner = membership && (membership.role === 'admin' || membership.role === 'owner');
 
   if (!isAdminOrOwner) {
-    redirect(`/groups/${params.id}/dashboard`);
+    redirect(`/groups/${id}/dashboard`);
   }
 
-  const playersResult = await getPlayersInGroup(supabase, params.id);
+  const playersResult = await getPlayersInGroup(supabase, id);
   const players = playersResult.ok ? playersResult.data : [];
 
   return (
@@ -38,7 +39,7 @@ export default async function GroupPlayersPage({ params }: { params: { id: strin
       <FloatingPanel className="w-full border-2 border-white/10">
         <div className="mb-6 flex items-center justify-between">
           <Link
-            href={`/groups/${params.id}/dashboard`}
+            href={`/groups/${id}/dashboard`}
             className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors active:scale-95"
           >
             <ArrowLeft className="h-4 w-4" /> Volver al dashboard
@@ -57,7 +58,7 @@ export default async function GroupPlayersPage({ params }: { params: { id: strin
               className="flex items-center justify-between border border-white/10 bg-black/30 p-4 transition-colors"
             >
               <Link
-                href={`/groups/${params.id}/players/${player.id}`}
+                href={`/groups/${id}/players/${player.id}`}
                 className="flex items-center gap-3 flex-1 hover:opacity-80 transition-opacity"
               >
                 <div className="flex h-10 w-10 overflow-hidden items-center justify-center rounded-full bg-white/10">
@@ -77,13 +78,13 @@ export default async function GroupPlayersPage({ params }: { params: { id: strin
 
               <div className="flex items-center gap-2">
                 <Link
-                  href={`/groups/${params.id}/players/${player.id}/edit-card`}
+                  href={`/groups/${id}/players/${player.id}/edit-card`}
                   className="flex h-10 w-10 items-center justify-center border border-white/10 bg-black/40 text-white/50 transition-colors hover:bg-white/10 hover:text-white active:scale-95"
                   title="Editar carta"
                 >
                   <Edit2 className="h-4 w-4" />
                 </Link>
-                <RemovePlayerButton playerId={player.id} playerName={player.displayName} groupId={params.id} />
+                <RemovePlayerButton playerId={player.id} playerName={player.displayName} groupId={id} />
               </div>
             </div>
           ))}

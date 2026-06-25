@@ -9,7 +9,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 export default async function PlayerProfilePage({
   params,
 }: {
-  params: { id: string; player_id: string };
+  params: Promise<{ id: string; player_id: string }>;
 }) {
   const supabase = await createServerSupabaseClient();
   const {
@@ -17,20 +17,22 @@ export default async function PlayerProfilePage({
   } = await supabase.auth.getUser();
   if (!user) redirect('/');
 
+  const { id, player_id } = await params;
+
   const { data: player } = await supabase
     .from('players')
     .select('user_id, display_name, primary_position, stats, current_boost, stats_status, photo_url')
-    .eq('id', params.player_id)
-    .eq('group_id', params.id)
+    .eq('id', player_id)
+    .eq('group_id', id)
     .is('archived_at', null)
     .single();
 
-  if (!player) redirect(`/groups/${params.id}/dashboard`);
+  if (!player) redirect(`/groups/${id}/dashboard`);
 
   const { data: membership } = await supabase
     .from('group_memberships')
     .select('role')
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .eq('user_id', user.id)
     .maybeSingle();
 
@@ -38,7 +40,7 @@ export default async function PlayerProfilePage({
   const isAdminOrOwner = userRole === 'admin' || userRole === 'owner';
   const canEdit = isAdminOrOwner || user.id === player.user_id;
 
-  const statsResult = await fetchPlayerStats(supabase, params.player_id);
+  const statsResult = await fetchPlayerStats(supabase, player_id);
 
   return (
     <div className="flex w-full flex-col items-center py-8">
@@ -59,14 +61,14 @@ export default async function PlayerProfilePage({
         photoUrl={player.photo_url}
       />
       <PhotoUpload
-        playerId={params.player_id}
-        groupId={params.id}
+        playerId={player_id}
+        groupId={id}
         currentPhotoUrl={player.photo_url}
         canEdit={canEdit}
       />
       {isAdminOrOwner && (
         <a
-          href={`/groups/${params.id}/players/${params.player_id}/edit-card`}
+          href={`/groups/${id}/players/${player_id}/edit-card`}
           className="mt-6 flex items-center justify-center border border-pitch-green/40 bg-pitch-green/10 px-6 py-3 font-headline text-sm font-bold uppercase italic text-pitch-green transition-colors hover:bg-pitch-green/20 active:scale-95"
         >
           Editar Carta (Modo Dios)
@@ -74,7 +76,7 @@ export default async function PlayerProfilePage({
       )}
 
       {user.id === player.user_id && (
-        <LeaveGroupButton playerId={params.player_id} groupId={params.id} />
+        <LeaveGroupButton playerId={player_id} groupId={id} />
       )}
     </div>
   );

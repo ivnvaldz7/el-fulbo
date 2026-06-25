@@ -8,14 +8,15 @@ export default async function OnboardingStatsPage({
   params,
   searchParams,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
   searchParams?: { as?: string };
 }) {
   const supabase = await createServerSupabaseClient();
-  const player = await getCurrentUserPlayerInGroup(supabase, params.id);
+  const { id } = await params;
+  const player = await getCurrentUserPlayerInGroup(supabase, id);
 
   if (player.ok && player.data.statsStatus === 'approved') {
-    redirect(`/groups/${params.id}/dashboard`);
+    redirect(`/groups/${id}/dashboard`);
   }
 
   let displayName = '';
@@ -36,7 +37,7 @@ export default async function OnboardingStatsPage({
 
   return (
     <OnboardingWizard
-      groupId={params.id as GroupId}
+      groupId={id as GroupId}
       displayName={displayName}
       asAdmin={searchParams?.as === 'admin'}
     />

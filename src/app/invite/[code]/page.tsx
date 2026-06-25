@@ -10,8 +10,9 @@ import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { FloatingPanel } from '@/components/ui/floating-panel';
 import { AppShareButton } from '@/components/share/app-share-button';
 
-export default async function InvitePage({ params }: { params: { code: string } }) {
-  const inviteCode = decodeURIComponent(params.code).toUpperCase();
+export default async function InvitePage({ params }: { params: Promise<{ code: string }> }) {
+  const { code } = await params;
+  const inviteCode = decodeURIComponent(code).toUpperCase();
   const supabase = await createServerSupabaseClient();
   const resolution = await resolveInviteState(supabase, inviteCode);
 

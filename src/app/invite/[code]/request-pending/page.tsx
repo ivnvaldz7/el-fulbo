@@ -12,8 +12,9 @@ function daysAgoLabel(dateIso: string) {
   return `${diffDays} día${diffDays === 1 ? '' : 's'}`;
 }
 
-export default async function InviteRequestPendingPage({ params }: { params: { code: string } }) {
-  const inviteCode = decodeURIComponent(params.code).toUpperCase();
+export default async function InviteRequestPendingPage({ params }: { params: Promise<{ code: string }> }) {
+  const { code } = await params;
+  const inviteCode = decodeURIComponent(code).toUpperCase();
   const resolution = await resolveInviteState(await createServerSupabaseClient(), inviteCode);
 
   if (!resolution.ok) {

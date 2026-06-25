@@ -6,7 +6,7 @@ import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 export default async function EditPlayerCardPage({
   params,
 }: {
-  params: { id: string; player_id: string };
+  params: Promise<{ id: string; player_id: string }>;
 }) {
   const supabase = await createServerSupabaseClient();
   const {
@@ -14,30 +14,31 @@ export default async function EditPlayerCardPage({
   } = await supabase.auth.getUser();
 
   if (!user) redirect('/');
+  const { id, player_id } = await params;
 
   // Verify membership and role
   const { data: membership } = await supabase
     .from('group_memberships')
     .select('role')
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .eq('user_id', user.id)
     .maybeSingle();
 
   const isAdminOrOwner = membership?.role === 'admin' || membership?.role === 'owner';
 
   if (!isAdminOrOwner) {
-    redirect(`/groups/${params.id}/players/${params.player_id}`);
+    redirect(`/groups/${id}/players/${player_id}`);
   }
 
   const { data: player } = await supabase
     .from('players')
     .select('display_name, primary_position, stats')
-    .eq('id', params.player_id)
-    .eq('group_id', params.id)
+    .eq('id', player_id)
+    .eq('group_id', id)
     .is('archived_at', null)
     .single();
 
-  if (!player) redirect(`/groups/${params.id}/dashboard`);
+  if (!player) redirect(`/groups/${id}/dashboard`);
 
   return (
     <ImmersiveScreen align="center" className="flex-col py-12">
@@ -48,8 +49,8 @@ export default async function EditPlayerCardPage({
 
       <div className="mt-8 flex w-full justify-center">
         <EditCardForm
-          groupId={params.id}
-          playerId={params.player_id}
+          groupId={id}
+          playerId={player_id}
           initialName={player.display_name}
           initialPosition={player.primary_position}
           initialStats={player.stats}

@@ -6,18 +6,19 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 export default async function PlayerStatsPage({
   params,
 }: {
-  params: { id: string; player_id: string };
+  params: Promise<{ id: string; player_id: string }>;
 }) {
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect('/');
+  const { id, player_id } = await params;
 
-  const result = await fetchPlayerStats(supabase, params.player_id);
+  const result = await fetchPlayerStats(supabase, player_id);
 
   if (!result.ok) {
-    redirect(`/groups/${params.id}/dashboard`);
+    redirect(`/groups/${id}/dashboard`);
   }
 
   return <PlayerStatsView stats={result.data} />;

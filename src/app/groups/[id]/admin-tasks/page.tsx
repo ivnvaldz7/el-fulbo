@@ -66,22 +66,23 @@ function TaskSection({
   );
 }
 
-export default async function AdminTasksPage({ params }: { params: { id: string } }) {
+export default async function AdminTasksPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createServerSupabaseClient();
+  const { id } = await params;
   const [detail, phantomsResult] = await Promise.all([
-    getAdminTasksDetail(supabase, params.id),
-    getPendingPhantoms(supabase, params.id),
+    getAdminTasksDetail(supabase, id),
+    getPendingPhantoms(supabase, id),
   ]);
 
   if (!detail.ok) {
-    redirect(`/groups/${params.id}/dashboard`);
+    redirect(`/groups/${id}/dashboard`);
   }
 
   const phantoms = phantomsResult.ok ? phantomsResult.data : [];
 
   return (
     <ImmersiveScreen align="center" className="flex-col">
-      <PageHeader title="ADMIN" backHref={`/groups/${params.id}/dashboard`} />
+      <PageHeader title="ADMIN" backHref={`/groups/${id}/dashboard`} />
 
       <main className="mt-16 flex w-full max-w-[390px] lg:max-w-[480px] flex-col">
         <section className="py-6">
@@ -92,7 +93,7 @@ export default async function AdminTasksPage({ params }: { params: { id: string 
         <div className="space-y-4 pb-12">
           {phantoms.length > 0 && (
             <PhantomResolutionWidget
-              groupId={params.id}
+              groupId={id}
               phantoms={phantoms}
             />
           )}

@@ -4,8 +4,8 @@
   "private": true,
   "description": "PWA para organizar fulbito amateur con evento, confirmacion, sorteo, resultado y memoria.",
   "scripts": {
-    "dev": "next dev",
-    "dev:clean": "rimraf .next && next dev",
+"dev": "next dev --webpack",
+"dev:clean": "rimraf .next && next dev --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
