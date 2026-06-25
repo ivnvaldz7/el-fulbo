@@ -71,6 +71,7 @@ type GroupDashboardInitialStateProps = {
     currentBoost?: CurrentBoost | null;
     photoUrl?: string | null;
   } | null;
+  statsStatus?: string | null;
 };
 
 export function GroupDashboardInitialState({
@@ -86,7 +87,9 @@ export function GroupDashboardInitialState({
   inviteCode,
   currentPlayerId,
   shareablePlayer = null,
+  statsStatus = null,
 }: GroupDashboardInitialStateProps) {
+  const showPendingBanner = statsStatus === 'pending_approval';
   const showAdminPendingBanner = adminPendingTotal > 0;
   const hasUpcomingEvents = upcomingEvents.length > 0;
 
@@ -145,6 +148,25 @@ export function GroupDashboardInitialState({
                 </Link>
               </div>
             </div>
+          </div>
+        ) : null}
+
+        {showPendingBanner ? (
+          <div className="mt-8 border border-amber-400/20 bg-amber-400/5 p-5">
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400">Carta pendiente</p>
+            <h2 className="mt-1 font-headline text-xl font-black italic uppercase text-white">
+              Tu carta se copió desde tu otro equipo
+            </h2>
+            <p className="mt-2 font-mono text-xs leading-relaxed text-white/60">
+              El administrador del grupo la va a revisar. Mientras tanto, no vas a poder
+              confirmar asistencia a los partidos.
+            </p>
+            <a
+              href="./pending"
+              className="btn-interactive mt-4 inline-flex min-h-12 items-center justify-center bg-amber-400 px-6 py-2 font-headline text-sm font-bold uppercase text-black hover:bg-amber-300"
+            >
+              Ver estado
+            </a>
           </div>
         ) : null}
 

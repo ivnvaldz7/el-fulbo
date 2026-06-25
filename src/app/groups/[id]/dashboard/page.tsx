@@ -151,6 +151,7 @@ export default async function GroupDashboardPage({ params }: { params: { id: str
       currentMvp={currentMvp}
       inviteCode={group.invite_code as string}
       currentPlayerId={currentPlayerResult.ok ? currentPlayerResult.data.id : null}
+      statsStatus={currentPlayerResult.ok ? currentPlayerResult.data.statsStatus : null}
       shareablePlayer={
         currentPlayerResult.ok && currentPlayerResult.data.stats
           ? {
