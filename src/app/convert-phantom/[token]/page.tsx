@@ -11,8 +11,9 @@ export default async function ConvertPhantomPage(props: Props) {
   const params = await props.params;
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const { token } = await params;
 
-  const tokenResult = await getTokenInfo(supabase, params.token);
+  const tokenResult = await getTokenInfo(supabase, token);
 
   if (!tokenResult.ok) {
     const { ImmersiveScreen } = await import('@/components/ui/immersive-screen');
@@ -26,12 +27,12 @@ export default async function ConvertPhantomPage(props: Props) {
   }
 
   if (!user) {
-    redirect(`/welcome?redirect=/convert-phantom/${params.token}`);
+    redirect(`/welcome?redirect=/convert-phantom/${token}`);
   }
 
   return (
     <ConvertPhantomClient
-      token={params.token}
+      token={token}
       playerName={tokenResult.data.playerName}
       groupName={tokenResult.data.groupName}
     />

@@ -70,3 +70,18 @@ export async function getPlayersInGroup(
 
   return { ok: true, data: data.map(mapPlayer) };
 }
+
+export async function archiveSelfPlayer(
+  supabase: SupabaseClient,
+  playerId: string,
+): Promise<Result<void>> {
+  const { error } = await supabase.rpc('archive_self_player', {
+    p_player_id: playerId,
+  });
+
+  if (error) {
+    return { ok: false, error: mapSupabaseError(error) };
+  }
+
+  return { ok: true, data: undefined };
+}

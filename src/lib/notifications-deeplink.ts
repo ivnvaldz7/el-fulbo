@@ -24,7 +24,9 @@ export type NotificationType =
   | 'match_ready'
   | 'mvp_awarded'
   | 'boost_applied'
-  | 'weekly_digest';
+  | 'weekly_digest'
+  | 'attendance_reminder'
+  | 'mvp_voting_open';
 
 export type NotificationPayload = {
   group_id?: string;
@@ -94,6 +96,10 @@ export function getNotificationDeepLink(
     case 'reintegration_rejected':
       return '/dashboard';
 
+    case 'attendance_reminder':
+    case 'mvp_voting_open':
+      return group_id && event_id ? `/groups/${group_id}/events/${event_id}` : '/';
+
     case 'weekly_digest':
       return '/groups';
 
@@ -160,6 +166,10 @@ export function getNotificationCopy(
       return { title: 'Reintegro rechazado', body: 'Tu pedido de reintegro fue rechazado.' };
     case 'attendance_changed':
       return { title: 'Asistencia actualizada', body: `${name} actualizó su asistencia.` };
+    case 'attendance_reminder':
+      return { title: 'Confirmá tu asistencia', body: `Quedan pocas horas para confirmar en ${group}.` };
+    case 'mvp_voting_open':
+      return { title: 'Votá al MVP', body: 'La votación del MVP está abierta. Elegí a tu compañero.' };
     case 'weekly_digest':
       return { title: 'Resumen semanal', body: 'Mirá lo que pasó esta semana.' };
     default:

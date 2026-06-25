@@ -11,7 +11,7 @@ describe('boost helpers', () => {
     });
   });
 
-  it('applies boost modifiers in the same scale used by the draw algorithm', () => {
+  it('applies boost modifiers as direct deltas in 1-99 range', () => {
     expect(
       applyBoostToStats(
         { pac: 8, sho: 7, pas: 6, dri: 5, def: 4, phy: 3 },
@@ -21,8 +21,8 @@ describe('boost helpers', () => {
         },
       ),
     ).toEqual({
-      pac: 8.3,
-      sho: 7.1,
+      pac: 11,  // 8 + 3
+      sho: 8,   // 7 + 1
       pas: 6,
       dri: 5,
       def: 4,
@@ -30,10 +30,10 @@ describe('boost helpers', () => {
     });
   });
 
-  it('clamps boosted visible overall to 99', () => {
+  it('clamps each boosted stat to 99 and returns correct overall', () => {
     expect(
       calculateBoostedOverall(
-        { pac: 10, sho: 10, pas: 10, dri: 10, def: 10, phy: 10 },
+        { pac: 99, sho: 99, pas: 99, dri: 99, def: 99, phy: 99 },
         'DEL',
         {
           partidos_remaining: 3,

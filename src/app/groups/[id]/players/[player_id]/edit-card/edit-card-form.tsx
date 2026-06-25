@@ -28,14 +28,43 @@ export function EditCardForm({
 
   const [displayName, setDisplayName] = useState(initialName);
   const [position, setPosition] = useState<PlayerPosition>(initialPosition);
-  const [stats, setStats] = useState<PlayerStats>(initialStats);
+  const [statsStr, setStatsStr] = useState<Record<string, string>>(() => {
+    const obj: Record<string, string> = {};
+    for (const [key, val] of Object.entries(initialStats)) {
+      obj[key] = String(val);
+    }
+    return obj;
+  });
+
+  const clampStat = (val: number): number => Math.min(99, Math.max(1, Math.round(val)));
+
+  const handleStatBlur = (key: keyof PlayerStats) => {
+    setStatsStr((prev) => {
+      const raw = prev[key]!.trim();
+      if (raw === '') {
+        return { ...prev, [key]: '1' };
+      }
+      const num = parseInt(raw, 10);
+      if (isNaN(num) || num < 1) {
+        return { ...prev, [key]: '1' };
+      }
+      return { ...prev, [key]: String(clampStat(num)) };
+    });
+  };
 
   const handleStatChange = (key: keyof PlayerStats, value: string) => {
-    const num = parseInt(value, 10);
-    setStats((prev) => ({
-      ...prev,
-      [key]: isNaN(num) ? 0 : Math.min(99, Math.max(1, num)),
-    }));
+    // only allow digits
+    const cleaned = value.replace(/\D/g, '');
+    setStatsStr((prev) => ({ ...prev, [key]: cleaned }));
+  };
+
+  const parseStatsForSubmit = (): PlayerStats => {
+    const result: Record<string, number> = {};
+    for (const [key, str] of Object.entries(statsStr)) {
+      const num = parseInt(str, 10);
+      result[key] = isNaN(num) || num < 1 ? 1 : clampStat(num);
+    }
+    return result as unknown as PlayerStats;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,7 +77,7 @@ export function EditCardForm({
         .update({
           display_name: displayName.trim(),
           primary_position: position,
-          stats: stats,
+          stats: parseStatsForSubmit(),
         })
         .eq('id', playerId)
         .eq('group_id', groupId);
@@ -103,17 +132,20 @@ export function EditCardForm({
           Atributos (1-99)
         </label>
         <div className="grid grid-cols-2 gap-4">
-          {Object.entries(stats).map(([key, val]) => (
+          {Object.entries(statsStr).map(([key, val]) => (
             <div key={key} className="flex flex-col">
               <label className="mb-1 font-mono text-[10px] font-bold uppercase tracking-widest text-white/60">
                 {key}
               </label>
               <input
-                type="number"
-                min="1"
-                max="99"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={2}
                 value={val}
+                placeholder="1-99"
                 onChange={(e) => handleStatChange(key as keyof PlayerStats, e.target.value)}
+                onBlur={() => handleStatBlur(key as keyof PlayerStats)}
                 className="w-full border border-white/20 bg-black/50 p-3 text-center font-headline text-2xl font-black text-white outline-none focus:border-pitch-green"
               />
             </div>

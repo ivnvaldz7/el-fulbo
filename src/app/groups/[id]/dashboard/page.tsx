@@ -5,8 +5,8 @@ import { getCurrentUserPlayerInGroup } from '@/lib/services/player.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { CurrentBoost, PlayerPosition, PlayerStats } from '@/lib/types';
 
-export default async function GroupDashboardPage(props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+export default async function GroupDashboardPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
@@ -20,7 +20,7 @@ export default async function GroupDashboardPage(props: { params: Promise<{ id: 
   const { data: group } = await supabase
     .from('groups')
     .select('name, default_modality, invite_code')
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (!group) {
@@ -41,27 +41,27 @@ export default async function GroupDashboardPage(props: { params: Promise<{ id: 
     supabase
       .from('players')
       .select('id', { count: 'exact', head: true })
-      .eq('group_id', params.id)
+      .eq('group_id', id)
       .eq('is_expelled', false)
       .is('archived_at', null),
     supabase
       .from('group_memberships')
       .select('role')
-      .eq('group_id', params.id)
+      .eq('group_id', id)
       .eq('user_id', user.id)
       .maybeSingle(),
-    getCurrentUserPlayerInGroup(supabase, params.id),
+    getCurrentUserPlayerInGroup(supabase, id),
     supabase
       .from('events')
       .select('id, scheduled_at')
-      .eq('group_id', params.id)
+      .eq('group_id', id)
       .in('status', ['scheduled', 'confirming', 'checked_in', 'drawn'])
       .gte('scheduled_at', startOfToday.toISOString())
       .order('scheduled_at', { ascending: true }),
     supabase
       .from('events')
       .select('id, field_name, scheduled_at, played_at, team_a_name, team_b_name, team_a_score, team_b_score, mvp_player_id')
-      .eq('group_id', params.id)
+      .eq('group_id', id)
       .eq('status', 'played')
       .order('played_at', { ascending: false, nullsFirst: false })
       .order('scheduled_at', { ascending: false })
@@ -73,9 +73,9 @@ export default async function GroupDashboardPage(props: { params: Promise<{ id: 
   }
 
   // Determinar si es admin/owner via RPC (chequea groups.admin_user_id + group_memberships + temporary_owners)
-  const { data: isAdminOrOwner } = await supabase.rpc('is_group_admin_or_owner', { gid: params.id });
+  const { data: isAdminOrOwner } = await supabase.rpc('is_group_admin_or_owner', { gid: id });
 
-  const pendingSummary = isAdminOrOwner ? await getPendingTasksSummary(supabase, params.id) : null;
+  const pendingSummary = isAdminOrOwner ? await getPendingTasksSummary(supabase, id) : null;
   const adminPendingTotal = pendingSummary?.ok ? pendingSummary.data.total : 0;
   const nextEvents = (upcomingEvents ?? []).map((event) => ({
     id: event.id as string,
@@ -102,7 +102,7 @@ export default async function GroupDashboardPage(props: { params: Promise<{ id: 
         photo_url
       )
     `)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .eq('status', 'played')
     .not('mvp_player_id', 'is', null)
     .order('played_at', { ascending: false, nullsFirst: false })
@@ -141,7 +141,7 @@ export default async function GroupDashboardPage(props: { params: Promise<{ id: 
 
   return (
     <GroupDashboardInitialState
-      groupId={params.id}
+      groupId={id}
       groupName={group.name}
       modality={group.default_modality}
       activePlayers={count ?? 0}
@@ -152,6 +152,7 @@ export default async function GroupDashboardPage(props: { params: Promise<{ id: 
       currentMvp={currentMvp}
       inviteCode={group.invite_code as string}
       currentPlayerId={currentPlayerResult.ok ? currentPlayerResult.data.id : null}
+      statsStatus={currentPlayerResult.ok ? currentPlayerResult.data.statsStatus : null}
       shareablePlayer={
         currentPlayerResult.ok && currentPlayerResult.data.stats
           ? {

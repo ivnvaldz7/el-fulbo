@@ -86,7 +86,7 @@ export function calculateOverall(stats: PlayerStats, position: PlayerPosition) {
       (sum, [key, value]) => sum + value * GOALKEEPER_WEIGHTS[key],
       0,
     );
-    return Math.round((weighted / totalWeight) * 10);
+    return Math.round(weighted / totalWeight);
   }
 
   const weights = FIELD_WEIGHTS[position === 'ARQ' ? 'MED' : position];
@@ -95,7 +95,7 @@ export function calculateOverall(stats: PlayerStats, position: PlayerPosition) {
     (sum, [key, value]) => sum + value * weights[key],
     0,
   );
-  return Math.round((weighted / totalWeight) * 10);
+  return Math.round(weighted / totalWeight);
 }
 
 export interface UserProfile {

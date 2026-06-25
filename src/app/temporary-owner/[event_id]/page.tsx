@@ -4,10 +4,10 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getMyTemporaryOwnerAssignment } from '@/lib/services/temporary-owners.service';
 import { TemporaryOwnerClient } from './temporary-owner-client';
 
-export default async function TemporaryOwnerPage(props: { params: Promise<{ event_id: string }> }) {
-  const params = await props.params;
+export default async function TemporaryOwnerPage({ params }: { params: Promise<{ event_id: string }> }) {
   const supabase = await createServerSupabaseClient();
-  const result = await getMyTemporaryOwnerAssignment(supabase, params.event_id);
+  const { event_id } = await params;
+  const result = await getMyTemporaryOwnerAssignment(supabase, event_id);
 
   if (!result.ok) {
     redirect('/');

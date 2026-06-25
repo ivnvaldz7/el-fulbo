@@ -4,19 +4,19 @@ import { getCurrentUserPlayerInGroup } from '@/lib/services/player.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { GroupId } from '@/lib/types';
 
-interface PageProps {
+export default async function OnboardingStatsPage({
+  params,
+  searchParams,
+}: {
   params: Promise<{ id: string }>;
-  searchParams?: Promise<{ as?: string }>;
-}
-
-export default async function OnboardingStatsPage(props: PageProps) {
-  const params = await props.params;
-  const searchParams = await props.searchParams;
+  searchParams?: { as?: string };
+}) {
   const supabase = await createServerSupabaseClient();
-  const player = await getCurrentUserPlayerInGroup(supabase, params.id);
+  const { id } = await params;
+  const player = await getCurrentUserPlayerInGroup(supabase, id);
 
   if (player.ok && player.data.statsStatus === 'approved') {
-    redirect(`/groups/${params.id}/dashboard`);
+    redirect(`/groups/${id}/dashboard`);
   }
 
   let displayName = '';
@@ -37,7 +37,7 @@ export default async function OnboardingStatsPage(props: PageProps) {
 
   return (
     <OnboardingWizard
-      groupId={params.id as GroupId}
+      groupId={id as GroupId}
       displayName={displayName}
       asAdmin={searchParams?.as === 'admin'}
     />

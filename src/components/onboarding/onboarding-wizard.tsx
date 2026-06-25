@@ -130,10 +130,7 @@ export function OnboardingWizard({
   }
 
   function updateStat(key: string, value: number) {
-    const clamped = Math.max(1, Math.min(8, value));
-    if (value > 8) {
-      setMessage('Para desbloquear 9 y 10, el admin te tiene que ajustar.');
-    }
+    const clamped = Math.max(1, Math.min(99, value));
     setDraft((current) => ({
       ...current,
       stats: {
@@ -291,13 +288,13 @@ export function OnboardingWizard({
               <div key={key} className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-mono text-[10px] font-bold uppercase text-white/60">{label}</span>
-                  <span className="font-headline text-lg font-black italic text-pitch-green">{stats[key as keyof PlayerStats] * 10}</span>
+                  <span className="font-headline text-lg font-black italic text-pitch-green">{stats[key as keyof PlayerStats]}</span>
                 </div>
                 <input
                   className="h-1 w-full cursor-pointer appearance-none bg-white/10 accent-pitch-green [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-pitch-green"
                   type="range"
                   min={1}
-                  max={8}
+                  max={99}
                   step={1}
                   value={Number(stats[key as keyof PlayerStats])}
                   onChange={(event) => updateStat(key, Number(event.target.value))}

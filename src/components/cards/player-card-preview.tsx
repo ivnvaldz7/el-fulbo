@@ -84,7 +84,7 @@ export function PlayerCardPreview({
           return (
           <div key={key} className="flex flex-col items-center">
             <div className="flex items-center gap-1">
-              <span className="font-mono text-base font-bold text-white">{Math.round(Number(boostedValue ?? value) * 10)}</span>
+              <span className="font-mono text-base font-bold text-white">{Math.round(Number(boostedValue ?? value))}</span>
               {showBoostIndicator && boostDelta > 0 ? (
                 <span
                   className={`font-mono text-[10px] font-bold ${

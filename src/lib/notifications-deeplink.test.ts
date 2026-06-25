@@ -51,6 +51,14 @@ describe('getNotificationDeepLink', () => {
     expect(getNotificationDeepLink('match_ready', BASE)).toBe('/groups/g1/events/e1/teams');
   });
 
+  it('attendance_reminder links to event page', () => {
+    expect(getNotificationDeepLink('attendance_reminder', BASE)).toBe('/groups/g1/events/e1');
+  });
+
+  it('mvp_voting_open links to event page', () => {
+    expect(getNotificationDeepLink('mvp_voting_open', BASE)).toBe('/groups/g1/events/e1');
+  });
+
   it('returns / when required payload fields are missing', () => {
     expect(getNotificationDeepLink('event_created', {})).toBe('/');
   });
@@ -66,6 +74,18 @@ describe('getNotificationCopy', () => {
   it('uses player name in stats_pending_approval body', () => {
     const copy = getNotificationCopy('stats_pending_approval', BASE);
     expect(copy.body).toContain('Messi');
+  });
+
+  it('attendance_reminder uses group name in body', () => {
+    const copy = getNotificationCopy('attendance_reminder', BASE);
+    expect(copy.title).toBe('Confirmá tu asistencia');
+    expect(copy.body).toContain('Los Pibes');
+  });
+
+  it('mvp_voting_open shows voting message', () => {
+    const copy = getNotificationCopy('mvp_voting_open', {});
+    expect(copy.title).toBe('Votá al MVP');
+    expect(copy.body).toContain('votación');
   });
 
   it('falls back gracefully on unknown type', () => {

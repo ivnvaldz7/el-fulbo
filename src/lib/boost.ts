@@ -18,7 +18,7 @@ export function applyBoostToStats(stats: PlayerStats, boost: CurrentBoost | null
   const output = { ...stats } as Record<string, number>;
   for (const [key, delta] of Object.entries(activeBoost.modifiers ?? {})) {
     if (output[key] !== undefined) {
-      output[key] = Math.min(10, output[key] + delta / 10);
+      output[key] = Math.min(99, output[key] + delta);
     }
   }
 

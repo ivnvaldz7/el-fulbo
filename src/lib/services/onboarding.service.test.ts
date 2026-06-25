@@ -59,15 +59,16 @@ describe('submitOnboardingStats', () => {
     if (!result.ok) expect(result.error.code).toBe('VALIDATION_ERROR');
   });
 
-  it('returns validation error when a stat is 9', async () => {
+  it('returns validation error when a stat exceeds max 99', async () => {
     const result = await submitOnboardingStats(supabaseWithRpc([]), {
       groupId,
       primaryPosition: 'MED',
       secondaryPosition: null,
-      stats: { pac: 9, sho: 6, pas: 7, dri: 8, def: 4, phy: 5 },
+      stats: { pac: 100, sho: 6, pas: 7, dri: 8, def: 4, phy: 5 },
     });
 
     expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('VALIDATION_ERROR');
   });
 
   it('returns validation error when secondary equals primary', async () => {
