@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/jobs/temporary-owners",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 6 * * *"
     },
     {
       "path": "/api/jobs/push-delivery",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 7 * * *"
     },
     {
       "path": "/api/jobs/daily-digest",
