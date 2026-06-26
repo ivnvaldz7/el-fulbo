@@ -18,15 +18,25 @@ export default async function ProfilePage() {
     redirect('/login');
   }
 
-  // Get the most recent active card to act as their "Base Card"
+  // Get the FIRST active card to act as their "Base Card"
   const { data: latestCard } = await supabase
     .from('players')
     .select('*')
     .eq('user_id', user.id)
     .is('archived_at', null)
-    .order('joined_at', { ascending: false })
+    .order('joined_at', { ascending: true })
     .limit(1)
     .single();
+
+  let clampedStats = null;
+  if (latestCard?.stats) {
+    clampedStats = { ...latestCard.stats } as Record<string, number>;
+    for (const key in clampedStats) {
+      if (typeof clampedStats[key] === 'number' && clampedStats[key] < 50) {
+        clampedStats[key] = 50;
+      }
+    }
+  }
 
   return (
     <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] lg:max-w-[480px] w-full py-8 px-4">
@@ -60,7 +70,7 @@ export default async function ProfilePage() {
             <PlayerCardPreview
               name={latestCard.display_name}
               position={latestCard.primary_position as PlayerPosition}
-              stats={latestCard.stats as PlayerStats}
+              stats={clampedStats as unknown as PlayerStats}
               photoUrl={latestCard.photo_url}
               showBoostIndicator={false}
             />

@@ -1,6 +1,26 @@
 {
   "crons": [
     {
+      "path": "/api/jobs/temporary-owners",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/jobs/push-delivery",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/jobs/daily-digest",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/jobs/weekly-digest",
+      "schedule": "0 10 * * 0"
+    },
+    {
+      "path": "/api/jobs/archive-phantoms",
+      "schedule": "0 5 * * *"
+    },
+    {
       "path": "/api/jobs/create-recurring-events",
       "schedule": "0 8 * * *"
     }
