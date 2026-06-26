@@ -6,6 +6,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { FloatingPanel } from '@/components/ui/floating-panel';
 import { DeleteGroupButton } from '@/components/groups/delete-group-button';
 import { AppShareButton } from '@/components/share/app-share-button';
+import { User } from 'lucide-react';
 
 export default async function GroupsHubPage() {
   const supabase = await createServerSupabaseClient();
@@ -87,6 +88,13 @@ export default async function GroupsHubPage() {
             <h1 className="font-headline text-3xl font-black italic uppercase leading-none text-white text-balance">Mis Equipos</h1>
             <p className="mt-1 font-mono text-[10px] font-bold uppercase tracking-widest text-pitch-green">Hub Principal</p>
           </div>
+          <Link
+            href="/profile"
+            className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/10 bg-black transition-colors hover:border-pitch-green hover:text-pitch-green"
+            title="Mi Perfil / Carta Base"
+          >
+            <User className="h-4 w-4" />
+          </Link>
         </header>
 
         {hasGroups ? (
