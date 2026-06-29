@@ -81,7 +81,7 @@ export default async function GroupsHubPage() {
   const hasGroups = userGroups.length > 0;
 
   return (
-    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] lg:max-w-[480px] w-full py-8 px-4">
+    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] lg:max-w-[480px] w-full py-8">
       <FloatingPanel className="border-2 border-white/10 p-6">
         <header className="mb-8 flex items-center justify-between">
           <div>

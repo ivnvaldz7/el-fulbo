@@ -8,6 +8,7 @@ import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { EventsService, type DrawTeamSummary } from '@/lib/services/events.service';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import type { EventId, GroupId, PlayerId } from '@/lib/types';
+import { PageContent } from '@/components/ui/page-content';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 
@@ -162,19 +163,20 @@ export default function EventResultPage() {
   }
 
   return (
-    <ImmersiveScreen contentClassName="max-w-3xl mx-auto space-y-4">
-      <PageHeader title="RESULTADO" backHref={`/groups/${groupId}/events/${eventId}`} />
-      {showConfirmModal ? (
-        <ConfirmationModal
-          title="¿Confirmás el resultado?"
-          message="Una vez cargado, se van a aplicar los boosts a los jugadores. Esto no se puede deshacer fácilmente."
-          onConfirm={() => void handleConfirmResult()}
-          onCancel={() => setShowConfirmModal(false)}
-          loading={saving}
-        />
-      ) : null}
+    <ImmersiveScreen>
+      <PageContent className="max-w-3xl">
+        <PageHeader title="RESULTADO" backHref={`/groups/${groupId}/events/${eventId}`} />
+        {showConfirmModal ? (
+          <ConfirmationModal
+            title="¿Confirmás el resultado?"
+            message="Una vez cargado, se van a aplicar los boosts a los jugadores. Esto no se puede deshacer fácilmente."
+            onConfirm={() => void handleConfirmResult()}
+            onCancel={() => setShowConfirmModal(false)}
+            loading={saving}
+          />
+        ) : null}
 
-      <div className="mt-16 space-y-4">
+        <div className="space-y-4">
         <header className="border border-white/10 bg-concrete-overlay p-5">
           <button
             type="button"
@@ -318,7 +320,8 @@ export default function EventResultPage() {
             </button>
           </div>
         )}
-      </div>
+        </div>
+      </PageContent>
     </ImmersiveScreen>
   );
 }

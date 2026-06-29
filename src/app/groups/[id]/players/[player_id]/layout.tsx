@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { PlayerProfileTabs } from '@/components/players/player-profile-tabs';
+import { PageContent } from '@/components/ui/page-content';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
@@ -41,9 +42,10 @@ export default async function PlayerProfileLayout({
   if (!isAdminOrOwner && !isSelf) redirect(`/groups/${id}/dashboard`);
 
   return (
-    <ImmersiveScreen contentClassName="max-w-md mx-auto w-full">
-      <PageHeader title="JUGADOR" backHref={`/groups/${id}/dashboard`} />
-      <div className="mb-6 mt-16 flex items-center gap-3 px-4">
+    <ImmersiveScreen>
+      <PageContent className="max-w-md">
+        <PageHeader title="JUGADOR" backHref={`/groups/${id}/dashboard`} />
+        <div className="mb-6 flex items-center gap-3 px-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-white/5 font-headline text-2xl font-black text-white/20">
           {player.display_name.slice(0, 1).toUpperCase()}
         </div>
@@ -54,6 +56,7 @@ export default async function PlayerProfileLayout({
       </div>
       <PlayerProfileTabs groupId={id} playerId={player_id} />
       {children}
+    </PageContent>
     </ImmersiveScreen>
   );
 }

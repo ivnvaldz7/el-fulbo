@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { PageContent } from '@/components/ui/page-content';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
@@ -22,10 +23,11 @@ export default async function RecurringSchedulePage({ params }: { params: Promis
     .order('day_of_week', { ascending: true });
 
   return (
-    <ImmersiveScreen align="center" className="flex-col">
-      <PageHeader title="PARTIDO FIJO" backHref={`/groups/${id}/dashboard`} />
+    <ImmersiveScreen>
+      <PageContent className="max-w-[480px]">
+        <PageHeader title="PARTIDO FIJO" backHref={`/groups/${id}/dashboard`} />
 
-      <main className="mt-16 flex w-full max-w-[390px] lg:max-w-[480px] flex-col">
+        <div className="flex flex-col">
         <section className="py-6">
           <h2 className="font-headline text-3xl font-bold uppercase italic leading-none text-white">
             Calendario fijo
@@ -39,7 +41,8 @@ export default async function RecurringSchedulePage({ params }: { params: Promis
           groupId={id}
           schedules={(schedules ?? []) as RecurringSchedule[]}
         />
-      </main>
+        </div>
+      </PageContent>
     </ImmersiveScreen>
   );
 }
