@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react';
+import { memo, type ReactNode } from 'react';
 
-export function FloatingPanel({
+export const FloatingPanel = memo(function FloatingPanel({
   children,
   className = '',
 }: {
@@ -14,4 +14,4 @@ export function FloatingPanel({
       {children}
     </section>
   );
-}
+});
