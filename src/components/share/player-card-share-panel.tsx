@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { toBlob } from 'html-to-image';
 import toast from 'react-hot-toast';
 import { PlayerCardPreview } from '@/components/cards/player-card-preview';
 import type { CurrentBoost, PlayerPosition, PlayerStats } from '@/lib/types';
@@ -31,6 +30,7 @@ export function PlayerCardSharePanel({
 
     setSharing(true);
     try {
+      const { toBlob } = await import('html-to-image');
       const blob = await toBlob(shareRef.current, {
         cacheBust: true,
         pixelRatio: 2,
