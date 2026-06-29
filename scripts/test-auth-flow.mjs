@@ -67,7 +67,7 @@ async function extractCookies() {
   }
 
   await browser.close();
-  console.log('\n   Browser cerrado. Ahora corre: node .test-scripts/test_auth_flow.mjs test');
+  console.log('\n   Browser cerrado. Ahora corre: node scripts/test-auth-flow.mjs test');
 }
 
 async function testWithCookies() {
@@ -111,7 +111,7 @@ async function testWithCookies() {
   
   // Screenshot
   await page.screenshot({ path: join(__dirname, 'dashboard_auth.png'), fullPage: true });
-  console.log('   📸 Screenshot: .test-scripts/dashboard_auth.png');
+  console.log('   📸 Screenshot: scripts/dashboard_auth.png');
 
   // Test 2: Look for the user's info / profile elements
   const bodyText = await page.locator('body').innerText();
