@@ -28,7 +28,7 @@ import {
   updateAttendanceSchema,
   updateCheckInSchema,
   loadMatchResultSchema,
-} from '@/lib/validations/events.service';
+} from '@/lib/validations/events-rpc';
 
 export interface EventAttendee {
   playerId: PlayerId;
