@@ -11,6 +11,7 @@ import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 import { MvpVotingPanel } from '@/components/events/mvp-voting-panel';
 import { MvpAdminPanel } from '@/components/events/mvp-admin-panel';
+import { ShareEventButton } from '@/components/events/share-event-button';
 import { showEventNotification } from '@/lib/notifications';
 import { PushOptinBanner } from '@/components/notifications/push-optin-banner';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
@@ -416,6 +417,12 @@ export default function EventViewPage() {
               );
             })}
           </div>
+
+          <ShareEventButton
+            groupId={groupId}
+            eventId={eventId}
+            eventName={event.field_name}
+          />
         </section>
 
         <section className="border border-white/10 bg-concrete-overlay p-5">

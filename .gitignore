@@ -75,3 +75,4 @@ test-results/
 
 # Temp test scripts
 .test-scripts/
+test-visual.py
