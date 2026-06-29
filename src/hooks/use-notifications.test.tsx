@@ -10,6 +10,12 @@ vi.mock('@/lib/supabase/client', () => ({
         order: vi.fn().mockResolvedValue({ data: [], error: null }),
       })),
     })),
+    channel: vi.fn(() => ({
+      on: vi.fn(() => ({
+        subscribe: vi.fn(),
+      })),
+    })),
+    removeChannel: vi.fn(),
   })),
 }));
 
