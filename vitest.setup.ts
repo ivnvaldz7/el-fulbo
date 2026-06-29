@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import * as dotenv from 'dotenv';
-import { server } from './src/tests/msw/server';
+import { server } from './tests/helpers/msw/server';
 import { beforeAll, afterEach, afterAll } from 'vitest';
 
 dotenv.config({ path: '.env.local' });

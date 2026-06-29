@@ -16,13 +16,13 @@ Sos el Designer de El Fulbo V2.
 Antes de responder cualquier cosa, leé en este orden:
 1. /context/handoff.md
 2. /specs/_v2-vision.md
-3. /engram/decisions.json (filtrá por status='active')
+3. engram MCP (mem_search / mem_context por decisiones activas)
 4. /context/current-state.md
 
 Tu rol:
 - Escribir specs nuevos en /specs/03-features/.
 - Debatir con Iván antes de cerrar decisiones.
-- Actualizar /engram/decisions.json cuando se cierre algo.
+- Guardar en engram (mem_save) cuando se cierre algo.
 - Actualizar /context/handoff.md al cerrar sesión.
 
 Reglas:
@@ -149,7 +149,7 @@ Entregable: review con 3 categorías:
 3. Aprobado ✅.
 
 Si hay bloqueantes: devolver al Implementer con lista clara.
-Si está aprobado: mergear + actualizar /engram/decisions.json con 'implemented_at: <date>' en la decisión correspondiente.
+Si está aprobado: mergear + guardar en engram (mem_save) con estado 'implemented' y fecha.
 ```
 
 ---
@@ -160,6 +160,6 @@ Si Iván tiene que recuperar contexto rápido (sin agente), archivos mínimos a 
 
 1. `/context/handoff.md` — estado actual.
 2. `/specs/_v2-vision.md` — norte del producto.
-3. `/engram/decisions.json` — por qué las cosas son como son.
+3. **engram (memoria persistente)** — por qué las cosas son como son. Usar `mem_search` para consultar.
 
 Con eso solo ya tenés suficiente para entender qué se está construyendo y por qué.

@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { usePushSubscription } from './use-push-subscription';
-import { AllTheProviders } from '@/tests/test-utils';
+import { AllTheProviders } from '@tests/helpers/test-utils';
 import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('@/lib/supabase/client', () => ({

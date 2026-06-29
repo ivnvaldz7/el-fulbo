@@ -18,7 +18,7 @@ This feature introduces a multi-step process for Admins/Owners to manage event a
 ### UI / Frontend
 *   **New Routes:** Dedicated routes for check-in (`/groups/{id}/events/{event_id}/check-in`) and draw (`/groups/{id}/events/{event_id}/draw`) will be needed.
 *   **Event Page (`src/app/groups/[id]/events/[event_id]/page.tsx`):** Will need to display the "Hacer check-in" button based on event status and user role.
-*   **Check-in Components:** New components for the check-in screen, including player lists with toggles, "Mark all" button, and integration with the "add phantom player" feature (from `feat-013`). `src/components/EventAttendeesList.tsx` and `src/components/ConfirmAttendance.jsx` are relevant here.
+*   **Check-in Components:** New components for the check-in screen, including player lists with toggles, "Mark all" button, and integration with the "add phantom player" feature (from `feat-013`). `src/components/event-attendees-list/event-attendees-list.tsx` and `src/components/ConfirmAttendance.jsx` are relevant here.
 *   **Draw Components:** New components for the draw animation (using Framer Motion), the results display (two teams, player cards, overall diff, warnings), and manual editing (drag-and-drop).
 *   **Modals (`src/components/ui/confirmation-modal.tsx`):** Will be heavily used for pre-draw validations and user choices.
 *   **State Management:** Significant client-side state will be required for the check-in process, the draw algorithm, and manual editing.
@@ -32,7 +32,7 @@ This feature introduces a multi-step process for Admins/Owners to manage event a
 *   **`events.service.ts`:** Will be extended to handle event status transitions (`checked_in`, `drawn`), update `draw_seed`, `drawn_by_user_id`, `team_a_name`, `team_b_name`, and retrieve event data relevant to the draw.
 *   **`eventAttendees.ts`:** Will be central to managing `event_attendances` records, especially `checked_in` status.
 *   **`player.service.ts`:** May need modifications or additions related to fetching `PlayerForDraw` data and potentially for adding phantom players.
-*   **`notificationSender.service.ts`:** Will be used to send the new `match_ready` notifications.
+*   **`notificationSender.service.ts` (⚠️ eliminado en chore/estructure-reorder):** Originally intended for `match_ready` notifications. The actual push delivery is handled by `notifications.service.ts` + `push-sender.service.ts`.
 *   **`draw.service.ts` (new):** A dedicated client-side service to encapsulate the balancing algorithm (Phases 0-3), including `getTeamSize`, `shuffle`, `best_candidate_for_position`, and `calculate_boost`. This will be pure logic, isolated from UI.
 
 ### Data Models / Types / Validations (`src/lib/types`, `specs/04-contracts/types.ts`, `src/lib/validations`)
@@ -59,13 +59,13 @@ This feature introduces a multi-step process for Admins/Owners to manage event a
 *   `src/app/api/events/[eventId]/draw/confirm/route.ts` (Potential new API for draw confirmation)
 *   `src/app/api/socket/route.ts` (Real-time updates)
 *   `src/lib/socket.ts` (Real-time client)
-*   `src/components/EventAttendeesList.tsx` (Likely used in check-in UI)
+*   `src/components/event-attendees-list/event-attendees-list.tsx` (Likely used in check-in UI)
 *   `src/components/ConfirmAttendance.jsx` (Potentially reusable in check-in UI)
 *   `src/components/ui/confirmation-modal.tsx` (For draw validation modals)
 *   `src/lib/services/events.service.ts`
 *   `src/lib/services/eventAttendees.ts`
 *   `src/lib/services/player.service.ts`
-*   `src/lib/services/notificationSender.service.ts`
+*   ~~`src/lib/services/notificationSender.service.ts`~~ (eliminado — usar `notifications.service.ts` + `push-sender.service.ts`)
 *   `src/lib/types.ts` (for new types)
 *   `src/lib/validations/event.ts` or new `src/lib/validations/draw.ts` (for Zod schema)
 

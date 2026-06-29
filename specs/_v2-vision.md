@@ -73,7 +73,7 @@ La barra: ser **tan fluidos como usar una encuesta de WhatsApp**. Cero fricción
 
 ## 6. Decisiones estructurales cerradas
 
-Todas registradas en `engram/decisions.json`.
+Todas registradas en `engram/decisions.json` (archivo local eliminado; ahora gestionado vía MCP server en engram).
 
 ### 6.1 Usuarios y roles
 

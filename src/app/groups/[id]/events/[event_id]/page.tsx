@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import EventAttendeesList from '@/components/EventAttendeesList/EventAttendeesList';
+import EventAttendeesList from '@/components/event-attendees-list/event-attendees-list';
 import { ShareMatchSummaryButton } from '@/components/share/share-match-summary-button';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';

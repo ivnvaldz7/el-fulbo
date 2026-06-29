@@ -7,7 +7,7 @@ Que cada Player pueda responder rápido si va al partido, usando la app como ree
 > **Nota de implementación real (2026-05-05):**
 > la verdad operativa de `feat-006` hoy vive en
 > `src/app/groups/[id]/events/[event_id]/page.tsx`,
-> `src/components/EventAttendeesList/EventAttendeesList.tsx`,
+> `src/components/event-attendees-list/event-attendees-list.tsx`,
 > `src/lib/services/events.service.ts`,
 > `supabase/migrations/20260504013000_feat_006_update_attendance_rpc.sql`
 > y `tests/integration/feat-006-attendance-rpc.test.ts`.
