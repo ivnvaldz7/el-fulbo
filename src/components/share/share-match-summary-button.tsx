@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { toBlob } from 'html-to-image';
 import toast from 'react-hot-toast';
 import type { PlayedMatchSummaryItem } from '@/lib/services/events.service';
 import { shareImageBlob } from '@/lib/share';
@@ -38,6 +37,7 @@ export function ShareMatchSummaryButton({
 
     setSharing(true);
     try {
+      const { toBlob } = await import('html-to-image');
       const blob = await toBlob(shareRef.current, {
         cacheBust: true,
         pixelRatio: 2,
