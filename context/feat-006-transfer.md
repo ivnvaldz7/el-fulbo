@@ -7,7 +7,7 @@
 ### Source of truth
 
 - UI: `src/app/groups/[id]/events/[event_id]/page.tsx`
-- Lista en vivo: `src/components/EventAttendeesList/EventAttendeesList.tsx`
+- Lista en vivo: `src/components/event-attendees-list/event-attendees-list.tsx`
 - Service layer: `src/lib/services/events.service.ts`
 - RPC vigente: `supabase/migrations/20260504013000_feat_006_update_attendance_rpc.sql`
 - Test focal: `tests/integration/feat-006-attendance-rpc.test.ts`

@@ -73,4 +73,5 @@ public/sw.js.map
 playwright-report/
 test-results/
 
-# Temp test scripts.test-scripts/
+# Temp test scripts
+.test-scripts/

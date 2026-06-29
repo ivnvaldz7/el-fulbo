@@ -5,15 +5,17 @@
  * MODE 2: "test" - usá cookies guardadas para navegar autenticado
  * 
  * Uso:
- *   node .test-scripts/test_auth_flow.mjs extract    → login manual, muestra cookies
- *   node .test-scripts/test_auth_flow.mjs test       → usa cookies guardadas
+ *   node scripts/test-auth-flow.mjs extract    → login manual, muestra cookies
+ *   node scripts/test-auth-flow.mjs test       → usa cookies guardadas
  */
 import { chromium } from 'playwright';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const BASE_URL = 'http://localhost:3000';
-const COOKIE_FILE = join(import.meta.dirname, '..', '.test-scripts', 'auth-cookies.json');
+const COOKIE_FILE = join(__dirname, 'auth-cookies.json');
 
 const mode = process.argv[2] || 'test';
 
@@ -71,7 +73,7 @@ async function extractCookies() {
 async function testWithCookies() {
   if (!existsSync(COOKIE_FILE)) {
     console.log('❌ No hay cookies guardadas. Primero corre:');
-    console.log('   node .test-scripts/test_auth_flow.mjs extract');
+    console.log('   node scripts/test-auth-flow.mjs extract');
     process.exit(1);
   }
 
@@ -108,7 +110,7 @@ async function testWithCookies() {
   assert(!url1.includes('login'), `No redirect a login (url: ${url1})`);
   
   // Screenshot
-  await page.screenshot({ path: join(import.meta.dirname, '..', '.test-scripts', 'dashboard_auth.png'), fullPage: true });
+  await page.screenshot({ path: join(__dirname, 'dashboard_auth.png'), fullPage: true });
   console.log('   📸 Screenshot: .test-scripts/dashboard_auth.png');
 
   // Test 2: Look for the user's info / profile elements
