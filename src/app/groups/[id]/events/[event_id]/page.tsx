@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import EventAttendeesList from '@/components/event-attendees-list/event-attendees-list';
 import { ShareMatchSummaryButton } from '@/components/share/share-match-summary-button';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { PageContent } from '@/components/ui/page-content';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 import { MvpVotingPanel } from '@/components/events/mvp-voting-panel';
@@ -314,20 +315,21 @@ export default function EventViewPage() {
   const boostsApplied = playedSummary.filter((item) => item.boostApplied);
 
   return (
-    <ImmersiveScreen contentClassName="max-w-md mx-auto space-y-4">
-      <PageHeader title="PARTIDO" backHref={`/groups/${groupId}/dashboard`} />
-      {showCancelModal ? (
-        <ConfirmationModal
-          title="Confirmar cancelación"
-          message="¿Seguro que querés cancelar este partido?"
-          onConfirm={handleConfirmCancellation}
-          onCancel={() => setShowCancelModal(false)}
-          loading={savingAttendance}
-          showMotiveField
-        />
-      ) : null}
+    <ImmersiveScreen>
+      <PageContent className="max-w-md">
+        <PageHeader title="PARTIDO" backHref={`/groups/${groupId}/dashboard`} />
+        {showCancelModal ? (
+          <ConfirmationModal
+            title="Confirmar cancelación"
+            message="¿Seguro que querés cancelar este partido?"
+            onConfirm={handleConfirmCancellation}
+            onCancel={() => setShowCancelModal(false)}
+            loading={savingAttendance}
+            showMotiveField
+          />
+        ) : null}
 
-      <div className="mt-16 space-y-4">
+        <div className="space-y-4">
         <header className="border border-white/10 bg-concrete-overlay p-5">
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
             Partido
@@ -596,7 +598,8 @@ export default function EventViewPage() {
             </button>
           </div>
         ) : null}
-      </div>
+        </div>
+      </PageContent>
     </ImmersiveScreen>
   );
 }

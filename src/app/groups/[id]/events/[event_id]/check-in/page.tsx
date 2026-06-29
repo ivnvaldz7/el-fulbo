@@ -8,6 +8,7 @@ import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { getTeamSize, type Event, type EventId, type GroupId } from '@/lib/types';
 import { EventsService, type EventAttendee } from '@/lib/services/events.service';
 import { AddPhantomModal } from '@/components/phantom/add-phantom-modal';
+import { PageContent } from '@/components/ui/page-content';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 
@@ -148,9 +149,10 @@ export default function EventCheckInPage() {
   const maybe = attendees.filter((attendee) => attendee.status === 'maybe');
 
   return (
-    <ImmersiveScreen contentClassName="max-w-2xl mx-auto space-y-4">
-      <PageHeader title="CHECK-IN" backHref={`/groups/${groupId}/events/${eventId}`} />
-      <div className="mt-16 space-y-4">
+    <ImmersiveScreen>
+      <PageContent className="max-w-2xl">
+        <PageHeader title="CHECK-IN" backHref={`/groups/${groupId}/events/${eventId}`} />
+        <div className="space-y-4">
         <header className="border border-white/10 bg-concrete-overlay p-5">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-pitch-green">Check-in</p>
           <h1 className="mt-2 font-headline text-3xl font-black italic uppercase">{event.field_name}</h1>
@@ -239,7 +241,8 @@ export default function EventCheckInPage() {
         >
           {canProceed ? 'Ir al sorteo' : `Faltan ${Math.max(minimumPlayers - checkedCount, 0)} jugadores`}
         </button>
-      </div>
+        </div>
+      </PageContent>
     </ImmersiveScreen>
   );
 }
