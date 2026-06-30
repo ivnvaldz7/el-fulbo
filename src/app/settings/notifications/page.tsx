@@ -11,20 +11,9 @@ export default async function NotificationSettingsPage() {
   const prefsResult = await getNotificationPreferences(supabase, user.id);
   const prefs = prefsResult.ok ? prefsResult.data : null;
 
-  const { data: isAdmin } = await supabase.rpc('is_group_admin', {
-    gid: '00000000-0000-0000-0000-000000000000',
-  }).maybeSingle();
-
   return (
     <NotificationSettingsClient
-      initialPrefs={prefs ?? {
-        pushEnabled: false,
-        matchReminders: true,
-        digestEnabled: false,
-        digestFrequency: 'disabled',
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      }}
-      isAdmin={!!isAdmin}
+      initialPrefs={prefs ?? { pushEnabled: false }}
     />
   );
 }

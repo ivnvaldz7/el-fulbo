@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   getNotifications,
   markNotificationRead,
@@ -6,7 +6,6 @@ import {
   getNotificationPreferences,
   saveNotificationPreferences,
   createNotification,
-  getPendingPushNotifications,
 } from './notifications.service';
 
 function makeMockRpc(data: unknown = null, error: unknown = null) {
@@ -90,7 +89,6 @@ describe('getNotificationPreferences', () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.pushEnabled).toBe(false);
-      expect(result.data.digestFrequency).toBe('disabled');
     }
   });
 });
@@ -119,14 +117,5 @@ describe('createNotification', () => {
     const result = await createNotification(supabase as never, '44444444-4444-4444-4444-444444444441', 'event_created', {});
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.data).toBe('notif-123');
-  });
-});
-
-describe('getPendingPushNotifications', () => {
-  it('returns empty array when nothing pending', async () => {
-    const supabase = makeSupabase();
-    const result = await getPendingPushNotifications(supabase as never);
-    expect(result.ok).toBe(true);
-    if (result.ok) expect(result.data).toHaveLength(0);
   });
 });

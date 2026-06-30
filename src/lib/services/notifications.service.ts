@@ -6,10 +6,6 @@ import { z } from 'zod';
 
 const prefsSchema = z.object({
   pushEnabled: z.boolean().optional(),
-  matchReminders: z.boolean().optional(),
-  digestEnabled: z.boolean().optional(),
-  digestFrequency: z.enum(['daily', 'weekly', 'disabled']).optional(),
-  timezone: z.string().max(100).optional(),
 });
 
 export interface AppNotification {
@@ -87,10 +83,6 @@ export async function markAllNotificationsRead(supabase: SupabaseClient): Promis
 
 export interface NotificationPreferences {
   pushEnabled: boolean;
-  matchReminders: boolean;
-  digestEnabled: boolean;
-  digestFrequency: 'daily' | 'weekly' | 'disabled';
-  timezone: string;
 }
 
 export async function getNotificationPreferences(
@@ -99,7 +91,7 @@ export async function getNotificationPreferences(
 ): Promise<Result<NotificationPreferences>> {
   const { data, error } = await supabase
     .from('user_notification_preferences')
-    .select('push_enabled, match_reminders, digest_enabled, digest_frequency, timezone')
+    .select('push_enabled')
     .eq('user_id', userId)
     .maybeSingle();
 
@@ -108,25 +100,13 @@ export async function getNotificationPreferences(
   if (!data) {
     return {
       ok: true,
-      data: {
-        pushEnabled: false,
-        matchReminders: true,
-        digestEnabled: false,
-        digestFrequency: 'disabled',
-        timezone: 'UTC',
-      },
+      data: { pushEnabled: false },
     };
   }
 
   return {
     ok: true,
-    data: {
-      pushEnabled: data.push_enabled as boolean,
-      matchReminders: data.match_reminders as boolean,
-      digestEnabled: data.digest_enabled as boolean,
-      digestFrequency: data.digest_frequency as 'daily' | 'weekly' | 'disabled',
-      timezone: data.timezone as string,
-    },
+    data: { pushEnabled: data.push_enabled as boolean },
   };
 }
 
@@ -140,10 +120,6 @@ export async function saveNotificationPreferences(
 
   const payload: Record<string, unknown> = { user_id: userId };
   if (prefs.pushEnabled !== undefined) payload.push_enabled = prefs.pushEnabled;
-  if (prefs.matchReminders !== undefined) payload.match_reminders = prefs.matchReminders;
-  if (prefs.digestEnabled !== undefined) payload.digest_enabled = prefs.digestEnabled;
-  if (prefs.digestFrequency !== undefined) payload.digest_frequency = prefs.digestFrequency;
-  if (prefs.timezone !== undefined) payload.timezone = prefs.timezone;
 
   const { error } = await supabase
     .from('user_notification_preferences')
@@ -169,42 +145,4 @@ export async function createNotification(
   return { ok: true, data: data.id };
 }
 
-export async function markNotificationPushed(
-  supabase: SupabaseClient,
-  notificationId: string,
-): Promise<Result<void>> {
-  const { error } = await supabase
-    .from('notifications')
-    .update({ pushed_at: new Date().toISOString() })
-    .eq('id', notificationId);
 
-  if (error) return { ok: false, error: mapSupabaseError(error) };
-  return { ok: true, data: undefined };
-}
-
-/**
- * @deprecated Use specific notification service wrappers or queue architecture instead.
- */
-export async function getPendingPushNotifications(
-  supabase: SupabaseClient,
-  limit = 100,
-): Promise<Result<Array<{ id: string; userId: string; type: NotificationType; payload: NotificationPayload }>>> {
-  const { data, error } = await supabase
-    .from('notifications')
-    .select('id, user_id, type, payload')
-    .is('pushed_at', null)
-    .order('created_at', { ascending: true })
-    .limit(limit);
-
-  if (error) return { ok: false, error: mapSupabaseError(error) };
-
-  return {
-    ok: true,
-    data: (data ?? []).map((n) => ({
-      id: n.id as string,
-      userId: n.user_id as string,
-      type: n.type as NotificationType,
-      payload: (n.payload ?? {}) as NotificationPayload,
-    })),
-  };
-}

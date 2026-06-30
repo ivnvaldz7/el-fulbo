@@ -20,6 +20,7 @@ import type {
   RPC_UpdateEventPayload,
   UpdateCheckInPayload,
 } from '@/lib/types/events.types';
+import { sendPushToUser } from '@/lib/services/push-sender.service';
 import { mapSupabaseError } from '@/lib/services/errors';
 import {
   createEventRpcSchema,
@@ -553,6 +554,29 @@ export class EventsService {
     });
 
     if (error) return { ok: false, error: mapSupabaseError(error) };
+
+    const { data: event } = await this.supabase
+      .from('events')
+      .select('mvp_player_id, group_id')
+      .eq('id', eventId)
+      .single();
+
+    if (event?.mvp_player_id && event?.group_id) {
+      const { data: player } = await this.supabase
+        .from('players')
+        .select('user_id')
+        .eq('id', event.mvp_player_id)
+        .single();
+
+      if (player?.user_id) {
+        await sendPushToUser(this.supabase, player.user_id, {
+          title: '¡Sos el MVP!',
+          body: 'Te votaron como el mejor del partido.',
+          url: `/groups/${event.group_id}/events/${eventId}`,
+        });
+      }
+    }
+
     return { ok: true, data: undefined };
   }
 }

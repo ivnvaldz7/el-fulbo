@@ -8,7 +8,6 @@ import { usePushSubscription } from '@/hooks/use-push-subscription';
 
 interface Props {
   initialPrefs: NotificationPreferences;
-  isAdmin: boolean;
 }
 
 async function savePrefs(prefs: Partial<NotificationPreferences>) {
@@ -55,7 +54,7 @@ function Toggle({ label, description, checked, onChange }: ToggleProps) {
   );
 }
 
-export function NotificationSettingsClient({ initialPrefs, isAdmin }: Props) {
+export function NotificationSettingsClient({ initialPrefs }: Props) {
   const [prefs, setPrefs] = useState(initialPrefs);
   const [saved, setSaved] = useState(false);
   const { permission, isSubscribed, subscribe, unsubscribe } = usePushSubscription();
@@ -73,20 +72,6 @@ export function NotificationSettingsClient({ initialPrefs, isAdmin }: Props) {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
-
-  async function handleToggle(key: keyof NotificationPreferences, value: boolean | string) {
-    const updated = { ...prefs, [key]: value };
-    setPrefs(updated as NotificationPreferences);
-    await savePrefs({ [key]: value });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }
-
-  const freqLabels: Record<string, string> = {
-    daily: 'Diario',
-    weekly: 'Semanal',
-    disabled: 'Off',
-  };
 
   return (
     <div className="min-h-screen bg-absolute-dark text-white">
@@ -125,53 +110,7 @@ export function NotificationSettingsClient({ initialPrefs, isAdmin }: Props) {
             checked={prefs.pushEnabled && isSubscribed}
             onChange={handlePushToggle}
           />
-
-          {prefs.pushEnabled && (
-            <Toggle
-              label="Recordatorios de partidos"
-              description="24h y 2h antes del partido"
-              checked={prefs.matchReminders}
-              onChange={(v) => handleToggle('matchReminders', v)}
-            />
-          )}
         </div>
-
-        {isAdmin && (
-          <div>
-            <p className="pt-6 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">
-              Digest — solo admins
-            </p>
-            <Toggle
-              label="Digest por email"
-              description="Resumen de pendientes del grupo"
-              checked={prefs.digestEnabled}
-              onChange={(v) => handleToggle('digestEnabled', v)}
-            />
-            {prefs.digestEnabled && (
-              <div className="pb-4">
-                <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">
-                  Frecuencia
-                </p>
-                <div className="flex gap-2">
-                  {(['daily', 'weekly', 'disabled'] as const).map((freq) => (
-                    <button
-                      key={freq}
-                      onClick={() => handleToggle('digestFrequency', freq)}
-                      className={[
-                        'font-mono text-xs font-bold uppercase tracking-wide px-3 py-2 border transition-colors',
-                        prefs.digestFrequency === freq
-                          ? 'border-pitch-green bg-pitch-green/10 text-pitch-green'
-                          : 'border-white/10 bg-transparent text-white/40 hover:text-white/70',
-                      ].join(' ')}
-                    >
-                      {freqLabels[freq]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
