@@ -1,19 +1,21 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import EventAttendeesList from '@/components/event-attendees-list/event-attendees-list';
 import { ShareMatchSummaryButton } from '@/components/share/share-match-summary-button';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { PageContent } from '@/components/ui/page-content';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 import { MvpVotingPanel } from '@/components/events/mvp-voting-panel';
 import { MvpAdminPanel } from '@/components/events/mvp-admin-panel';
 import { ShareEventButton } from '@/components/events/share-event-button';
-import { showEventNotification } from '@/lib/notifications';
 import { PushOptinBanner } from '@/components/notifications/push-optin-banner';
+import { AttendanceConfirmationOverlay } from '@/components/events/attendance-confirmation-overlay';
+import { MvpVotingOverlay } from '@/components/events/mvp-voting-overlay';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import type { AttendanceStatus, Event, EventId, EventStatus, GroupId } from '@/lib/types';
 import {
@@ -95,6 +97,10 @@ export default function EventViewPage() {
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const eventsService = useMemo(() => new EventsService(supabase), [supabase]);
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const overlayConfirmar = searchParams.get('confirmar');
+  const overlayVotarMvp = searchParams.get('votar-mvp');
+  const [overlayClosed, setOverlayClosed] = useState(false);
 
   const { data, isLoading: loading, error } = useQuery({
     queryKey: ['event', eventId],
@@ -268,7 +274,6 @@ export default function EventViewPage() {
       });
       if (!result.ok) throw new Error(result.error.message);
 
-      showEventNotification('event_cancelled', { eventName: event.field_name });
       toast.success('Partido cancelado.');
       window.location.href = `/groups/${groupId}/dashboard`;
     } catch (cancelError) {
@@ -314,20 +319,43 @@ export default function EventViewPage() {
   const boostsApplied = playedSummary.filter((item) => item.boostApplied);
 
   return (
-    <ImmersiveScreen contentClassName="max-w-md mx-auto space-y-4">
-      <PageHeader title="PARTIDO" backHref={`/groups/${groupId}/dashboard`} />
-      {showCancelModal ? (
-        <ConfirmationModal
-          title="Confirmar cancelación"
-          message="¿Seguro que querés cancelar este partido?"
-          onConfirm={handleConfirmCancellation}
-          onCancel={() => setShowCancelModal(false)}
-          loading={savingAttendance}
-          showMotiveField
-        />
-      ) : null}
+    <ImmersiveScreen>
+      <PageContent className="max-w-md">
+        <PageHeader title="PARTIDO" backHref={`/groups/${groupId}/dashboard`} />
+        {overlayConfirmar === eventId && !overlayClosed ? (
+          <AttendanceConfirmationOverlay
+            eventId={eventId}
+            onClose={() => setOverlayClosed(true)}
+          />
+        ) : null}
 
-      <div className="mt-16 space-y-4">
+        {overlayVotarMvp === eventId && !overlayClosed && event.status === 'played' ? (
+          <MvpVotingOverlay
+            eventId={eventId}
+            currentPlayerId={currentPlayer?.playerId ?? null}
+            playedSummary={playedSummary}
+            hasVoted={hasVotedForMvp}
+            isVotingClosed={!!event.mvp_player_id}
+            onClose={() => setOverlayClosed(true)}
+            onVoteSubmitted={() => {
+              void queryClient.invalidateQueries({ queryKey: ['event', eventId] });
+              setOverlayClosed(true);
+            }}
+          />
+        ) : null}
+
+        {showCancelModal ? (
+          <ConfirmationModal
+            title="Confirmar cancelación"
+            message="¿Seguro que querés cancelar este partido?"
+            onConfirm={handleConfirmCancellation}
+            onCancel={() => setShowCancelModal(false)}
+            loading={savingAttendance}
+            showMotiveField
+          />
+        ) : null}
+
+        <div className="space-y-4">
         <header className="border border-white/10 bg-concrete-overlay p-5">
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
             Partido
@@ -486,7 +514,21 @@ export default function EventViewPage() {
             ) : event.status === 'played' && !event.mvp_player_id ? (
               <>
                 {isAdminOrOwner ? (
-                  <MvpAdminPanel eventId={event.id} playedSummary={playedSummary} />
+                  <>
+                    <MvpAdminPanel eventId={event.id} playedSummary={playedSummary} />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void navigator.clipboard.writeText(
+                          `${window.location.origin}/groups/${groupId}/events/${eventId}?votar-mvp=${eventId}`,
+                        );
+                        toast.success('Link de votación MVP copiado.');
+                      }}
+                      className="w-full rounded-lg border border-amber-400/40 bg-amber-400/10 px-4 py-3 font-headline text-base font-bold italic uppercase tracking-tight text-amber-300 transition hover:bg-amber-400/20 active:scale-[0.98]"
+                    >
+                      Compartir votación MVP
+                    </button>
+                  </>
                 ) : null}
 
                 {hasVotedForMvp ? (
@@ -570,33 +612,50 @@ export default function EventViewPage() {
         ) : null}
 
         {isAdminOrOwner && event.status !== 'cancelled' && event.status !== 'played' ? (
-          <div className={`grid gap-3 pt-2 ${canOpenCheckIn(event.status, event.scheduled_at) ? 'grid-cols-3' : 'grid-cols-2'}`}>
-            {canOpenCheckIn(event.status, event.scheduled_at) ? (
+          <>
+            {event.status === 'confirming' ? (
               <button
                 type="button"
-                onClick={() => router.push(`/groups/${groupId}/events/${eventId}/check-in`)}
-                className="h-12 rounded-lg bg-emerald-500 font-headline text-lg font-bold italic uppercase tracking-tight text-black transition-transform active:scale-95"
+                onClick={() => {
+                  void navigator.clipboard.writeText(
+                    `${window.location.origin}/groups/${groupId}/events/${eventId}?confirmar=${eventId}`,
+                  );
+                  toast.success('Link de confirmación copiado.');
+                }}
+                className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-4 py-4 font-headline text-lg font-bold italic uppercase tracking-tight text-white transition hover:border-white/20 active:scale-[0.98]"
               >
-                Check-in
+                Copiar link de confirmación
               </button>
             ) : null}
-            <button
-              type="button"
-              onClick={() => router.push(`/groups/${groupId}/events/${eventId}/edit`)}
-              className="h-12 rounded-lg bg-blue-600 font-headline text-lg font-bold italic uppercase tracking-tight text-white transition-transform active:scale-95"
-            >
-              Editar
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowCancelModal(true)}
-              className="h-12 rounded-lg bg-red-600 font-headline text-lg font-bold italic uppercase tracking-tight text-white transition-transform active:scale-95"
-            >
-              Cancelar
-            </button>
-          </div>
+            <div className={`grid gap-3 pt-2 ${canOpenCheckIn(event.status, event.scheduled_at) ? 'grid-cols-3' : 'grid-cols-2'}`}>
+              {canOpenCheckIn(event.status, event.scheduled_at) ? (
+                <button
+                  type="button"
+                  onClick={() => router.push(`/groups/${groupId}/events/${eventId}/check-in`)}
+                  className="h-12 rounded-lg bg-emerald-500 font-headline text-lg font-bold italic uppercase tracking-tight text-black transition-transform active:scale-95"
+                >
+                  Check-in
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => router.push(`/groups/${groupId}/events/${eventId}/edit`)}
+                className="h-12 rounded-lg bg-blue-600 font-headline text-lg font-bold italic uppercase tracking-tight text-white transition-transform active:scale-95"
+              >
+                Editar
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCancelModal(true)}
+                className="h-12 rounded-lg bg-red-600 font-headline text-lg font-bold italic uppercase tracking-tight text-white transition-transform active:scale-95"
+              >
+                Cancelar
+              </button>
+            </div>
+          </>
         ) : null}
-      </div>
+        </div>
+      </PageContent>
     </ImmersiveScreen>
   );
 }

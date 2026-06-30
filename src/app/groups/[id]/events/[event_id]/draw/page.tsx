@@ -8,6 +8,7 @@ import { drawTeams } from '@/lib/draw';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { type DrawResult, type Event, type EventId, type GroupId } from '@/lib/types';
 import { EventsService } from '@/lib/services/events.service';
+import { PageContent } from '@/components/ui/page-content';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 
@@ -115,9 +116,10 @@ export default function EventDrawPage() {
   const substitutes = result.assignments.filter((assignment) => assignment.team === 'substitute');
 
   return (
-    <ImmersiveScreen contentClassName="max-w-5xl mx-auto space-y-4">
-      <PageHeader title="SORTEO" backHref={`/groups/${groupId}/events/${eventId}`} />
-      <div className="mt-16 space-y-4">
+    <ImmersiveScreen>
+      <PageContent className="max-w-5xl">
+        <PageHeader title="SORTEO" backHref={`/groups/${groupId}/events/${eventId}`} />
+        <div className="space-y-4">
         <header className="border border-white/10 bg-concrete-overlay p-5">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-pitch-green">Sorteo</p>
           <h1 className="mt-2 font-headline text-3xl font-black italic uppercase">{event.field_name}</h1>
@@ -204,7 +206,8 @@ export default function EventDrawPage() {
             Confirmar sorteo
           </button>
         </div>
-      </div>
+        </div>
+      </PageContent>
     </ImmersiveScreen>
   );
 }

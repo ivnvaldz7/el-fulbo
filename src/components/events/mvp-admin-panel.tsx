@@ -39,9 +39,13 @@ export function MvpAdminPanel({ eventId, playedSummary }: MvpAdminPanelProps) {
 
     setIsSubmitting(true);
     try {
-      const service = new EventsService(createBrowserSupabaseClient());
-      const res = await service.closeMvpVoting(eventId, isTie ? tiebreakerId : null);
-      if (!res.ok) throw new Error(res.error.message);
+      const res = await fetch(`/api/events/${eventId}/close-mvp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tiebreakerPlayerId: isTie ? tiebreakerId : null }),
+      });
+      const json = await res.json() as { ok: boolean; error?: { message: string } };
+      if (!json.ok) throw new Error(json.error?.message ?? 'Error al cerrar la votación.');
       toast.success('Votación cerrada y MVP asignado.');
       void queryClient.invalidateQueries({ queryKey: ['event', eventId] });
     } catch (err: any) {

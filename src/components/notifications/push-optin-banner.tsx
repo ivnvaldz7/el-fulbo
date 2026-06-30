@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { usePushSubscription } from '@/hooks/use-push-subscription';
 
@@ -24,15 +24,18 @@ const DISMISS_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
 
 export function PushOptinBanner({ variant = 'match' }: Props) {
   const { permission, isSubscribed, isLoading, subscribe } = usePushSubscription();
-  const [dismissed, setDismissed] = useState(() => {
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
     try {
       const ts = localStorage.getItem(DISMISSED_KEY);
-      if (!ts) return false;
-      return Date.now() - parseInt(ts, 10) < DISMISS_COOLDOWN_MS;
+      if (ts) {
+        setDismissed(Date.now() - parseInt(ts, 10) < DISMISS_COOLDOWN_MS);
+      }
     } catch {
-      return false;
+      // localStorage not available
     }
-  });
+  }, []);
 
   if (permission === 'unsupported' || permission === 'granted' || isSubscribed || dismissed) {
     return null;

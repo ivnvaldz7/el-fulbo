@@ -1,12 +1,11 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Shield, User } from 'lucide-react';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { FloatingPanel } from '@/components/ui/floating-panel';
 import { DeleteGroupButton } from '@/components/groups/delete-group-button';
 import { AppShareButton } from '@/components/share/app-share-button';
-import { User } from 'lucide-react';
 
 export default async function GroupsHubPage() {
   const supabase = await createServerSupabaseClient();
@@ -81,7 +80,7 @@ export default async function GroupsHubPage() {
   const hasGroups = userGroups.length > 0;
 
   return (
-    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] lg:max-w-[480px] w-full py-8 px-4">
+    <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] lg:max-w-[480px] w-full py-8">
       <FloatingPanel className="border-2 border-white/10 p-6">
         <header className="mb-8 flex items-center justify-between">
           <div>
@@ -96,28 +95,30 @@ export default async function GroupsHubPage() {
               return (
                 <article
                   key={group.group_id}
-                  className="group relative border-2 border-white/10 bg-absolute-dark transition-all duration-150 hover:border-pitch-green/50 hover:bg-white/5"
+                  className="group border-2 border-white/10 bg-absolute-dark transition-all duration-150 hover:border-pitch-green/50 hover:bg-white/5"
                 >
-                  <Link
-                    href={`/groups/${group.group_id}/dashboard`}
-                    className={`flex flex-col justify-between p-5 ${group.isAdmin ? 'pr-28' : ''}`}
-                    aria-label={`Ir al dashboard de ${group.name}`}
-                  >
-                    <h2 className="font-headline text-xl font-black uppercase italic text-white transition-colors duration-150 group-hover:text-pitch-green">
-                      {group.name}
-                    </h2>
-                    <p className="mt-1 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">
-                      {group.default_modality}
-                    </p>
-                  </Link>
-                  {group.isAdmin && (
-                    <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
-                      <div className="flex h-8 items-center rounded-full bg-pitch-green/10 px-3 font-mono text-[9px] font-bold uppercase tracking-wider text-pitch-green pointer-events-none select-none">
-                        Admin
+                  <div className="flex items-start justify-between gap-2 p-5">
+                    <Link
+                      href={`/groups/${group.group_id}/dashboard`}
+                      className="flex-1 min-w-0"
+                      aria-label={`Ir al dashboard de ${group.name}`}
+                    >
+                      <h2 className="font-headline text-xl font-black uppercase italic text-white transition-colors duration-150 group-hover:text-pitch-green">
+                        {group.name}
+                      </h2>
+                      <p className="mt-1 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">
+                        {group.default_modality}
+                      </p>
+                    </Link>
+                    {group.isAdmin && (
+                      <div className="flex shrink-0 items-center gap-2 pt-1">
+                        <span className="flex h-8 w-8 items-center justify-center rounded bg-pitch-green/10 text-pitch-green" title="Admin">
+                          <Shield className="h-4 w-4" />
+                        </span>
+                        <DeleteGroupButton groupId={group.group_id} groupName={group.name} />
                       </div>
-                      <DeleteGroupButton groupId={group.group_id} groupName={group.name} />
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </article>
               );
             })}

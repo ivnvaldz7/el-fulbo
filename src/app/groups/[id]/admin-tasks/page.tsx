@@ -4,6 +4,7 @@ import { getPendingPhantoms } from '@/lib/services/phantom-player.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { TaskActions } from './task-actions';
 import { PhantomResolutionWidget } from '@/components/phantom/phantom-resolution-widget';
+import { PageContent } from '@/components/ui/page-content';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 
@@ -81,10 +82,11 @@ export default async function AdminTasksPage({ params }: { params: Promise<{ id:
   const phantoms = phantomsResult.ok ? phantomsResult.data : [];
 
   return (
-    <ImmersiveScreen align="center" className="flex-col">
-      <PageHeader title="ADMIN" backHref={`/groups/${id}/dashboard`} />
+    <ImmersiveScreen>
+      <PageContent className="max-w-[480px]">
+        <PageHeader title="ADMIN" backHref={`/groups/${id}/dashboard`} />
 
-      <main className="mt-16 flex w-full max-w-[390px] lg:max-w-[480px] flex-col">
+        <div className="flex flex-col">
         <section className="py-6">
           <h2 className="font-headline text-3xl font-bold uppercase italic leading-none text-white">PENDIENTES</h2>
           <p className="font-mono text-[10px] uppercase text-pitch-green mt-1">Gestión del grupo</p>
@@ -116,7 +118,8 @@ export default async function AdminTasksPage({ params }: { params: Promise<{ id:
             taskType="revisions"
           />
         </div>
-      </main>
+        </div>
+      </PageContent>
     </ImmersiveScreen>
   );
 }

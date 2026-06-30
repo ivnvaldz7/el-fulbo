@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { PageContent } from '@/components/ui/page-content';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 import { OwnersSettingsClient } from './owners-settings-client';
@@ -15,10 +16,11 @@ export default async function OwnersSettingsPage({ params }: { params: Promise<{
   }
 
   return (
-    <ImmersiveScreen align="center" className="flex-col">
-      <PageHeader title="OWNERS" backHref={`/groups/${id}/dashboard`} />
+    <ImmersiveScreen>
+      <PageContent className="max-w-[480px]">
+        <PageHeader title="OWNERS" backHref={`/groups/${id}/dashboard`} />
 
-      <main className="mt-16 flex w-full max-w-[390px] lg:max-w-[480px] flex-col">
+        <div className="flex flex-col">
         <section className="py-6">
           <h2 className="font-headline text-3xl font-bold uppercase italic leading-none text-white">
             {result.data.groupName}
@@ -31,7 +33,8 @@ export default async function OwnersSettingsPage({ params }: { params: Promise<{
           owners={result.data.owners}
           candidates={result.data.candidates}
         />
-      </main>
+        </div>
+      </PageContent>
     </ImmersiveScreen>
   );
 }

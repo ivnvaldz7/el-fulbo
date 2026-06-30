@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EventsService } from './events.service';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 describe('EventsService - MVP Voting', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('getMvpVotes returns sorted vote counts', async () => {
     const mockData = [
       { voted_player_id: 'p1' },
@@ -30,7 +34,7 @@ describe('EventsService - MVP Voting', () => {
     }
   });
 
-  it('closeMvpVoting calls rpc successfully', async () => {
+  it('closeMvpVoting calls rpc', async () => {
     const client = {
       rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
     } as unknown as SupabaseClient;
@@ -43,5 +47,19 @@ describe('EventsService - MVP Voting', () => {
       p_event_id: 'event-1',
       p_tiebreaker_player_id: 'p1',
     });
+  });
+
+  it('closeMvpVoting returns error when rpc fails', async () => {
+    const client = {
+      rpc: vi.fn().mockResolvedValue({ data: null, error: new Error('EMPATE') }),
+    } as unknown as SupabaseClient;
+
+    const service = new EventsService(client);
+    const result = await service.closeMvpVoting('event-1', null);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toBe('Algo salio mal.');
+    }
   });
 });

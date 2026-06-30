@@ -65,7 +65,7 @@ export default async function GroupDashboardPage({ params }: { params: Promise<{
       .eq('status', 'played')
       .order('played_at', { ascending: false, nullsFirst: false })
       .order('scheduled_at', { ascending: false })
-      .limit(3),
+      .limit(1),
   ]);
 
   if (!membership && !currentPlayerResult.ok) {

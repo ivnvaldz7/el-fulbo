@@ -7,7 +7,7 @@ import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { EventsService } from '@/lib/services/events.service';
 import { createEventSchema, CreateEventData } from '@/lib/validations/event';
 import toast from 'react-hot-toast';
-import { showEventNotification } from '@/lib/notifications';
+import { PageContent } from '@/components/ui/page-content';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 
@@ -118,7 +118,6 @@ export default function NewEventPage() {
       if (!result.ok) throw new Error(result.error.message);
 
       window.localStorage.removeItem(CREATE_EVENT_DRAFT_KEY);
-      showEventNotification('event_created', { eventName: parsed.data.locationName });
       router.push(`/groups/${groupId}/dashboard`);
     } catch (err: any) {
       setError(err.message);
@@ -133,9 +132,9 @@ export default function NewEventPage() {
   }
 
   return (
-    <ImmersiveScreen align="center" contentClassName="max-w-md mx-auto w-full">
-      <PageHeader title="NUEVO PARTIDO" backHref={`/groups/${groupId}/dashboard`} />
-      <div className="mt-16">
+    <ImmersiveScreen>
+      <PageContent className="max-w-md">
+        <PageHeader title="NUEVO PARTIDO" backHref={`/groups/${groupId}/dashboard`} />
       <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green mb-2">Nuevo Partido</p>
       <h1 className="font-headline text-3xl font-black italic uppercase text-white mb-6">¿Cuándo jugamos?</h1>
       <form onSubmit={submit} className="space-y-4">
@@ -226,7 +225,7 @@ export default function NewEventPage() {
           </button>
         </footer>
       </form>
-      </div>
+      </PageContent>
     </ImmersiveScreen>
   );
 }

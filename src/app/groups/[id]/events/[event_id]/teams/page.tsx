@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { type EventId, type GroupId } from '@/lib/types';
 import { EventsService, type DrawTeamSummary } from '@/lib/services/events.service';
+import { PageContent } from '@/components/ui/page-content';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 
@@ -46,9 +47,10 @@ export default function EventTeamsPage() {
   }
 
   return (
-    <ImmersiveScreen contentClassName="max-w-5xl mx-auto space-y-4">
-      <PageHeader title="EQUIPOS" backHref={`/groups/${groupId}/events/${eventId}`} />
-      <div className="mt-16 space-y-4">
+    <ImmersiveScreen>
+      <PageContent className="max-w-5xl">
+        <PageHeader title="EQUIPOS" backHref={`/groups/${groupId}/events/${eventId}`} />
+        <div className="space-y-4">
         <header className="border border-white/10 bg-concrete-overlay p-5">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-pitch-green">Equipos confirmados</p>
         </header>
@@ -78,7 +80,8 @@ export default function EventTeamsPage() {
         >
           Volver al evento
         </button>
-      </div>
+        </div>
+      </PageContent>
     </ImmersiveScreen>
   );
 }

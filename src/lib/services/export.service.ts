@@ -1,4 +1,3 @@
-import JSZip from 'jszip';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Result } from '@/lib/types';
 import { mapSupabaseError } from './errors';
@@ -34,16 +33,7 @@ export async function fetchGroupData(
   supabase: SupabaseClient,
   groupId: string,
 ): Promise<Result<ExportGroupData>> {
-  const [
-    groupRes,
-    rosterRes,
-    eventsRes,
-    attendancesRes,
-    participationsRes,
-    statLogsRes,
-    revisionRes,
-    reintegrationRes,
-  ] = await Promise.all([
+  const [groupRes, rosterRes, eventsRes] = await Promise.all([
     supabase
       .from('groups')
       .select('id, name, default_modality, invite_code, donation_link, created_at, archived_at')
@@ -65,77 +55,52 @@ export async function fetchGroupData(
       )
       .eq('group_id', groupId)
       .order('scheduled_at', { ascending: true }),
-
-    supabase
-      .from('event_attendances')
-      .select('event_id, player_id, status, checked_in, checked_in_at, created_at, updated_at')
-      .in(
-        'event_id',
-        (
-          await supabase
-            .from('events')
-            .select('id')
-            .eq('group_id', groupId)
-        ).data?.map((e) => e.id as string) ?? [],
-      ),
-
-    supabase
-      .from('match_participations')
-      .select(
-        'event_id, player_id, team, assigned_position, played_primary_position, boost_applied, created_at',
-      )
-      .in(
-        'event_id',
-        (
-          await supabase
-            .from('events')
-            .select('id')
-            .eq('group_id', groupId)
-        ).data?.map((e) => e.id as string) ?? [],
-      ),
-
-    supabase
-      .from('player_stat_change_logs')
-      .select(
-        'id, player_id, changed_by_user_id, requested_by_user_id, before_stats, after_stats, reason, created_at',
-      )
-      .in(
-        'player_id',
-        (
-          await supabase
-            .from('players')
-            .select('id')
-            .eq('group_id', groupId)
-        ).data?.map((p) => p.id as string) ?? [],
-      )
-      .order('created_at', { ascending: true }),
-
-    supabase
-      .from('stat_revision_requests')
-      .select(
-        'id, player_id, user_id, message, proposed_stats, status, resolved_by_user_id, resolved_at, resolution_note, created_at',
-      )
-      .in(
-        'player_id',
-        (
-          await supabase
-            .from('players')
-            .select('id')
-            .eq('group_id', groupId)
-        ).data?.map((p) => p.id as string) ?? [],
-      ),
-
-    supabase
-      .from('reintegration_requests')
-      .select(
-        'id, player_id, user_id, message, status, resolved_by_user_id, resolved_at, resolution_note, created_at',
-      )
-      .eq('group_id', groupId),
   ]);
 
   if (groupRes.error) return { ok: false, error: mapSupabaseError(groupRes.error) };
   if (rosterRes.error) return { ok: false, error: mapSupabaseError(rosterRes.error) };
   if (eventsRes.error) return { ok: false, error: mapSupabaseError(eventsRes.error) };
+
+  const eventIds = (eventsRes.data ?? []).map((e) => e.id as string);
+  const playerIds = (rosterRes.data ?? []).map((p) => p.id as string);
+
+  const [attendancesRes, participationsRes, statLogsRes, revisionRes, reintegrationRes] =
+    await Promise.all([
+      supabase
+        .from('event_attendances')
+        .select('event_id, player_id, status, checked_in, checked_in_at, created_at, updated_at')
+        .in('event_id', eventIds.length > 0 ? eventIds : ['']),
+
+      supabase
+        .from('match_participations')
+        .select(
+          'event_id, player_id, team, assigned_position, played_primary_position, boost_applied, created_at',
+        )
+        .in('event_id', eventIds.length > 0 ? eventIds : ['']),
+
+      supabase
+        .from('player_stat_change_logs')
+        .select(
+          'id, player_id, changed_by_user_id, requested_by_user_id, before_stats, after_stats, reason, created_at',
+        )
+        .in('player_id', playerIds.length > 0 ? playerIds : [''])
+        .order('created_at', { ascending: true }),
+
+      supabase
+        .from('stat_revision_requests')
+        .select(
+          'id, player_id, user_id, message, proposed_stats, status, resolved_by_user_id, resolved_at, resolution_note, created_at',
+        )
+        .in('player_id', playerIds.length > 0 ? playerIds : ['']),
+
+      supabase
+        .from('reintegration_requests')
+        .select(
+          'id, player_id, user_id, message, status, resolved_by_user_id, resolved_at, resolution_note, created_at',
+        )
+        .eq('group_id', groupId),
+    ]);
+
   if (attendancesRes.error) return { ok: false, error: mapSupabaseError(attendancesRes.error) };
   if (participationsRes.error) return { ok: false, error: mapSupabaseError(participationsRes.error) };
   if (statLogsRes.error) return { ok: false, error: mapSupabaseError(statLogsRes.error) };
@@ -271,6 +236,7 @@ No compartir sin consentimiento de los miembros del grupo.
 `;
 
 export async function buildGroupZip(ex: AnonymizedExport): Promise<Uint8Array> {
+  const { default: JSZip } = await import('jszip');
   const zip = new JSZip();
 
   zip.file('README.txt', generateReadme(ex));

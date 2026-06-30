@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import type { AttendanceStatus } from '@/lib/types';
 import type { EventAttendee } from '@/lib/services/events.service';
 
@@ -67,7 +68,7 @@ function Avatar({ attendee }: { attendee: EventAttendee }) {
   );
 }
 
-export default function EventAttendeesList({ attendees }: EventAttendeesListProps) {
+const EventAttendeesList = memo(function EventAttendeesList({ attendees }: EventAttendeesListProps) {
   return (
     <div className="space-y-3">
       {SECTIONS.map((section) => {
@@ -111,9 +112,11 @@ export default function EventAttendeesList({ attendees }: EventAttendeesListProp
                 </ul>
               )}
             </div>
-          </details>
-        );
-      })}
+        </details>
+      );
+    })}
     </div>
   );
-}
+});
+
+export default EventAttendeesList;

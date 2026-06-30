@@ -111,7 +111,7 @@ describe('GroupDashboardInitialState', () => {
       />,
     );
 
-    expect(screen.getByText('Últimos partidos')).toBeInTheDocument();
+    expect(screen.getByText('Último partido')).toBeInTheDocument();
     expect(screen.getByText('Cancha 5')).toBeInTheDocument();
     expect(screen.getByText(/Juan fue la figura/i)).toBeInTheDocument();
     expect(screen.getByText(/Subieron de nivel/i)).toBeInTheDocument();

@@ -7,6 +7,7 @@ import EventForm from '@/components/EventForm';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import type { Event } from '@/lib/types';
 import { EventsService } from '@/lib/services/events.service';
+import { PageContent } from '@/components/ui/page-content';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 
@@ -78,9 +79,9 @@ export default function EditEventPage() {
   }
 
   return (
-    <ImmersiveScreen contentClassName="max-w-3xl mx-auto">
-      <PageHeader title="EDITAR" backHref={`/groups/${groupId}/events/${eventId}`} />
-      <div className="mt-16">
+    <ImmersiveScreen>
+      <PageContent className="max-w-3xl">
+        <PageHeader title="EDITAR" backHref={`/groups/${groupId}/events/${eventId}`} />
       <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green mb-2">Editar partido</p>
       <h1 className="mb-6 font-headline text-3xl font-black italic uppercase tracking-tight text-white">
         ¿Qué cambió?
@@ -91,7 +92,7 @@ export default function EditEventPage() {
         submitButtonText="Guardar cambios"
         readOnly={eventData.status === 'checked_in' || eventData.status === 'played'}
       />
-      </div>
+      </PageContent>
     </ImmersiveScreen>
   );
 }

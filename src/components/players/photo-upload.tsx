@@ -2,7 +2,6 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import imageCompression from 'browser-image-compression';
 import { Camera, Loader2 } from 'lucide-react';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 
@@ -32,6 +31,7 @@ export function PhotoUpload({ playerId, groupId, currentPhotoUrl, canEdit }: Pho
         useWebWorker: true,
       };
 
+      const { default: imageCompression } = await import('browser-image-compression');
       const compressedFile = await imageCompression(file, options);
       const fileExt = file.name.split('.').pop();
       const fileName = `${groupId}/${playerId}-${Date.now()}.${fileExt}`;

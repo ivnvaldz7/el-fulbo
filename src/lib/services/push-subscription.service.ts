@@ -20,14 +20,11 @@ export async function savePushSubscription(
     };
   }
 
-  const userAgent =
-    typeof navigator !== 'undefined' ? navigator.userAgent : undefined;
-
   const { error } = await supabase.rpc('upsert_push_subscription', {
     p_endpoint: sub.endpoint,
     p_p256dh: sub.keys.p256dh,
     p_auth: sub.keys.auth,
-    p_user_agent: userAgent ?? null,
+    p_user_agent: null,
   });
 
   if (error) return { ok: false, error: mapSupabaseError(error) };
@@ -53,8 +50,7 @@ export async function getActiveSubscriptions(
   const { data, error } = await supabase
     .from('push_subscriptions')
     .select('id, endpoint, p256dh_key, auth_key')
-    .eq('user_id', userId)
-    .eq('archived', false);
+    .eq('user_id', userId);
 
   if (error) return { ok: false, error: mapSupabaseError(error) };
 
@@ -67,30 +63,4 @@ export async function getActiveSubscriptions(
       authKey: s.auth_key as string,
     })),
   };
-}
-
-export async function archiveStaleSubscription(
-  supabase: SupabaseClient,
-  subscriptionId: string,
-): Promise<Result<void>> {
-  const { error } = await supabase
-    .from('push_subscriptions')
-    .update({ archived: true })
-    .eq('id', subscriptionId);
-
-  if (error) return { ok: false, error: mapSupabaseError(error) };
-  return { ok: true, data: undefined };
-}
-
-export async function touchSubscription(
-  supabase: SupabaseClient,
-  subscriptionId: string,
-): Promise<Result<void>> {
-  const { error } = await supabase
-    .from('push_subscriptions')
-    .update({ last_used_at: new Date().toISOString() })
-    .eq('id', subscriptionId);
-
-  if (error) return { ok: false, error: mapSupabaseError(error) };
-  return { ok: true, data: undefined };
 }
