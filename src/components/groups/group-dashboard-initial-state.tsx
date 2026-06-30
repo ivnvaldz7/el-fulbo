@@ -113,33 +113,14 @@ export function GroupDashboardInitialState({
 
         {currentMvp?.mvpPlayer ? (
           <div className="mt-8 border border-amber-300/30 bg-gradient-to-br from-amber-300/10 via-black/40 to-amber-300/5 p-5 shadow-[0_0_30px_rgba(251,191,36,0.12)]">
-            <p className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">
-              <span className="inline-block h-px w-4 bg-amber-300/50" />
-              MVP de la fecha
-              <span className="inline-block h-px w-4 bg-amber-300/50" />
-            </p>
-
-            <div className="mt-4 flex items-center gap-5">
-              <Link
-                href={`/groups/${groupId}/players/${currentMvp.mvpPlayer.id}`}
-                className="relative flex h-16 w-16 shrink-0 items-center justify-center border-2 border-amber-300/50 bg-amber-300/10 text-2xl font-black text-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.2)] hover:opacity-80 transition-opacity"
-              >
-                {currentMvp.mvpPlayer.photoUrl ? (
-                  <Image
-                    src={currentMvp.mvpPlayer.photoUrl}
-                    alt={currentMvp.mvpPlayer.displayName}
-                    fill
-                    sizes="64px"
-                    className="object-cover grayscale brightness-90 contrast-125"
-                    crossOrigin="anonymous"
-                    unoptimized
-                  />
-                ) : (
-                  currentMvp.mvpPlayer.displayName.slice(0, 1).toUpperCase()
-                )}
-              </Link>
-              <div className="min-w-0">
-                <Link href={`/groups/${groupId}/players/${currentMvp.mvpPlayer.id}`} className="hover:opacity-80 transition-opacity">
+            <div className="flex gap-6">
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">
+                  <span className="inline-block h-px w-4 bg-amber-300/50" />
+                  MVP de la fecha
+                  <span className="inline-block h-px w-4 bg-amber-300/50" />
+                </p>
+                <Link href={`/groups/${groupId}/players/${currentMvp.mvpPlayer.id}`} className="mt-3 block hover:opacity-80 transition-opacity">
                   <h2 className="truncate font-headline text-2xl font-black italic uppercase leading-none text-white">
                     {currentMvp.mvpPlayer.displayName}
                   </h2>
@@ -157,6 +138,24 @@ export function GroupDashboardInitialState({
                   <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
+              <Link
+                href={`/groups/${groupId}/players/${currentMvp.mvpPlayer.id}`}
+                className="relative flex h-24 w-24 shrink-0 items-center justify-center border-2 border-amber-300/50 bg-amber-300/10 text-4xl font-black text-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.2)] hover:opacity-80 transition-opacity self-center"
+              >
+                {currentMvp.mvpPlayer.photoUrl ? (
+                  <Image
+                    src={currentMvp.mvpPlayer.photoUrl}
+                    alt={currentMvp.mvpPlayer.displayName}
+                    fill
+                    sizes="96px"
+                    className="object-cover grayscale brightness-90 contrast-125"
+                    crossOrigin="anonymous"
+                    unoptimized
+                  />
+                ) : (
+                  currentMvp.mvpPlayer.displayName.slice(0, 1).toUpperCase()
+                )}
+              </Link>
             </div>
           </div>
         ) : null}
@@ -296,36 +295,36 @@ export function GroupDashboardInitialState({
 
         {recentPlayedEvents.length > 0 ? (
           <div className="mt-10">
-            <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Últimos partidos</h2>
-            <ul className="mt-4 space-y-3">
-              {recentPlayedEvents.map((event) => (
-                <li key={event.id} className="border border-white/10 bg-black/30 p-4">
-                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
-                    {event.playedAtLabel}
-                  </p>
-                  <p className="mt-2 font-headline text-lg font-black italic uppercase text-white">{event.fieldName}</p>
-                  <p className="mt-1 text-sm text-white/70">
-                    {event.teamAName} {event.teamAScore} - {event.teamBScore} {event.teamBName}
-                  </p>
-                  {event.mvpName ? <p className="mt-2 text-sm text-amber-300">🏆 {event.mvpName} fue la figura.</p> : null}
-                  {event.boostsApplied.length > 0 ? (
-                    <div className="mt-2 space-y-1">
-                      <p className="text-xs font-semibold text-emerald-300">📈 Subieron de nivel:</p>
-                      <ul className="space-y-0.5">
-                        {event.boostsApplied.map((boost, idx) => (
-                          <li key={idx} className="text-xs text-emerald-300/80">
-                            {boost.displayName} —{' '}
-                            {boost.modifiers
-                              .map((m) => `${m.stat} +${m.delta}`)
-                              .join(', ')}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
+            <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Último partido</h2>
+            <div className="mt-4 border border-white/10 bg-black/30 p-4">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
+                {recentPlayedEvents[0]!.playedAtLabel}
+              </p>
+              <p className="mt-2 font-headline text-lg font-black italic uppercase text-white">{recentPlayedEvents[0]!.fieldName}</p>
+              <p className="mt-1 font-headline text-base font-bold italic uppercase text-white/70">
+                {recentPlayedEvents[0]!.teamAScore > recentPlayedEvents[0]!.teamBScore
+                  ? `Ganó ${recentPlayedEvents[0]!.teamAName}`
+                  : recentPlayedEvents[0]!.teamBScore > recentPlayedEvents[0]!.teamAScore
+                    ? `Ganó ${recentPlayedEvents[0]!.teamBName}`
+                    : 'Empate'}
+              </p>
+              {recentPlayedEvents[0]!.mvpName ? <p className="mt-2 text-sm text-amber-300">🏆 {recentPlayedEvents[0]!.mvpName} fue la figura.</p> : null}
+              {recentPlayedEvents[0]!.boostsApplied.length > 0 ? (
+                <div className="mt-2 space-y-1">
+                  <p className="text-xs font-semibold text-emerald-300">📈 Subieron de nivel:</p>
+                  <ul className="space-y-0.5">
+                    {recentPlayedEvents[0]!.boostsApplied.map((boost, idx) => (
+                      <li key={idx} className="text-xs text-emerald-300/80">
+                        {boost.displayName} —{' '}
+                        {boost.modifiers
+                          .map((m) => `${m.stat} +${m.delta}`)
+                          .join(', ')}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
           </div>
         ) : (
           <div className="mt-10">
