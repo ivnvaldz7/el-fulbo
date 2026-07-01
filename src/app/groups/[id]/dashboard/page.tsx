@@ -82,7 +82,7 @@ export default async function GroupDashboardPage({ params }: { params: Promise<{
     scheduledAt: event.scheduled_at as string,
   }));
 
-  // 3. Current MVP — last played event with an MVP
+  // 3. Current MVP — last played event (may or may not have MVP)
   const { data: currentMvpRaw } = await supabase
     .from('events')
     .select(`
@@ -104,7 +104,6 @@ export default async function GroupDashboardPage({ params }: { params: Promise<{
     `)
     .eq('group_id', id)
     .eq('status', 'played')
-    .not('mvp_player_id', 'is', null)
     .order('played_at', { ascending: false, nullsFirst: false })
     .order('scheduled_at', { ascending: false })
     .limit(1)

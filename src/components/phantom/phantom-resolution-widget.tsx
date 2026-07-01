@@ -92,6 +92,7 @@ function PhantomRow({ phantom, groupId, onResolved }: PhantomRowProps) {
   const [converting, setConverting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   function handleResolved() {
     router.refresh();
@@ -108,9 +109,18 @@ function PhantomRow({ phantom, groupId, onResolved }: PhantomRowProps) {
 
   async function handleDelete() {
     setLoading(true);
-    await fetch(`/api/groups/${groupId}/phantom-players/${phantom.id}`, {
+    setDeleteError(null);
+    const res = await fetch(`/api/groups/${groupId}/phantom-players/${phantom.id}`, {
       method: 'DELETE',
     });
+
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      setDeleteError(json?.error?.message ?? 'No se pudo eliminar el jugador fantasma.');
+      setLoading(false);
+      return;
+    }
+
     handleResolved();
   }
 
@@ -127,23 +137,29 @@ function PhantomRow({ phantom, groupId, onResolved }: PhantomRowProps) {
 
   if (confirmDelete) {
     return (
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-white/70">¿Seguro que querés eliminar a {phantom.displayName}?</p>
-        <div className="flex gap-2 shrink-0">
-          <button
-            onClick={handleDelete}
-            disabled={loading}
-            className="rounded-lg bg-red-500/80 px-3 py-1.5 text-xs font-bold text-white"
-          >
-            Sí, eliminar
-          </button>
-          <button
-            onClick={() => setConfirmDelete(false)}
-            className="text-xs text-white/40 hover:text-white"
-          >
-            Cancelar
-          </button>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-white/70">¿Seguro que querés eliminar a {phantom.displayName}?</p>
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={handleDelete}
+              disabled={loading}
+              className="rounded-lg bg-red-500/80 px-3 py-1.5 text-xs font-bold text-white"
+            >
+              {loading ? 'Eliminando...' : 'Sí, eliminar'}
+            </button>
+            <button
+              onClick={() => setConfirmDelete(false)}
+              disabled={loading}
+              className="text-xs text-white/40 hover:text-white"
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
+        {deleteError && (
+          <p className="text-xs text-red-400">{deleteError}</p>
+        )}
       </div>
     );
   }
