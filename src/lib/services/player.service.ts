@@ -85,3 +85,30 @@ export async function archiveSelfPlayer(
 
   return { ok: true, data: undefined };
 }
+
+export async function syncPlayerStatsPropagation(
+  supabase: SupabaseClient,
+  playerId: string,
+): Promise<Result<void>> {
+  const { error } = await supabase.rpc('propagate_player_stats', {
+    p_player_id: playerId,
+  });
+
+  if (error) {
+    return { ok: false, error: mapSupabaseError(error) };
+  }
+
+  return { ok: true, data: undefined };
+}
+
+export async function syncAllPendingStats(
+  supabase: SupabaseClient,
+): Promise<Result<void>> {
+  const { error } = await supabase.rpc('sync_pending_stats_propagation');
+
+  if (error) {
+    return { ok: false, error: mapSupabaseError(error) };
+  }
+
+  return { ok: true, data: undefined };
+}
