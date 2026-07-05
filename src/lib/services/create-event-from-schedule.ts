@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { createNotification } from './notifications.service';
+import { createNotificationOnce } from './notifications.service';
 
 export interface ScheduleData {
   id: string;
@@ -139,6 +139,7 @@ export async function tryCreateEventFromSchedule(
     .select('user_id')
     .eq('group_id', schedule.group_id)
     .eq('stats_status', 'approved')
+    .eq('is_phantom', false)
     .is('archived_at', null)
     .not('user_id', 'is', null);
 
@@ -149,13 +150,19 @@ export async function tryCreateEventFromSchedule(
   if (players?.length) {
     const results = await Promise.all(
       players.map((p) =>
-        createNotification(supabase, p.user_id!, 'event_created', {
-          event_id: eventRow.id,
-          group_id: schedule.group_id,
-          field_name: schedule.field_name,
-          scheduled_at: nextOccurrence.toISOString(),
-          is_recurring: true,
-        })
+        createNotificationOnce(
+          supabase,
+          p.user_id!,
+          'event_created',
+          {
+            event_id: eventRow.id,
+            group_id: schedule.group_id,
+            field_name: schedule.field_name,
+            scheduled_at: nextOccurrence.toISOString(),
+            is_recurring: true,
+          },
+          `event_created:${eventRow.id}:${p.user_id}`,
+        )
       )
     );
 

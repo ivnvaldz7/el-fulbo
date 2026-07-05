@@ -1,5 +1,6 @@
 export type NotificationType =
   | 'event_created'
+  | 'attendance_reminder'
   | 'event_cancelled'
   | 'event_rescheduled'
   | 'event_updated'
@@ -11,6 +12,8 @@ export type NotificationPayload = {
   group_id?: string;
   event_id?: string;
   player_id?: string;
+  scheduled_at?: string;
+  field_name?: string;
   request_id?: string;
   player_name?: string;
   group_name?: string;
@@ -25,6 +28,7 @@ export function getNotificationDeepLink(
 
   switch (type) {
     case 'event_created':
+    case 'attendance_reminder':
     case 'event_rescheduled':
     case 'event_cancelled':
     case 'event_updated':
@@ -51,6 +55,8 @@ export function getNotificationCopy(
   switch (type) {
     case 'event_created':
       return { title: 'Nuevo partido', body: `Se creó un partido en ${group}.` };
+    case 'attendance_reminder':
+      return { title: 'Recordatorio de asistencia', body: `Todavía no confirmaste asistencia en ${group}.` };
     case 'event_cancelled':
       return { title: 'Partido cancelado', body: `Se canceló el partido en ${group}.` };
     case 'event_rescheduled':

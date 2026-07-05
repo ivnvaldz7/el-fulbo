@@ -14,6 +14,10 @@ describe('getNotificationDeepLink', () => {
     expect(getNotificationDeepLink('event_created', BASE)).toBe('/groups/g1/events/e1');
   });
 
+  it('attendance_reminder links to event page', () => {
+    expect(getNotificationDeepLink('attendance_reminder', BASE)).toBe('/groups/g1/events/e1');
+  });
+
   it('mvp_awarded links to event page', () => {
     expect(getNotificationDeepLink('mvp_awarded', BASE)).toBe('/groups/g1/events/e1');
   });

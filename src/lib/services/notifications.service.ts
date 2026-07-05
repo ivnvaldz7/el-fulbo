@@ -12,8 +12,12 @@ export interface AppNotification {
   id: string;
   type: NotificationType;
   payload: NotificationPayload;
+  dedupeKey: string | null;
   readAt: string | null;
   pushedAt: string | null;
+  pushAttemptedAt: string | null;
+  pushAttemptCount: number;
+  pushLastError: string | null;
   createdAt: string;
 }
 
@@ -30,7 +34,7 @@ export async function getNotifications(
   const [listResult, countResult] = await Promise.all([
     supabase
       .from('notifications')
-      .select('id, type, payload, read_at, pushed_at, created_at')
+      .select('id, type, payload, dedupe_key, read_at, pushed_at, push_attempted_at, push_attempt_count, push_last_error, created_at')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1),
     supabase.rpc('get_unread_notification_count'),
@@ -48,8 +52,12 @@ export async function getNotifications(
     id: n.id as string,
     type: n.type as NotificationType,
     payload: (n.payload ?? {}) as NotificationPayload,
+    dedupeKey: (n.dedupe_key as string | null) ?? null,
     readAt: n.read_at as string | null,
     pushedAt: n.pushed_at as string | null,
+    pushAttemptedAt: n.push_attempted_at as string | null,
+    pushAttemptCount: (n.push_attempt_count as number) ?? 0,
+    pushLastError: n.push_last_error as string | null,
     createdAt: n.created_at as string,
   }));
 
@@ -143,6 +151,24 @@ export async function createNotification(
 
   if (error || !data) return { ok: false, error: mapSupabaseError(error ?? new Error('No data returned from insert')) };
   return { ok: true, data: data.id };
+}
+
+export async function createNotificationOnce(
+  supabase: SupabaseClient,
+  userId: string,
+  type: NotificationType,
+  payload: NotificationPayload,
+  dedupeKey: string,
+): Promise<Result<string | null>> {
+  const { data, error } = await supabase.rpc('create_notification_once', {
+    p_user_id: userId,
+    p_type: type,
+    p_payload: payload,
+    p_dedupe_key: dedupeKey,
+  });
+
+  if (error) return { ok: false, error: mapSupabaseError(error) };
+  return { ok: true, data: (data as string | null) ?? null };
 }
 
 

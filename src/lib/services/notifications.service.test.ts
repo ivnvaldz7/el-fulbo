@@ -6,6 +6,7 @@ import {
   getNotificationPreferences,
   saveNotificationPreferences,
   createNotification,
+  createNotificationOnce,
 } from './notifications.service';
 
 function makeMockRpc(data: unknown = null, error: unknown = null) {
@@ -117,5 +118,27 @@ describe('createNotification', () => {
     const result = await createNotification(supabase as never, '44444444-4444-4444-4444-444444444441', 'event_created', {});
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.data).toBe('notif-123');
+  });
+});
+
+describe('createNotificationOnce', () => {
+  it('calls create_notification_once rpc with dedupe key', async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: 'notif-123', error: null });
+    const supabase = makeSupabase({ rpc });
+
+    const result = await createNotificationOnce(
+      supabase as never,
+      '44444444-4444-4444-4444-444444444441',
+      'event_created',
+      { event_id: 'event-1', group_id: 'group-1' },
+      'event_created:event-1:player-1',
+    );
+
+    expect(result.ok).toBe(true);
+    expect(rpc).toHaveBeenCalledWith('create_notification_once', expect.objectContaining({
+      p_user_id: '44444444-4444-4444-4444-444444444441',
+      p_type: 'event_created',
+      p_dedupe_key: 'event_created:event-1:player-1',
+    }));
   });
 });
