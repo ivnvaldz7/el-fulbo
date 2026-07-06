@@ -23,7 +23,7 @@ export async function GET(request: Request) {
 
   // Phase 3: Send push reminders to unconfirmed players (0-24h window)
   const reminderResult = await sendReminders(supabase, now, errors);
-  const pushDispatchResult = await dispatchEventCreatedPushes(supabase);
+  const pushDispatchResult = await dispatchEventCreatedPushesSafely(supabase, errors);
 
   return successResponse({
     eventsCreated: createdResult,
@@ -32,6 +32,28 @@ export async function GET(request: Request) {
     eventCreatedPushDispatch: pushDispatchResult,
     errors,
   });
+}
+
+async function dispatchEventCreatedPushesSafely(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  errors: string[],
+) {
+  try {
+    return await dispatchEventCreatedPushes(supabase);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error inesperado en dispatcher event_created';
+    console.error('[maintenance] event_created push dispatcher failed:', error);
+    errors.push(`event_created dispatcher failed: ${message}`);
+
+    return {
+      claimed: 0,
+      sent: 0,
+      failed: 0,
+      staleDeleted: 0,
+      skipped: true,
+      errors: [message],
+    };
+  }
 }
 
 async function createFromSchedules(
