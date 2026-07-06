@@ -54,6 +54,17 @@ Ver detalle operativo en `docs/NOTIFICATIONS_GUIDELINES.md`.
 - Todo nuevo tipo debe definir destinatarios, exclusiones, payload, dedupe, canal, deeplink/copy y tests.
 - Toda futura notificación debe declarar nivel, plan, destinatario, frecuencia y costo operativo antes de implementarse.
 
+## 3.2 Lineamientos de cards
+
+Ver detalle operativo en `docs/CARDS_GUIDELINES.md`.
+
+- Las cards son parte central del producto y no deben mezclar conceptos de grupo, global y MVP.
+- La carta MVP activa dura hasta el siguiente partido del grupo; luego queda en historial.
+- `stat_revision_requests` queda como revisión de stats dentro de un grupo.
+- La carta global requiere un flujo separado futuro; no reutilizar revisión de stats de grupo.
+- Una mejora global requiere aprobación de admin + owner fijo, con usuarios distintos.
+- Próximo paso futuro: diseñar `global_card_review_requests`; no implementarlo todavía.
+
 ## 4. Seguridad
 
 - `close-mvp` fue corregido: primero valida sesión y autorización, después usa `service_role` para enviar push al MVP.
