@@ -32,11 +32,33 @@ create policy "prefs_update_own" on public.user_notification_preferences
 
 alter table public.notifications enable row level security;
 
-create policy "notifications_select_own" on public.notifications
-  for select using (auth.uid() = user_id);
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'notifications'
+      and policyname = 'notifications_select_own'
+  ) then
+    create policy "notifications_select_own" on public.notifications
+      for select using (auth.uid() = user_id);
+  end if;
+end $$;
 
-create policy "notifications_update_own" on public.notifications
-  for update using (auth.uid() = user_id);
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'notifications'
+      and policyname = 'notifications_update_own'
+  ) then
+    create policy "notifications_update_own" on public.notifications
+      for update using (auth.uid() = user_id);
+  end if;
+end $$;
 
 alter table public.push_subscriptions enable row level security;
 
