@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const createServiceSupabaseClientMock = vi.hoisted(() => vi.fn());
 const dispatchEventCreatedPushesMock = vi.hoisted(() => vi.fn());
+const dispatchAttendanceChangedPushesMock = vi.hoisted(() => vi.fn());
 const tryCreateEventFromScheduleMock = vi.hoisted(() => vi.fn());
 const sendPushToUserMock = vi.hoisted(() => vi.fn());
 
@@ -11,6 +12,7 @@ vi.mock('@/lib/supabase/service', () => ({
 
 vi.mock('@/lib/services/push-dispatcher.service', () => ({
   dispatchEventCreatedPushes: dispatchEventCreatedPushesMock,
+  dispatchAttendanceChangedPushes: dispatchAttendanceChangedPushesMock,
 }));
 
 vi.mock('@/lib/services/create-event-from-schedule', () => ({
@@ -42,6 +44,7 @@ describe('maintenance job', () => {
     process.env.CRON_SECRET = 'secret';
     createServiceSupabaseClientMock.mockReset();
     dispatchEventCreatedPushesMock.mockReset();
+    dispatchAttendanceChangedPushesMock.mockReset();
     tryCreateEventFromScheduleMock.mockReset();
     sendPushToUserMock.mockReset();
   });
@@ -51,6 +54,14 @@ describe('maintenance job', () => {
     const supabase = { from: vi.fn(() => makeEmptyQuery()) };
     createServiceSupabaseClientMock.mockReturnValue(supabase);
     dispatchEventCreatedPushesMock.mockRejectedValue(new Error('dispatcher boom'));
+    dispatchAttendanceChangedPushesMock.mockResolvedValue({
+      claimed: 0,
+      sent: 0,
+      failed: 0,
+      staleDeleted: 0,
+      skipped: false,
+      errors: [],
+    });
 
     const { GET } = await import('./route');
     const response = await GET(new Request('http://localhost/api/jobs/maintenance', {
@@ -72,6 +83,41 @@ describe('maintenance job', () => {
       errors: ['dispatcher boom'],
     });
     expect(body.data.errors).toContain('event_created dispatcher failed: dispatcher boom');
+
+    consoleError.mockRestore();
+  });
+
+  it('keeps maintenance successful when attendance_changed dispatcher throws unexpectedly', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const supabase = { from: vi.fn(() => makeEmptyQuery()) };
+    createServiceSupabaseClientMock.mockReturnValue(supabase);
+    dispatchEventCreatedPushesMock.mockResolvedValue({
+      claimed: 0,
+      sent: 0,
+      failed: 0,
+      staleDeleted: 0,
+      skipped: false,
+      errors: [],
+    });
+    dispatchAttendanceChangedPushesMock.mockRejectedValue(new Error('attendance boom'));
+
+    const { GET } = await import('./route');
+    const response = await GET(new Request('http://localhost/api/jobs/maintenance', {
+      headers: { authorization: 'Bearer secret' },
+    }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.ok).toBe(true);
+    expect(body.data.attendanceChangedPushDispatch).toEqual({
+      claimed: 0,
+      sent: 0,
+      failed: 0,
+      staleDeleted: 0,
+      skipped: true,
+      errors: ['attendance boom'],
+    });
+    expect(body.data.errors).toContain('attendance_changed dispatcher failed: attendance boom');
 
     consoleError.mockRestore();
   });

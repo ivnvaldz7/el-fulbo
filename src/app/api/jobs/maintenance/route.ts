@@ -3,7 +3,7 @@ import { createServiceSupabaseClient } from '@/lib/supabase/service';
 import { successResponse, cronAuthError } from '@/lib/api-helpers';
 import { tryCreateEventFromSchedule } from '@/lib/services/create-event-from-schedule';
 import { sendPushToUser } from '@/lib/services/push-sender.service';
-import { dispatchEventCreatedPushes } from '@/lib/services/push-dispatcher.service';
+import { dispatchAttendanceChangedPushes, dispatchEventCreatedPushes } from '@/lib/services/push-dispatcher.service';
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
@@ -24,12 +24,14 @@ export async function GET(request: Request) {
   // Phase 3: Send push reminders to unconfirmed players (0-24h window)
   const reminderResult = await sendReminders(supabase, now, errors);
   const pushDispatchResult = await dispatchEventCreatedPushesSafely(supabase, errors);
+  const attendanceChangedPushDispatchResult = await dispatchAttendanceChangedPushesSafely(supabase, errors);
 
   return successResponse({
     eventsCreated: createdResult,
     eventsTransitioned: transitionResult,
     remindersSent: reminderResult,
     eventCreatedPushDispatch: pushDispatchResult,
+    attendanceChangedPushDispatch: attendanceChangedPushDispatchResult,
     errors,
   });
 }
@@ -44,6 +46,28 @@ async function dispatchEventCreatedPushesSafely(
     const message = error instanceof Error ? error.message : 'Error inesperado en dispatcher event_created';
     console.error('[maintenance] event_created push dispatcher failed:', error);
     errors.push(`event_created dispatcher failed: ${message}`);
+
+    return {
+      claimed: 0,
+      sent: 0,
+      failed: 0,
+      staleDeleted: 0,
+      skipped: true,
+      errors: [message],
+    };
+  }
+}
+
+async function dispatchAttendanceChangedPushesSafely(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  errors: string[],
+) {
+  try {
+    return await dispatchAttendanceChangedPushes(supabase);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error inesperado en dispatcher attendance_changed';
+    console.error('[maintenance] attendance_changed push dispatcher failed:', error);
+    errors.push(`attendance_changed dispatcher failed: ${message}`);
 
     return {
       claimed: 0,

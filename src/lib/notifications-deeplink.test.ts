@@ -18,6 +18,10 @@ describe('getNotificationDeepLink', () => {
     expect(getNotificationDeepLink('attendance_reminder', BASE)).toBe('/groups/g1/events/e1');
   });
 
+  it('attendance_changed links to event page', () => {
+    expect(getNotificationDeepLink('attendance_changed', BASE)).toBe('/groups/g1/events/e1');
+  });
+
   it('mvp_awarded links to event page', () => {
     expect(getNotificationDeepLink('mvp_awarded', BASE)).toBe('/groups/g1/events/e1');
   });
@@ -41,6 +45,18 @@ describe('getNotificationCopy', () => {
   it('mvp_awarded includes player name', () => {
     const copy = getNotificationCopy('mvp_awarded', BASE);
     expect(copy.body).toContain('Messi');
+  });
+
+  it('attendance_changed describes going status', () => {
+    const copy = getNotificationCopy('attendance_changed', { ...BASE, status: 'going' });
+    expect(copy.title).toBe('Asistencia confirmada');
+    expect(copy.body).toBe('Messi confirmó que va.');
+  });
+
+  it('attendance_changed describes not_going status', () => {
+    const copy = getNotificationCopy('attendance_changed', { ...BASE, status: 'not_going' });
+    expect(copy.title).toBe('Baja confirmada');
+    expect(copy.body).toBe('Messi avisó que no va.');
   });
 
   it('falls back gracefully', () => {
