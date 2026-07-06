@@ -3,6 +3,7 @@ import { createServiceSupabaseClient } from '@/lib/supabase/service';
 import { successResponse, cronAuthError } from '@/lib/api-helpers';
 import { tryCreateEventFromSchedule } from '@/lib/services/create-event-from-schedule';
 import { sendPushToUser } from '@/lib/services/push-sender.service';
+import { dispatchEventCreatedPushes } from '@/lib/services/push-dispatcher.service';
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
@@ -22,11 +23,13 @@ export async function GET(request: Request) {
 
   // Phase 3: Send push reminders to unconfirmed players (0-24h window)
   const reminderResult = await sendReminders(supabase, now, errors);
+  const pushDispatchResult = await dispatchEventCreatedPushes(supabase);
 
   return successResponse({
     eventsCreated: createdResult,
     eventsTransitioned: transitionResult,
     remindersSent: reminderResult,
+    eventCreatedPushDispatch: pushDispatchResult,
     errors,
   });
 }
