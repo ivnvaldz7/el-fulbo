@@ -38,29 +38,30 @@ describe('events RPCs', () => {
       [player2.id, group.id, player2.displayName]
     );
 
-    await asUser(client, admin.id, async () => {
+    const eventId = await asUser(client, admin.id, async () => {
+      const scheduledAt = new Date(Date.now() + 1000 * 60 * 60 * 2).toISOString();
       const res = await client.query(
         `select public.create_event($1::uuid, $2::public.modality, $3::text, $4::text, $5::timestamptz, $6::text) as event_id`,
-        [group.id, 'F5', 'Pico y Pala', 'Cancha 1', '2026-06-01T20:00:00Z', null]
+        [group.id, 'F5', 'Pico y Pala', 'Cancha 1', scheduledAt, null]
       );
-      
-      const eventId = res.rows[0].event_id;
-      expect(eventId).toBeDefined();
-
-      // Verify event created
-      const evQuery = await client.query(`select * from public.events where id = $1`, [eventId]);
-      expect(evQuery.rows[0].field_name).toBe('Pico y Pala');
-      expect(evQuery.rows[0].field_maps_url).toBe('Cancha 1');
-
-      // Verify notification created for player1 but not player2
-      const notifs1 = await client.query(`select * from public.notifications where user_id = $1`, [player1.id]);
-      const notifs2 = await client.query(`select * from public.notifications where user_id = $1`, [player2.id]);
-
-      expect(notifs1.rows.length).toBe(1);
-      expect(notifs1.rows[0].type).toBe('event_created');
-      expect(notifs1.rows[0].payload.event_id).toBe(eventId);
-
-      expect(notifs2.rows.length).toBe(0);
+      return res.rows[0].event_id;
     });
+
+    expect(eventId).toBeDefined();
+
+    // Verify event created
+    const evQuery = await client.query(`select * from public.events where id = $1`, [eventId]);
+    expect(evQuery.rows[0].field_name).toBe('Pico y Pala');
+    expect(evQuery.rows[0].field_maps_url).toBe('Cancha 1');
+
+    // Verify notification created for player1 but not player2
+    const notifs1 = await client.query(`select * from public.notifications where user_id = $1`, [player1.id]);
+    const notifs2 = await client.query(`select * from public.notifications where user_id = $1`, [player2.id]);
+
+    expect(notifs1.rows.length).toBe(1);
+    expect(notifs1.rows[0].type).toBe('event_created');
+    expect(notifs1.rows[0].payload.event_id).toBe(eventId);
+
+    expect(notifs2.rows.length).toBe(0);
   });
 });

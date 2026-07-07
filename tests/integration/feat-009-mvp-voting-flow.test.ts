@@ -27,16 +27,10 @@ describe('MVP Voting Flow (Feat 009)', () => {
     // Seed 10 players
     for (let i = 1; i <= 10; i++) {
       const pAuth = await seedAuthUser(db, `P${i}`);
-      // Add player to group membership
-      await db.query(
-        `insert into public.group_memberships (user_id, group_id, role) values ($1, $2, 'member')`,
-        [pAuth.id, groupId]
-      );
-      
       // Create player record
       const { rows } = await db.query<{ id: string }>(
         `insert into public.players (group_id, user_id, display_name, primary_position, stats_status, stats)
-         values ($1, $2, $3, 'MED', 'approved', '{"pac": 5, "sho": 5, "pas": 5, "dri": 5, "def": 5, "phy": 5}')
+         values ($1, $2, $3, 'MED', 'approved', '{"pac": 50, "sho": 50, "pas": 50, "dri": 50, "def": 50, "phy": 50}')
          returning id`,
         [groupId, pAuth.id, pAuth.displayName]
       );

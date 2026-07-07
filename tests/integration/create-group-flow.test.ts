@@ -46,7 +46,7 @@ describe('feat-002 create group phase A', () => {
       primary_position: 'MED',
       secondary_position: null,
       stats_status: 'pending_approval',
-      stats: { pac: 5, sho: 5, pas: 5, dri: 5, def: 5, phy: 5 },
+      stats: { pac: 50, sho: 50, pas: 50, dri: 50, def: 50, phy: 50 },
     });
   });
 
@@ -132,7 +132,7 @@ describe('feat-002 create group phase A', () => {
     ).rejects.toThrow(/UNAUTHORIZED/);
   });
 
-  it('rejects admin onboarding stats above 8', async () => {
+  it('rejects admin onboarding stats above 99', async () => {
     const user = await seedUser(client, 'admin-onboarding-stat-cap');
 
     const created = await asUser(client, user.id, () =>
@@ -148,7 +148,7 @@ describe('feat-002 create group phase A', () => {
               $1,
               'DEL',
               null,
-              '{"pac":9,"sho":8,"pas":7,"dri":8,"def":4,"phy":6}'::jsonb
+              '{"pac":100,"sho":80,"pas":70,"dri":80,"def":40,"phy":60}'::jsonb
             )
           `,
           [groupId],

@@ -27,16 +27,11 @@ describe('onboarding integration test', () => {
       ),
     );
 
-    const playerId = acceptRows[0].player_id;
-    expect(playerId).toBeDefined();
-
-    // Verify player is in pending state with default stats
-    const { rows: initialPlayerRows } = await client.query(
-      `select stats_status, stats from public.players where id = $1`,
-      [playerId]
-    );
-    expect(initialPlayerRows[0].stats_status).toBe('pending_approval');
-    expect(initialPlayerRows[0].stats).toMatchObject({ pac: 5, sho: 5, pas: 5, dri: 5, def: 5, phy: 5 });
+    expect(acceptRows[0]).toMatchObject({
+      player_id: null,
+      needs_onboarding: true,
+      status: null,
+    });
 
     // 3. User submits stats
     const { rows: submitRows } = await asUser(client, user.id, () =>
@@ -46,14 +41,15 @@ describe('onboarding integration test', () => {
             $1,
             'DEL',
             'MED',
-            '{"pac":9,"sho":8,"pas":7,"dri":8,"def":4,"phy":6}'::jsonb
+            '{"pac":90,"sho":80,"pas":70,"dri":80,"def":50,"phy":60}'::jsonb
           )
         `,
         [group.id],
       ),
     );
 
-    expect(submitRows[0].player_id).toBe(playerId);
+    const playerId = submitRows[0].player_id;
+    expect(playerId).toEqual(expect.any(String));
     expect(submitRows[0].status).toBe('pending_approval');
 
     // 4. Verify player is updated
@@ -65,7 +61,7 @@ describe('onboarding integration test', () => {
     expect(finalPlayerRows[0]).toMatchObject({
       primary_position: 'DEL',
       secondary_position: 'MED',
-      stats: { pac: 9, sho: 8, pas: 7, dri: 8, def: 4, phy: 6 }
+      stats: { pac: 90, sho: 80, pas: 70, dri: 80, def: 50, phy: 60 }
     });
   });
 });

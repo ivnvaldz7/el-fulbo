@@ -20,6 +20,19 @@ describe('feat-001 RLS', () => {
     const accepted = await asUser(client, user.id, () =>
       client.query(`select * from public.accept_invite_for_user($1)`, [group.inviteCode]),
     );
+    const submitted = await asUser(client, user.id, () =>
+      client.query(
+        `
+          select * from public.submit_onboarding_stats(
+            $1,
+            'MED',
+            null,
+            '{"pac":50,"sho":50,"pas":50,"dri":50,"def":50,"phy":50}'::jsonb
+          )
+        `,
+        [group.id],
+      ),
+    );
 
     const updated = await asUser(client, user.id, () =>
       client.query(
@@ -29,7 +42,7 @@ describe('feat-001 RLS', () => {
           where id = $1
           returning id
         `,
-        [accepted.rows[0].player_id],
+        [submitted.rows[0].player_id],
       ),
     );
 
@@ -43,9 +56,22 @@ describe('feat-001 RLS', () => {
     const accepted = await asUser(client, user.id, () =>
       client.query(`select * from public.accept_invite_for_user($1)`, [group.inviteCode]),
     );
+    const submitted = await asUser(client, user.id, () =>
+      client.query(
+        `
+          select * from public.submit_onboarding_stats(
+            $1,
+            'MED',
+            null,
+            '{"pac":50,"sho":50,"pas":50,"dri":50,"def":50,"phy":50}'::jsonb
+          )
+        `,
+        [group.id],
+      ),
+    );
 
     await client.query(`update public.players set stats_status = 'approved' where id = $1`, [
-      accepted.rows[0].player_id,
+      submitted.rows[0].player_id,
     ]);
 
     const updated = await asUser(client, user.id, () =>
@@ -56,7 +82,7 @@ describe('feat-001 RLS', () => {
           where id = $1
           returning id
         `,
-        [accepted.rows[0].player_id],
+        [submitted.rows[0].player_id],
       ),
     );
 
@@ -71,6 +97,19 @@ describe('feat-001 RLS', () => {
     const acceptedB = await asUser(client, userB.id, () =>
       client.query(`select * from public.accept_invite_for_user($1)`, [group.inviteCode]),
     );
+    const submittedB = await asUser(client, userB.id, () =>
+      client.query(
+        `
+          select * from public.submit_onboarding_stats(
+            $1,
+            'MED',
+            null,
+            '{"pac":50,"sho":50,"pas":50,"dri":50,"def":50,"phy":50}'::jsonb
+          )
+        `,
+        [group.id],
+      ),
+    );
 
     const updated = await asUser(client, userA.id, () =>
       client.query(
@@ -80,7 +119,7 @@ describe('feat-001 RLS', () => {
           where id = $1
           returning id
         `,
-        [acceptedB.rows[0].player_id],
+        [submittedB.rows[0].player_id],
       ),
     );
 
@@ -108,6 +147,19 @@ describe('Event RLS Policies', () => {
     // Make 'member' a group member
     await asUser(client, member.id, () =>
       client.query(`select * from public.accept_invite_for_user($1)`, [group.inviteCode]),
+    );
+    await asUser(client, member.id, () =>
+      client.query(
+        `
+          select * from public.submit_onboarding_stats(
+            $1,
+            'MED',
+            null,
+            '{"pac":50,"sho":50,"pas":50,"dri":50,"def":50,"phy":50}'::jsonb
+          )
+        `,
+        [group.id],
+      ),
     );
 
     // Create an event as admin
@@ -170,7 +222,7 @@ describe('Event RLS Policies', () => {
       asUser(client, member.id, () =>
         client.query(`select public.cancel_event($1, $2)`, [eventId, 'unauthorized cancel']),
       ),
-    ).rejects.toThrow(/Unauthorized: Only group owners or admins can cancel events./);
+    ).rejects.toThrow(/FORBIDDEN/);
   });
 
   it('admin can update the event', async () => {
@@ -193,7 +245,7 @@ describe('Event RLS Policies', () => {
         ]
       ),
     );
-    expect(result.rowCount).toBe(0); // update_event returns VOID
+    expect(result.rowCount).toBe(1);
     // Verify the update by fetching the event as admin
     const updatedEvent = await asUser(client, admin.id, () =>
       client.query(`select field_name, scheduled_at, modality, field_maps_url, notes from public.events where id = $1`, [eventId]),
@@ -220,7 +272,7 @@ describe('Event RLS Policies', () => {
     const result = await asUser(client, admin.id, () =>
       client.query(`select public.cancel_event($1, $2)`, [eventToCancelId, cancelMotive]),
     );
-    expect(result.rowCount).toBe(0); // cancel_event returns VOID
+    expect(result.rowCount).toBe(1);
 
     // Verify cancellation status and motive
     const cancelledEvent = await asUser(client, admin.id, () =>

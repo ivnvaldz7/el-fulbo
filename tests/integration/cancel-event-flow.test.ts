@@ -1,8 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { Client } from 'pg';
 import { SupabaseClient, createClient } from '@supabase/supabase-js';
-import { connectionString, createDbClient, seedUser, seedGroup, asUser } from './db';
-import { EventsService } from '@/lib/services/events.service';
+import { createDbClient, seedUser, seedGroup, asUser } from './db';
 import { Database } from '@/lib/types';
 
 describe('Event Cancellation Flow', () => {
@@ -55,17 +54,14 @@ describe('Event Cancellation Flow', () => {
       [unconfirmedUser.id, group.id, unconfirmedUser.displayName],
     );
 
-    const eventsService = new EventsService(supabase);
-    eventId = await asUser(pgClient, adminUser.id, () =>
-      eventsService.createEvent({
-        p_group_id: group.id,
-        p_modality: 'F5',
-        p_field_name: 'Test Event Location',
-        p_field_maps_url: null,
-        p_scheduled_at: new Date().toISOString(),
-        p_notes: null,
-      }),
+    const scheduledAt = new Date(Date.now() + 1000 * 60 * 60 * 2).toISOString();
+    const event = await asUser(pgClient, adminUser.id, () =>
+      pgClient.query(
+        `select public.create_event($1::uuid, $2::public.modality, $3::text, $4::text, $5::timestamptz, $6::text) as event_id`,
+        [group.id, 'F5', 'Test Event Location', null, scheduledAt, null],
+      ),
     );
+    eventId = event.rows[0].event_id;
 
     // Confirm attendance for regularUser1 and regularUser2 (implicitly by being 'approved' in players)
     // The RPC for cancel_event checks for `stats_status = 'approved'` and `user_id IS NOT NULL`
@@ -78,14 +74,10 @@ describe('Event Cancellation Flow', () => {
   });
 
   it('should cancel an event and notify all confirmed users with the motive', async () => {
-    const eventsService = new EventsService(supabase);
     const cancellationMotive = 'Weather conditions are bad.';
 
     await asUser(pgClient, adminUser.id, () =>
-      eventsService.cancelEvent({
-        p_event_id: eventId,
-        p_motive: cancellationMotive,
-      }),
+      pgClient.query(`select public.cancel_event($1, $2)`, [eventId, cancellationMotive]),
     );
 
     // Verify event status and cancellation motive
@@ -102,11 +94,12 @@ describe('Event Cancellation Flow', () => {
       `SELECT user_id, type, payload FROM public.notifications WHERE (payload->>'event_id')::uuid = $1 ORDER BY created_at ASC`,
       [eventId],
     );
+    const cancellationNotifications = notifications.filter((notification) => notification.type === 'event_cancelled');
 
-    expect(notifications.length).toBe(2); // RegularUser1 and RegularUser2
+    expect(cancellationNotifications.length).toBe(2); // RegularUser1 and RegularUser2
 
     // Check notification for regularUser1
-    const notif1 = notifications.find(n => n.user_id === regularUser1.id);
+    const notif1 = cancellationNotifications.find(n => n.user_id === regularUser1.id);
     expect(notif1).toBeDefined();
     expect(notif1.type).toBe('event_cancelled');
     expect(notif1.payload.event_id).toBe(eventId);
@@ -116,7 +109,7 @@ describe('Event Cancellation Flow', () => {
     expect(notif1.payload.cancellation_motive).toBe(cancellationMotive);
 
     // Check notification for regularUser2
-    const notif2 = notifications.find(n => n.user_id === regularUser2.id);
+    const notif2 = cancellationNotifications.find(n => n.user_id === regularUser2.id);
     expect(notif2).toBeDefined();
     expect(notif2.type).toBe('event_cancelled');
     expect(notif2.payload.event_id).toBe(eventId);
@@ -126,35 +119,23 @@ describe('Event Cancellation Flow', () => {
     expect(notif2.payload.cancellation_motive).toBe(cancellationMotive);
 
     // Verify unconfirmed user did NOT receive a notification
-    const unconfirmedNotif = notifications.find(n => n.user_id === unconfirmedUser.id);
+    const unconfirmedNotif = cancellationNotifications.find(n => n.user_id === unconfirmedUser.id);
     expect(unconfirmedNotif).toBeUndefined();
   });
 
   it('should cancel an event without a motive', async () => {
     // Create a new event for this specific test case
-    const newEventId = await asUser(pgClient, adminUser.id, () =>
-      new EventsService(supabase).createEvent({
-        p_group_id: group.id,
-        p_modality: 'F5',
-        p_field_name: 'Another Test Event Location',
-        p_field_maps_url: null,
-        p_scheduled_at: new Date().toISOString(),
-        p_notes: null,
-      }),
+    const scheduledAt = new Date(Date.now() + 1000 * 60 * 60 * 3).toISOString();
+    const newEvent = await asUser(pgClient, adminUser.id, () =>
+      pgClient.query(
+        `select public.create_event($1::uuid, $2::public.modality, $3::text, $4::text, $5::timestamptz, $6::text) as event_id`,
+        [group.id, 'F5', 'Another Test Event Location', null, scheduledAt, null],
+      ),
     );
+    const newEventId = newEvent.rows[0].event_id;
 
-    // Ensure some users are approved for notifications
-    await pgClient.query(
-      `INSERT INTO public.players (user_id, group_id, display_name, primary_position, stats_status, stats, is_phantom, is_expelled) VALUES ($1, $2, $3, 'MED', 'approved', '{"pac":5,"sho":5,"pas":5,"dri":5,"def":5,"phy":5}'::jsonb, FALSE, FALSE)`,
-      [regularUser1.id, group.id, regularUser1.displayName],
-    );
-
-    const eventsService = new EventsService(supabase);
     await asUser(pgClient, adminUser.id, () =>
-      eventsService.cancelEvent({
-        p_event_id: newEventId,
-        p_motive: undefined, // No motive provided
-      }),
+      pgClient.query(`select public.cancel_event($1, $2)`, [newEventId, null]),
     );
 
     // Verify event status and cancellation motive is NULL
@@ -171,9 +152,10 @@ describe('Event Cancellation Flow', () => {
       `SELECT user_id, type, payload FROM public.notifications WHERE (payload->>'event_id')::uuid = $1 ORDER BY created_at ASC`,
       [newEventId],
     );
-    expect(notifications.length).toBe(1); // Only regularUser1
+    const cancellationNotifications = notifications.filter((notification) => notification.type === 'event_cancelled');
+    expect(cancellationNotifications.length).toBe(2);
 
-    const notif = notifications.find(n => n.user_id === regularUser1.id);
+    const notif = cancellationNotifications.find(n => n.user_id === regularUser1.id);
     expect(notif).toBeDefined();
     expect(notif.type).toBe('event_cancelled');
     expect(notif.payload.field_name).toBe('Another Test Event Location');

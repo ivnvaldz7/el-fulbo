@@ -27,7 +27,9 @@ describe('feat-003 join group', () => {
     expect(accepted.rows[0]).toMatchObject({
       group_id: group.id,
       already_member: false,
-      status: 'pending_approval',
+      needs_onboarding: true,
+      player_id: null,
+      status: null,
     });
   });
 
@@ -38,6 +40,20 @@ describe('feat-003 join group', () => {
 
     await asUser(client, user.id, () =>
       client.query(`select * from public.accept_invite_for_user($1)`, [group.inviteCode]),
+    );
+
+    await asUser(client, user.id, () =>
+      client.query(
+        `
+          select * from public.submit_onboarding_stats(
+            $1,
+            'MED',
+            null,
+            '{"pac":50,"sho":50,"pas":50,"dri":50,"def":50,"phy":50}'::jsonb
+          )
+        `,
+        [group.id],
+      ),
     );
 
     const secondTry = await asUser(client, user.id, () =>
@@ -63,7 +79,7 @@ describe('feat-003 join group', () => {
         insert into public.players (
           user_id, group_id, display_name, primary_position, secondary_position, stats, stats_status, archived_at
         ) values (
-          $1, $2, $3, 'MED', null, '{"pac":5,"sho":5,"pas":6,"dri":6,"def":5,"phy":5}'::jsonb, 'approved', now() - interval '10 days'
+          $1, $2, $3, 'MED', null, '{"pac":50,"sho":50,"pas":60,"dri":60,"def":50,"phy":50}'::jsonb, 'approved', now() - interval '10 days'
         )
         returning id
       `,
@@ -88,7 +104,7 @@ describe('feat-003 join group', () => {
         insert into public.players (
           user_id, group_id, display_name, primary_position, secondary_position, stats, stats_status, archived_at, is_expelled
         ) values (
-          $1, $2, $3, 'MED', null, '{"pac":5,"sho":5,"pas":6,"dri":6,"def":5,"phy":5}'::jsonb, 'approved', now() - interval '5 days', true
+          $1, $2, $3, 'MED', null, '{"pac":50,"sho":50,"pas":60,"dri":60,"def":50,"phy":50}'::jsonb, 'approved', now() - interval '5 days', true
         )
       `,
       [user.id, group.id, user.displayName],

@@ -28,20 +28,10 @@ describe('feat-001 onboarding flow', () => {
     expect(rows[0].group_id).toBe(group.id);
     expect(rows[0].already_member).toBe(false);
 
-    const player = await client.query(
-      `
-        select primary_position, secondary_position, stats, stats_status
-        from public.players
-        where id = $1
-      `,
-      [rows[0].player_id],
-    );
-
-    expect(player.rows[0]).toMatchObject({
-      primary_position: 'MED',
-      secondary_position: null,
-      stats_status: 'pending_approval',
-      stats: { pac: 5, sho: 5, pas: 5, dri: 5, def: 5, phy: 5 },
+    expect(rows[0]).toMatchObject({
+      player_id: null,
+      needs_onboarding: true,
+      status: null,
     });
   });
 
@@ -61,7 +51,7 @@ describe('feat-001 onboarding flow', () => {
             $1,
             'DEL',
             'MED',
-            '{"pac":8,"sho":7,"pas":6,"dri":7,"def":3,"phy":5}'::jsonb
+            '{"pac":80,"sho":70,"pas":60,"dri":70,"def":50,"phy":50}'::jsonb
           )
         `,
         [group.id],
@@ -69,18 +59,18 @@ describe('feat-001 onboarding flow', () => {
     );
 
     expect(rows[0]).toMatchObject({
-      player_id: accepted.rows[0].player_id,
+      player_id: expect.any(String),
       status: 'pending_approval',
     });
 
     const player = await client.query(
       `select primary_position, secondary_position, stats from public.players where id = $1`,
-      [accepted.rows[0].player_id],
+      [rows[0].player_id],
     );
     expect(player.rows[0]).toMatchObject({
       primary_position: 'DEL',
       secondary_position: 'MED',
-      stats: { pac: 8, sho: 7, pas: 6, dri: 7, def: 3, phy: 5 },
+      stats: { pac: 80, sho: 70, pas: 60, dri: 70, def: 50, phy: 50 },
     });
 
     const notifications = await client.query(
@@ -93,7 +83,7 @@ describe('feat-001 onboarding flow', () => {
     );
     expect(notifications.rows[0]).toMatchObject({
       type: 'stats_pending_approval',
-      player_id: accepted.rows[0].player_id,
+      player_id: rows[0].player_id,
     });
   });
 
@@ -106,7 +96,7 @@ describe('feat-001 onboarding flow', () => {
       await client.query(
         `
           insert into public.players (group_id, display_name, primary_position, stats, stats_status)
-          values ($1, $2, 'MED', '{"pac":5,"sho":5,"pas":5,"dri":5,"def":5,"phy":5}'::jsonb, 'approved')
+          values ($1, $2, 'MED', '{"pac":50,"sho":50,"pas":50,"dri":50,"def":50,"phy":50}'::jsonb, 'approved')
         `,
         [group.id, `Seed ${index}`],
       );

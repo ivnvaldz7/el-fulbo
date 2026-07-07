@@ -1,6 +1,6 @@
 # CURRENT_STATE.md
 
-Última actualización: 2026-07-06.
+Última actualización: 2026-07-07.
 
 ## 1. Resumen ejecutivo
 
@@ -111,11 +111,12 @@ Después de cada implementación o auditoría importante, actualizar este archiv
 - 2026-07-05 — Maintenance hardening: errores del dispatcher aislados para no romper todo el job.
 - 2026-07-06 — Service role grants: permisos explícitos de runtime para `service_role`.
 - 2026-07-06 — Real browser push test: Chrome real recibió push `event_created`; `sent: 1`, `pushed_at` no null.
+- 2026-07-07 — Setup local Docker/Supabase: scripts npm para Supabase CLI, preflight local, `.env.example` completo, `supabase/seed.sql` mínimo, gateway restart post-reset, grants runtime para `authenticated`, documentación local e integration tests actualizados al contrato vigente.
 
 ## 12. Última actualización operativa
 
-- Qué cambió: se creó este archivo vivo de estado del proyecto.
-- Archivos tocados: `docs/CURRENT_STATE.md`.
-- Tests ejecutados: no se ejecutaron tests; solo lectura/verificación documental.
+- Qué cambió: se implementó setup local reproducible para Docker/Supabase y se corrigió la suite de integración para correr secuencial contra la DB local actual.
+- Archivos tocados: `README.md`, `.env.example`, `package.json`, `tsconfig.json`, `scripts/local-preflight.js`, `scripts/restart-supabase-gateway.js`, `supabase/seed.sql`, `supabase/migrations/20260707000000_grant_authenticated_runtime_access.sql`, `docs/LOCAL_DEVELOPMENT.md`, `docs/CURRENT_STATE.md` e integration tests en `tests/integration/`.
+- Tests ejecutados: `npm run local:check` OK; `npm run typecheck` OK; `npm test` OK, 36 archivos y 194 tests; `npm run test:integration` OK, 14 archivos y 58 tests. `.env.local` fue ajustado para Supabase local. `tsconfig.json` excluye `.next` para evitar que `tsc --noEmit` lea tipos generados stale.
 - Riesgos pendientes: los listados en sección 8.
 - Próximo paso recomendado: Etapa 3, `attendance_reminder` 24h idempotente.
