@@ -1,22 +1,50 @@
 # NOTIFICATIONS_GUIDELINES.md
 
+Última actualización: 2026-07-07.
+
 ## 1. Principio central
 
 Toda notificación que pueda disparar push debe nacer primero como row en `public.notifications`.
 
 Regla:
 
-`dominio -> notifications outbox -> dispatcher -> web push`
+```text
+dominio -> notifications outbox -> dispatcher -> web push
+```
+
+Modelo objetivo para Vercel Hobby:
+
+```text
+dominio
+  -> notifications outbox
+  -> dispatcher inmediato server-side
+  -> cron diario fallback/retry
+```
 
 Prohibido:
 
-- mandar push directo desde RPCs de dominio;
-- mandar push directo desde componentes;
+- mandar push directo desde componentes React;
 - mandar push directo desde pages;
-- mandar push directo desde services de feature sin pasar por `notifications`;
-- duplicar side effects de push en múltiples lugares.
+- mandar push directo desde SQL;
+- duplicar side effects de push en múltiples lugares;
+- usar cron frecuente en Vercel Hobby para entregar notificaciones críticas.
 
-## 2. Source of truth
+## 2. Restricción Vercel Hobby
+
+Vercel Hobby permite cron jobs diarios. Expresiones como estas rompen deploy:
+
+- `0 */3 * * *`
+- `0 * * * *`
+- `*/30 * * * *`
+
+Por eso:
+
+- `/api/jobs/maintenance` debe quedar diario;
+- el cron diario es fallback/retry, no mecanismo principal de UX inmediata;
+- acciones críticas deben disparar un dispatcher server-side inmediato después de crear rows en outbox;
+- si se necesita cron frecuente real, la decisión explícita es subir a Vercel Pro.
+
+## 3. Source of truth
 
 `public.notifications` es el source of truth para:
 
@@ -36,11 +64,67 @@ Campos relevantes:
 - `push_attempt_count`
 - `push_last_error`
 
-## 3. pushed_at
+## 4. Tipos críticos actuales
 
-`pushed_at` solo significa:
+| Tipo | Estado | Regla |
+|------|--------|-------|
+| `event_created` | Validado en browser real local | Nace al crear partido; se despacha por outbox. |
+| `attendance_changed` | Implementado localmente, pendiente de integration final | Admin + owners fijos reciben cambios a `going`/`not_going`; actor excluido. |
+| `attendance_reminder` | Próximo tipo a implementar | Recordatorio 0-24h para jugadores que no están `going`. |
 
-la push fue enviada exitosamente al menos a una subscription.
+No implementar todavía:
+
+- lógica de “70%”;
+- preferencias granulares;
+- temporary owners;
+- MVP/stats/owners/reintegration push.
+
+## 5. Dedupe
+
+Toda notification generada por eventos de dominio debe tener `dedupe_key`.
+
+Formatos recomendados:
+
+- `event_created:{event_id}:{user_id}`
+- `attendance_changed:{event_id}:{player_id}:{status}:{recipient_user_id}`
+- `attendance_reminder:{event_id}:{user_id}:24h`
+
+No usar `dedupe_key null` en flujos pushables.
+
+## 6. Destinatarios
+
+Los destinatarios deben resolverse en una única capa clara:
+
+- RPC si la lógica nace en SQL;
+- service server-side si la lógica nace en TypeScript.
+
+Cada feature debe definir:
+
+- quién recibe;
+- quién queda excluido;
+- si el actor se auto-notifica o no;
+- si phantoms quedan excluidos;
+- si owners temporales aplican o no.
+
+## 7. Preferences
+
+El dispatcher debe respetar siempre:
+
+```text
+user_notification_preferences.push_enabled = true
+```
+
+Tener subscription no alcanza. Subscription válida + `push_enabled true` es obligatorio.
+
+Si no existe row de preferences, tratar como push deshabilitado.
+
+El flujo de subscribe debe garantizar que, al guardar una subscription válida, `push_enabled` quede true para el usuario autenticado.
+
+## 8. Delivery fields
+
+### `pushed_at`
+
+`pushed_at` solo significa que la push fue enviada exitosamente al menos a una subscription.
 
 No setear `pushed_at` si:
 
@@ -51,7 +135,7 @@ No setear `pushed_at` si:
 - el tipo no está habilitado para push;
 - el evento ya no es válido para envío.
 
-## 4. push_attempt_count
+### `push_attempt_count`
 
 `push_attempt_count` solo debe subir cuando hubo intento real de envío.
 
@@ -63,99 +147,50 @@ No debe subir si:
 - el usuario no tiene subscription;
 - el tipo no es pushable.
 
-## 5. push_last_error
+### `push_last_error`
 
-`push_last_error` debe guardar errores diagnosticables de delivery.
+`push_last_error` debe guardar errores diagnosticables de delivery y limpiarse cuando un envío posterior sale exitoso.
 
-Debe limpiarse cuando:
+## 9. Dispatcher
 
-- un envío posterior sale exitoso.
-
-## 6. Idempotencia
-
-Toda notification generada por eventos de dominio debe tener `dedupe_key`.
-
-Formato recomendado:
-
-`{notification_type}:{scope}:{recipient_user_id}`
-
-Ejemplos:
-
-- `event_created:{event_id}:{user_id}`
-- `attendance_reminder:{event_id}:{user_id}:24h`
-- `attendance_changed:{event_id}:{player_id}:{status}:{recipient_user_id}`
-
-No usar `dedupe_key null` en flujos pushables.
-
-## 7. Destinatarios
-
-Los destinatarios deben resolverse en una única capa clara:
-
-- RPC si la lógica nace en SQL;
-- service server-side si la lógica nace en TS.
-
-Evitar resolver destinatarios duplicados en UI, API route y dispatcher al mismo tiempo.
-
-Cada feature debe definir explícitamente:
-
-- quién recibe;
-- quién queda excluido;
-- si el actor se auto-notifica o no;
-- si phantoms quedan excluidos;
-- si owners temporales aplican o no.
-
-## 8. Preferences
-
-El dispatcher debe respetar siempre:
-
-`user_notification_preferences.push_enabled = true`
-
-Tener subscription no alcanza.
-Subscription válida + `push_enabled true` es obligatorio.
-
-Si no existe row de preferences:
-
-tratar como push deshabilitado.
-
-El flujo de subscribe debe garantizar que, al guardar subscription válida, `push_enabled` quede true para el usuario autenticado.
-
-## 9. Subscriptions
-
-`push_subscriptions` debe usarse solo para delivery.
-
-Si web-push devuelve 404 o 410:
-
-- eliminar subscription inválida.
-
-Otros errores:
-
-- registrar `push_last_error`;
-- no marcar `pushed_at`.
-
-## 10. Dispatcher
-
-El dispatcher es el único responsable de enviar push.
+El dispatcher es el único responsable de enviar Web Push.
 
 Debe:
 
+- correr solo server-side;
 - validar VAPID antes de claimar;
 - claimar notifications pendientes;
-- usar `FOR UPDATE SKIP LOCKED` en RPCs de claim;
+- usar RPCs service-role-only con locking;
 - procesar solo tipos allowlisted;
 - respetar max attempts;
 - marcar `pushed_at` solo si `sent > 0`;
 - registrar intentos y errores;
-- no romper maintenance si falla.
+- eliminar subscriptions stale en 404/410;
+- no romper el flujo de dominio si falla.
 
-## 11. Maintenance
+## 10. Dispatch inmediato
 
-`/api/jobs/maintenance` puede actuar como runner inicial de dispatchers.
+Para UX razonable en Hobby, acciones críticas deben invocar dispatch inmediato server-side después de que el evento de dominio fue exitoso.
 
-Cada dispatcher debe estar aislado:
+Reglas:
 
-- `try/catch` propio;
-- métricas propias;
-- errores propios.
+- el evento de dominio no se revierte si falla el push;
+- el trigger inmediato es best-effort;
+- las rows quedan disponibles para retry diario;
+- el endpoint/server action debe usar service role internamente;
+- nunca exponer service role al cliente.
+
+## 11. Maintenance diario
+
+`/api/jobs/maintenance` debe correr diario en Hobby.
+
+Responsabilidades:
+
+- crear eventos recurrentes;
+- transicionar estados diarios;
+- crear `attendance_reminder` idempotentes;
+- despachar/reintentar rows pushables pendientes;
+- aislar cada dispatcher con `try/catch` propio.
 
 Una falla en un dispatcher no debe romper todo maintenance.
 
@@ -188,6 +223,8 @@ Para eventos, payload mínimo recomendado:
 - `event_id`
 - `scheduled_at`
 - `field_name` cuando aplique
+- `group_name` cuando mejore el copy
+- `player_name` cuando aplique
 
 ## 14. Tests mínimos para cada notification type pushable
 
@@ -205,19 +242,7 @@ Cada nuevo tipo pushable debe agregar tests de:
 - permisos de claim RPC;
 - integration con db reset si toca migrations.
 
-## 15. Prohibiciones explícitas
-
-No hacer:
-
-- push directo desde `update_attendance`, `create_event` u otras RPCs;
-- push directo desde componentes React;
-- agregar lógica de push en service worker salvo bug real;
-- modificar migrations históricas salvo problema de idempotencia probado;
-- agregar preferencias granulares sin diseño previo;
-- incluir temporary owners sin decisión explícita;
-- implementar 70% sin validar primero `attendance_reminder` 24h.
-
-## 16. Protocolo para nuevas notificaciones
+## 15. Protocolo para nuevas notificaciones
 
 Antes de implementar cualquier nuevo tipo, responder:
 
@@ -229,33 +254,6 @@ Antes de implementar cualquier nuevo tipo, responder:
 6. ¿Cuál es la dedupe_key?
 7. ¿Es in-app solamente o in-app + push?
 8. ¿Cuándo se despacha?
-9. ¿Qué tests la cubren?
-10. ¿Qué riesgos de spam tiene?
-
-Si la notificación pertenece a una automatización futura, también declarar:
-
-- nivel funcional: essential / automation / premium;
-- plan previsto: free / pro;
-- frecuencia esperada;
-- costo operativo;
-- si requiere push rápido o puede ser best effort.
-
-Ver `docs/FREE_PRO_GUIDELINES.md` para el lineamiento funcional Free/Pro.
-
-## 17. Estado actual
-
-Push real validado para:
-
-- `event_created`
-
-En implementación/diseño:
-
-- `attendance_changed` para admin + owners fijos cuando jugador pasa a `going`/`not_going`
-
-Pendiente:
-
-- `attendance_reminder` 24h
-- 70%
-- preferencias granulares
-- push a temporary owners
-- push para MVP/stats/owners/reintegration
+9. ¿Qué pasa si falla el dispatch inmediato?
+10. ¿Qué tests la cubren?
+11. ¿Qué riesgos de spam tiene?
