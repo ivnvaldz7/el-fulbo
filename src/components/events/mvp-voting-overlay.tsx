@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
@@ -11,6 +12,7 @@ interface MvpVotingOverlayProps {
   playedSummary: PlayedMatchSummaryItem[];
   hasVoted: boolean;
   isVotingClosed: boolean;
+  homeHref: string;
   onClose: () => void;
   onVoteSubmitted: () => void;
 }
@@ -21,6 +23,7 @@ export function MvpVotingOverlay({
   playedSummary,
   hasVoted,
   isVotingClosed,
+  homeHref,
   onClose,
   onVoteSubmitted,
 }: MvpVotingOverlayProps) {
@@ -69,11 +72,17 @@ export function MvpVotingOverlay({
         ) : hasVoted ? (
           <>
             <h2 className="mt-2 font-headline text-2xl font-black italic uppercase tracking-tight text-white">
-              Ya votaste
+              Voto registrado
             </h2>
             <p className="mt-2 text-sm text-white/60">
-              Esperando al resto de los jugadores para revelar la figura del partido...
+              Tu voto ya quedó guardado. Cuando se cierre la votación vas a poder ver el resultado.
             </p>
+            <Link
+              href={homeHref}
+              className="mt-4 block w-full bg-amber-400 py-3 text-center font-headline text-lg font-black italic uppercase text-black transition-transform active:scale-[0.98]"
+            >
+              Volver al inicio
+            </Link>
           </>
         ) : didNotPlay ? (
           <>
@@ -121,14 +130,16 @@ export function MvpVotingOverlay({
           </>
         )}
 
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={isSubmitting}
-          className="mt-4 w-full py-2 font-mono text-xs font-bold uppercase tracking-[0.2em] text-white/40 hover:text-white/70 disabled:opacity-50"
-        >
-          Cerrar
-        </button>
+        {!hasVoted ? (
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="mt-4 w-full py-2 font-mono text-xs font-bold uppercase tracking-[0.2em] text-white/40 hover:text-white/70 disabled:opacity-50"
+          >
+            Cerrar
+          </button>
+        ) : null}
       </div>
     </div>
   );

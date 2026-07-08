@@ -336,6 +336,7 @@ export default function EventViewPage() {
             playedSummary={playedSummary}
             hasVoted={hasVotedForMvp}
             isVotingClosed={!!event.mvp_player_id}
+            homeHref={`/groups/${groupId}/dashboard`}
             onClose={() => setOverlayClosed(true)}
             onVoteSubmitted={() => {
               void queryClient.invalidateQueries({ queryKey: ['event', eventId] });
@@ -532,9 +533,16 @@ export default function EventViewPage() {
                 ) : null}
 
                 {hasVotedForMvp ? (
-                  <div className="rounded-lg border border-amber-400/40 bg-amber-400/5 p-4 text-center mt-4">
-                    <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">Ya votaste</p>
-                    <p className="mt-2 text-sm text-white/60">Esperando al resto de los jugadores para revelar la figura del partido...</p>
+                  <div className="mt-4 rounded-lg border border-amber-400/40 bg-amber-400/5 p-4 text-center">
+                    <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">Voto registrado</p>
+                    <p className="mt-2 text-sm text-white/60">Tu voto ya quedó guardado. Cuando se cierre la votación vas a poder ver el resultado.</p>
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/groups/${groupId}/dashboard`)}
+                      className="mt-4 w-full rounded-lg bg-amber-400 px-4 py-3 font-headline text-base font-black italic uppercase text-black transition-transform active:scale-[0.98]"
+                    >
+                      Volver al inicio
+                    </button>
                   </div>
                 ) : is24hPassed ? (
                   <div className="rounded-lg border border-red-500/40 bg-red-500/5 p-4 text-center mt-4">
