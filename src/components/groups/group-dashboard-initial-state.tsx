@@ -308,7 +308,11 @@ export function GroupDashboardInitialState({
                     ? `Ganó ${recentPlayedEvents[0]!.teamBName}`
                     : 'Empate'}
               </p>
-              {recentPlayedEvents[0]!.mvpName ? <p className="mt-2 text-sm text-amber-300">🏆 {recentPlayedEvents[0]!.mvpName} fue la figura.</p> : null}
+              {recentPlayedEvents[0]!.mvpName ? (
+                <p className="mt-2 text-sm text-amber-300">🏆 {recentPlayedEvents[0]!.mvpName} fue la figura.</p>
+              ) : (
+                <p className="mt-2 text-sm text-amber-300">🏆 Votación MVP abierta.</p>
+              )}
               {recentPlayedEvents[0]!.boostsApplied.length > 0 ? (
                 <div className="mt-2 space-y-1">
                   <p className="text-xs font-semibold text-emerald-300">📈 Subieron de nivel:</p>
@@ -324,6 +328,14 @@ export function GroupDashboardInitialState({
                   </ul>
                 </div>
               ) : null}
+              <Link
+                href={`/groups/${groupId}/events/${recentPlayedEvents[0]!.id}${
+                  recentPlayedEvents[0]!.mvpName ? '' : `?votar-mvp=${recentPlayedEvents[0]!.id}`
+                }`}
+                className="btn-interactive mt-4 flex min-h-12 w-full items-center justify-center border border-white/10 bg-white/[0.04] px-4 font-headline text-sm font-bold italic uppercase text-white hover:border-amber-300/40 hover:bg-amber-300/10 hover:text-amber-300"
+              >
+                {recentPlayedEvents[0]!.mvpName ? 'Ver resumen' : 'Entrar a votar / ver votos'}
+              </Link>
             </div>
           </div>
         ) : (

@@ -172,4 +172,23 @@ describe('POST /api/events/[eventId]/close-mvp', () => {
     const serviceRoleOrder = createServiceSupabaseClientMock.mock.invocationCallOrder[0]!;
     expect(serviceRoleOrder).toBeGreaterThan(closeRpcOrder);
   });
+
+  it('keeps MVP voting closed when the MVP push side effect fails', async () => {
+    const supabase = makeServerSupabase();
+    createServerSupabaseClientMock.mockResolvedValue(supabase);
+    createServiceSupabaseClientMock.mockImplementation(() => {
+      throw new Error('Invalid API key');
+    });
+
+    const res = await POST(makeRequest(), makeParams());
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toEqual({ ok: true, data: { closed: true } });
+    expect(supabase.rpc).toHaveBeenNthCalledWith(2, 'close_mvp_voting', {
+      p_event_id: EVENT_ID,
+      p_tiebreaker_player_id: null,
+    });
+    expect(sendPushToUserMock).not.toHaveBeenCalled();
+  });
 });

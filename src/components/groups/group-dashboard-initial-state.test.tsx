@@ -116,6 +116,42 @@ describe('GroupDashboardInitialState', () => {
     expect(screen.getByText(/Juan fue la figura/i)).toBeInTheDocument();
     expect(screen.getByText(/Subieron de nivel/i)).toBeInTheDocument();
     expect(screen.getByText(/PAC \+3/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ver resumen' })).toHaveAttribute(
+      'href',
+      '/groups/22222222-2222-2222-2222-222222222222/events/11111111-1111-1111-1111-111111111111',
+    );
+  });
+
+  it('links the last played match card to the open MVP voting flow when there is no MVP yet', () => {
+    render(
+      <GroupDashboardInitialState
+        {...BASE_PROPS}
+        groupName="Fulbito"
+        modality="F5"
+        activePlayers={10}
+        isAdminOrOwner={true}
+        upcomingEvents={[]}
+        recentPlayedEvents={[
+          {
+            id: '11111111-1111-1111-1111-111111111111',
+            fieldName: 'Cancha 5',
+            teamAName: 'Negros',
+            teamBName: 'Blancos',
+            teamAScore: 3,
+            teamBScore: 1,
+            mvpName: null,
+            boostsApplied: [],
+            playedAtLabel: '06/05/2026',
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText('🏆 Votación MVP abierta.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Entrar a votar / ver votos' })).toHaveAttribute(
+      'href',
+      '/groups/22222222-2222-2222-2222-222222222222/events/11111111-1111-1111-1111-111111111111?votar-mvp=11111111-1111-1111-1111-111111111111',
+    );
   });
 
   it('renders the own card share button when shareable player exists', () => {

@@ -108,25 +108,41 @@ export async function POST(
       .eq('id', eventId)
       .maybeSingle();
 
-    if (closedEvent?.mvp_player_id && closedEvent?.group_id) {
-      const { data: player } = await supabase
-        .from('players')
-        .select('user_id')
-        .eq('id', closedEvent.mvp_player_id)
-        .maybeSingle();
-
-      if (player?.user_id) {
-        const serviceSupabase = createServiceSupabaseClient();
-        await sendPushToUser(serviceSupabase, player.user_id, {
-          title: '¡Sos el MVP!',
-          body: 'Te votaron como el mejor del partido.',
-          url: `/groups/${closedEvent.group_id}/events/${eventId}`,
-        });
-      }
-    }
+    await notifyMvpSafely(supabase, eventId, closedEvent);
 
     return successResponse({ closed: true });
   } catch (err) {
     return handleApiError(err);
+  }
+}
+
+async function notifyMvpSafely(
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
+  eventId: string,
+  closedEvent: { mvp_player_id?: string | null; group_id?: string | null } | null,
+) {
+  try {
+    if (!closedEvent?.mvp_player_id || !closedEvent?.group_id) return;
+
+    const { data: player } = await supabase
+      .from('players')
+      .select('user_id')
+      .eq('id', closedEvent.mvp_player_id)
+      .maybeSingle();
+
+    if (!player?.user_id) return;
+
+    const serviceSupabase = createServiceSupabaseClient();
+    const delivery = await sendPushToUser(serviceSupabase, player.user_id, {
+      title: '¡Sos el MVP!',
+      body: 'Te votaron como el mejor del partido.',
+      url: `/groups/${closedEvent.group_id}/events/${eventId}`,
+    });
+
+    if (delivery.errors.length > 0) {
+      console.error('[close-mvp] MVP push notification failed:', delivery.errors);
+    }
+  } catch (error) {
+    console.error('[close-mvp] MVP push side effect failed:', error);
   }
 }
