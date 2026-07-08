@@ -1,10 +1,10 @@
 # CURRENT_STATE.md
 
-Última actualización: 2026-07-07.
+Última actualización: 2026-07-08.
 
 ## 1. Resumen ejecutivo
 
-El proyecto está en V2 completa y en producción. La etapa actual confirmada es push por outbox para `event_created` y la implementación local de `attendance_changed` para admin + owners fijos: `event_created` ya fue probado en Chrome local con `sent: 1` y `pushed_at` seteado; `attendance_changed` quedó implementado con tests unitarios y pendiente de validación integration cuando Docker/Supabase local esté disponible.
+El proyecto está en V2 completa y en producción. La etapa actual confirmada es push por outbox para `event_created` y la implementación local de `attendance_changed` para admin + owners fijos: `event_created` ya fue probado en Chrome local con `sent: 1` y `pushed_at` seteado; `attendance_changed` quedó implementado y validado con unit, integration y smoke local de outbox/claim. Falta solo la validación browser/OS con push visible real.
 
 ## 2. Estado actual confirmado
 
@@ -12,6 +12,7 @@ El proyecto está en V2 completa y en producción. La etapa actual confirmada es
 - `attendance_changed` se crea desde `update_attendance` para `going` y `not_going`, dirigido a admin + owners fijos, excluyendo al actor.
 - `notifications` funciona como outbox con `dedupe_key`, `push_attempted_at`, `push_attempt_count` y `push_last_error`.
 - Los dispatchers `event_created` y `attendance_changed` están integrados en `/api/jobs/maintenance` con fallos aislados.
+- `attendance_changed` fue validado en Supabase local: crea 2 notifications admin/owner, el claim RPC las toma como elegibles, incrementa `push_attempt_count` y setea `push_attempted_at`.
 - Los grants explícitos para `service_role` fueron agregados en migration.
 - `close-mvp` fue corregido para usar service role solo después de auth/authz.
 - Tests principales reportados:
@@ -33,6 +34,7 @@ El proyecto está en V2 completa y en producción. La etapa actual confirmada es
 - El dispatcher procesa `event_created` y `attendance_changed` con claim RPCs específicas.
 - `maintenance` es el runner inicial del dispatcher.
 - No se implementa lógica de “70%” todavía.
+- La estrategia Free/Pro quedó documentada como decisión futura en `docs/FREE_PRO_GUIDELINES.md`: Free = organizado, Pro = piloto automático. No hay pricing, pagos ni paywall implementados.
 
 ## 3.1 Lineamientos de notificaciones
 
@@ -47,6 +49,7 @@ Ver detalle operativo en `docs/NOTIFICATIONS_GUIDELINES.md`.
 - Las claim RPCs de push deben ser service-role-only.
 - `/api/jobs/maintenance` debe ejecutar dispatchers aislados con `try/catch` propio.
 - Todo nuevo tipo debe definir destinatarios, exclusiones, payload, dedupe, canal, deeplink/copy y tests.
+- Toda futura notificación debe declarar nivel, plan, destinatario, frecuencia y costo operativo antes de implementarse.
 
 ## 4. Seguridad
 
@@ -93,8 +96,8 @@ Ver detalle operativo en `docs/NOTIFICATIONS_GUIDELINES.md`.
 
 - `npm test`: pasa localmente con 36 archivos y 202 tests después de aplicar `attendance_changed`.
 - `npm run typecheck`: pasa localmente.
-- Integration con DB reset: disponible localmente después del setup Docker/Supabase.
-- Integration con DB reset: `npm run supabase db reset` fue ejecutado en los reportes.
+- Integration con DB reset: `npm run test:integration` pasa localmente con 14 archivos y 63 tests.
+- Smoke local `attendance_changed`: outbox + claim RPC OK; sin delivery real, `pushed_at` queda null como corresponde.
 - E2E semi-local: validó outbox, claim, dispatcher, attempts y errores diagnosticables.
 - Prueba real Chrome: validó subscription real FCM, `maintenance`, `sent: 1`, `pushed_at` y notificación visible.
 - Limitación: el click físico de la notificación del sistema operativo no fue automatizado; queda como verificación manual.
@@ -103,14 +106,16 @@ Ver detalle operativo en `docs/NOTIFICATIONS_GUIDELINES.md`.
 
 - El cron diario puede ser mala UX para “me avisan cuando crean partido”.
 - `event_created` no es instantáneo si depende solo de `maintenance`.
+- En Vercel Hobby, cron más frecuente que diario no es viable; `vercel.json` usa `0 */3 * * *`, por lo que hay que mover el runner o subir de plan antes de producción.
 - Falta `attendance_reminder` 24h idempotente.
 - Falta prueba real en producción si no se hizo.
 - Falta prueba real browser/OS de `attendance_changed` push visible.
 - No hay preferencias granulares por tipo de notificación.
+- No hay paywall implementado; Free/Pro es sólo lineamiento funcional documentado.
 
 ## 9. Próximo paso recomendado
 
-Validar `attendance_changed` end-to-end con browser real y push visible. Después, etapa 3: implementar `attendance_reminder` 24h idempotente.
+Validar `attendance_changed` con browser real y push visible. Después, etapa 3: implementar `attendance_reminder` 24h idempotente.
 
 No implementar todavía:
 
@@ -140,11 +145,15 @@ Después de cada implementación o auditoría importante, actualizar este archiv
 - 2026-07-06 — Real browser push test: Chrome real recibió push `event_created`; `sent: 1`, `pushed_at` no null.
 - 2026-07-07 — Setup local Docker/Supabase: scripts npm para Supabase CLI, preflight local, `.env.example` completo, `supabase/seed.sql` mínimo, gateway restart post-reset, grants runtime para `authenticated`, documentación local e integration tests actualizados al contrato vigente.
 - 2026-07-07 — `attendance_changed` outbox para admin + owners fijos: migration, claim RPC específica, dispatcher, maintenance con fallos aislados, copy/deeplink y tests.
+- 2026-07-08 — Validación local `attendance_changed`: Docker/Supabase local OK, integration suite OK, smoke de outbox + claim confirmó 2 notifications admin/owner elegibles, `push_attempt_count = 1`, `push_attempted_at` seteado y `pushed_at` null sin delivery real.
+- 2026-07-08 — Investigación scheduler: Vercel Hobby limita cron a una ejecución diaria; para notificaciones con menor latencia conviene mover el runner a Supabase Cron/Edge Function, Cloudflare Workers Cron o QStash.
+- 2026-07-08 — Free/Pro guidelines: documentado el framing futuro `Free = organizado` / `Pro = piloto automático`, comprador inicial organizador y precio referencial USD 4.99/mes por grupo, sin implementar paywall.
 
 ## 12. Última actualización operativa
 
 - Qué cambió: se implementó setup local reproducible para Docker/Supabase y se aplicó `attendance_changed` como outbox pushable para admin + owners fijos.
-- Archivos tocados: `README.md`, `.env.example`, `package.json`, `tsconfig.json`, `vercel.json`, `scripts/local-preflight.js`, `scripts/restart-supabase-gateway.js`, `supabase/seed.sql`, `supabase/migrations/20260707000000_grant_authenticated_runtime_access.sql`, `supabase/migrations/20260706010000_attendance_changed_outbox.sql`, `docs/LOCAL_DEVELOPMENT.md`, `docs/NOTIFICATIONS_GUIDELINES.md`, `docs/CURRENT_STATE.md`, `src/app/api/jobs/maintenance/route.ts`, `src/lib/services/push-dispatcher.service.ts`, `src/lib/notifications-deeplink.ts` e integration/unit tests relacionados.
-- Tests ejecutados: `npm run local:check` OK; `npm run typecheck` OK; `npm test` OK antes de `attendance_changed`, pendiente re-ejecutar suite completa tras resolver cherry-pick; `npm run test:integration` OK antes de `attendance_changed`, pendiente re-ejecutar suite completa tras resolver cherry-pick.
+- Qué cambió en producto: se documentaron lineamientos Free/Pro como decisión futura, sin cambiar comportamiento actual.
+- Archivos tocados: `README.md`, `.env.example`, `package.json`, `tsconfig.json`, `vercel.json`, `scripts/local-preflight.js`, `scripts/restart-supabase-gateway.js`, `supabase/seed.sql`, `supabase/migrations/20260707000000_grant_authenticated_runtime_access.sql`, `supabase/migrations/20260706010000_attendance_changed_outbox.sql`, `docs/LOCAL_DEVELOPMENT.md`, `docs/NOTIFICATIONS_GUIDELINES.md`, `docs/FREE_PRO_GUIDELINES.md`, `docs/CURRENT_STATE.md`, `src/app/api/jobs/maintenance/route.ts`, `src/lib/services/push-dispatcher.service.ts`, `src/lib/notifications-deeplink.ts` e integration/unit tests relacionados.
+- Tests ejecutados: `npm run local:check` OK; `npm run typecheck` OK; `npm test` OK; `npm run test:integration` OK; smoke local `attendance_changed` outbox + claim OK.
 - Riesgos pendientes: los listados en sección 8.
-- Próximo paso recomendado: validar `attendance_changed` completo y luego Etapa 3, `attendance_reminder` 24h idempotente.
+- Próximo paso recomendado: el foco actual sigue siendo cerrar `attendance_changed` completo y luego Etapa 3, `attendance_reminder` 24h idempotente. Para futuras notificaciones, declarar nivel, plan, destinatario, frecuencia y costo operativo.

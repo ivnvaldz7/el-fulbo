@@ -232,6 +232,16 @@ Antes de implementar cualquier nuevo tipo, responder:
 9. ¿Qué tests la cubren?
 10. ¿Qué riesgos de spam tiene?
 
+Si la notificación pertenece a una automatización futura, también declarar:
+
+- nivel funcional: essential / automation / premium;
+- plan previsto: free / pro;
+- frecuencia esperada;
+- costo operativo;
+- si requiere push rápido o puede ser best effort.
+
+Ver `docs/FREE_PRO_GUIDELINES.md` para el lineamiento funcional Free/Pro.
+
 ## 17. Estado actual
 
 Push real validado para:
