@@ -4,7 +4,7 @@
 
 ## 1. Resumen ejecutivo
 
-El proyecto está en V2 completa y en producción. La etapa actual confirmada es push por outbox para `event_created` y la implementación local de `attendance_changed` para admin + owners fijos: `event_created` ya fue probado en Chrome local con `sent: 1` y `pushed_at` seteado; `attendance_changed` quedó implementado y validado con unit, integration y smoke local de outbox/claim. Falta solo la validación browser/OS con push visible real.
+El proyecto está en V2 completa y en producción. La etapa actual confirmada es push por outbox para `event_created` y `attendance_changed`: ambos flujos fueron probados con Chrome real, endpoint FCM, `maintenance`, `sent: 1` y `pushed_at` seteado. `attendance_changed` quedó cerrado técnicamente para admin + owners fijos.
 
 ## 2. Estado actual confirmado
 
@@ -12,7 +12,7 @@ El proyecto está en V2 completa y en producción. La etapa actual confirmada es
 - `attendance_changed` se crea desde `update_attendance` para `going` y `not_going`, dirigido a admin + owners fijos, excluyendo al actor.
 - `notifications` funciona como outbox con `dedupe_key`, `push_attempted_at`, `push_attempt_count` y `push_last_error`.
 - Los dispatchers `event_created` y `attendance_changed` están integrados en `/api/jobs/maintenance` con fallos aislados.
-- `attendance_changed` fue validado en Supabase local: crea 2 notifications admin/owner, el claim RPC las toma como elegibles, incrementa `push_attempt_count` y setea `push_attempted_at`.
+- `attendance_changed` fue validado en Supabase local y Chrome real: crea notifications admin/owner, el claim RPC las toma como elegibles, incrementa `push_attempt_count`, setea `push_attempted_at`, envía web-push y marca `pushed_at` cuando `sent > 0`.
 - Los grants explícitos para `service_role` fueron agregados en migration.
 - `close-mvp` fue corregido para usar service role solo después de auth/authz.
 - Tests principales reportados:
@@ -20,9 +20,11 @@ El proyecto está en V2 completa y en producción. La etapa actual confirmada es
   - Integration con `npm run supabase db reset`: reportado y usado en los reportes E2E.
   - E2E semi-local: documentado en `E2E_EVENT_CREATED_PUSH_TEST_REPORT.md`.
   - Prueba real Chrome: documentada en `REAL_BROWSER_EVENT_CREATED_PUSH_TEST.md`.
+  - Prueba real Chrome para `attendance_changed`: documentada en `REAL_BROWSER_ATTENDANCE_CHANGED_PUSH_TEST.md`.
 - Reportes E2E existentes:
   - `E2E_EVENT_CREATED_PUSH_TEST_REPORT.md`
   - `REAL_BROWSER_EVENT_CREATED_PUSH_TEST.md`
+  - `REAL_BROWSER_ATTENDANCE_CHANGED_PUSH_TEST.md`
 
 ## 3. Decisiones técnicas tomadas
 
@@ -99,7 +101,8 @@ Ver detalle operativo en `docs/NOTIFICATIONS_GUIDELINES.md`.
 - Integration con DB reset: `npm run test:integration` pasa localmente con 14 archivos y 63 tests.
 - Smoke local `attendance_changed`: outbox + claim RPC OK; sin delivery real, `pushed_at` queda null como corresponde.
 - E2E semi-local: validó outbox, claim, dispatcher, attempts y errores diagnosticables.
-- Prueba real Chrome: validó subscription real FCM, `maintenance`, `sent: 1`, `pushed_at` y notificación visible.
+- Prueba real Chrome `event_created`: validó subscription real FCM, `maintenance`, `sent: 1`, `pushed_at` y notificación visible.
+- Prueba real Chrome `attendance_changed`: validó subscription real FCM, `maintenance`, `claimed: 1`, `sent: 1`, `failed: 0`, `pushed_at`, `push_attempt_count: 1` y `push_last_error: null`.
 - Limitación: el click físico de la notificación del sistema operativo no fue automatizado; queda como verificación manual.
 
 ## 8. Riesgos pendientes
@@ -109,13 +112,12 @@ Ver detalle operativo en `docs/NOTIFICATIONS_GUIDELINES.md`.
 - En Vercel Hobby, cron más frecuente que diario no es viable; `vercel.json` usa `0 */3 * * *`, por lo que hay que mover el runner o subir de plan antes de producción.
 - Falta `attendance_reminder` 24h idempotente.
 - Falta prueba real en producción si no se hizo.
-- Falta prueba real browser/OS de `attendance_changed` push visible.
 - No hay preferencias granulares por tipo de notificación.
 - No hay paywall implementado; Free/Pro es sólo lineamiento funcional documentado.
 
 ## 9. Próximo paso recomendado
 
-Validar `attendance_changed` con browser real y push visible. Después, etapa 3: implementar `attendance_reminder` 24h idempotente.
+Implementar etapa 3: `attendance_reminder` 24h idempotente.
 
 No implementar todavía:
 
@@ -146,6 +148,7 @@ Después de cada implementación o auditoría importante, actualizar este archiv
 - 2026-07-07 — Setup local Docker/Supabase: scripts npm para Supabase CLI, preflight local, `.env.example` completo, `supabase/seed.sql` mínimo, gateway restart post-reset, grants runtime para `authenticated`, documentación local e integration tests actualizados al contrato vigente.
 - 2026-07-07 — `attendance_changed` outbox para admin + owners fijos: migration, claim RPC específica, dispatcher, maintenance con fallos aislados, copy/deeplink y tests.
 - 2026-07-08 — Validación local `attendance_changed`: Docker/Supabase local OK, integration suite OK, smoke de outbox + claim confirmó 2 notifications admin/owner elegibles, `push_attempt_count = 1`, `push_attempted_at` seteado y `pushed_at` null sin delivery real.
+- 2026-07-08 — Prueba real Chrome `attendance_changed`: Supabase local reseteado, Chrome real generó endpoint FCM, `maintenance` devolvió `claimed: 1`, `sent: 1`, `failed: 0`, y la notification quedó con `pushed_at` seteado, `push_attempt_count = 1` y `push_last_error = null`.
 - 2026-07-08 — Investigación scheduler: Vercel Hobby limita cron a una ejecución diaria; para notificaciones con menor latencia conviene mover el runner a Supabase Cron/Edge Function, Cloudflare Workers Cron o QStash.
 - 2026-07-08 — Free/Pro guidelines: documentado el framing futuro `Free = organizado` / `Pro = piloto automático`, comprador inicial organizador y precio referencial USD 4.99/mes por grupo, sin implementar paywall.
 
@@ -156,4 +159,4 @@ Después de cada implementación o auditoría importante, actualizar este archiv
 - Archivos tocados: `README.md`, `.env.example`, `package.json`, `tsconfig.json`, `vercel.json`, `scripts/local-preflight.js`, `scripts/restart-supabase-gateway.js`, `supabase/seed.sql`, `supabase/migrations/20260707000000_grant_authenticated_runtime_access.sql`, `supabase/migrations/20260706010000_attendance_changed_outbox.sql`, `docs/LOCAL_DEVELOPMENT.md`, `docs/NOTIFICATIONS_GUIDELINES.md`, `docs/FREE_PRO_GUIDELINES.md`, `docs/CURRENT_STATE.md`, `src/app/api/jobs/maintenance/route.ts`, `src/lib/services/push-dispatcher.service.ts`, `src/lib/notifications-deeplink.ts` e integration/unit tests relacionados.
 - Tests ejecutados: `npm run local:check` OK; `npm run typecheck` OK; `npm test` OK; `npm run test:integration` OK; smoke local `attendance_changed` outbox + claim OK.
 - Riesgos pendientes: los listados en sección 8.
-- Próximo paso recomendado: el foco actual sigue siendo cerrar `attendance_changed` completo y luego Etapa 3, `attendance_reminder` 24h idempotente. Para futuras notificaciones, declarar nivel, plan, destinatario, frecuencia y costo operativo.
+- Próximo paso recomendado: Etapa 3, `attendance_reminder` 24h idempotente. Para futuras notificaciones, declarar nivel, plan, destinatario, frecuencia y costo operativo.
