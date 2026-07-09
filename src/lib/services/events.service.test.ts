@@ -218,6 +218,22 @@ describe('EventsService', () => {
     });
   });
 
+  it('accepts maybe as an attendance status', async () => {
+    mockRpc.mockResolvedValueOnce({ data: null, error: null });
+
+    const service = new EventsService(mockSupabase);
+    const result = await service.updateAttendance({
+      p_event_id: '11111111-1111-1111-1111-111111111111',
+      p_status: 'maybe',
+    });
+
+    expect(mockRpc).toHaveBeenLastCalledWith('update_attendance', {
+      p_event_id: '11111111-1111-1111-1111-111111111111',
+      p_status: 'maybe',
+    });
+    expect(result.ok).toBe(true);
+  });
+
   // Note on delivery_strategy and local database environment verification:
   // The 'delivery_strategy: auto-chain' and skipping of local database environment verification
   // are concerns handled by the 'update_event' RPC function definition on the Supabase database side,

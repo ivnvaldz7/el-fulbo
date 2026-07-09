@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import { PageContent } from '@/components/ui/page-content';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
+import { getMinimumEventDateTime, sanitizeCreateEventDraft } from '@/lib/event-scheduling';
 
 const modalityOptions: Array<{ value: EventModality; label: string }> = [
   { value: 'F5', label: 'F5 - 5 vs 5' },
@@ -20,41 +21,20 @@ const modalityOptions: Array<{ value: EventModality; label: string }> = [
   { value: 'F11', label: 'F11 - 11 vs 11' },
 ];
 
-function getNextSaturday20h() {
-  const today = new Date();
-  const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-  let daysUntilSaturday = 6 - dayOfWeek;
-  if (daysUntilSaturday <= 0) { // If today is Saturday or Sunday, get next Saturday
-    daysUntilSaturday += 7;
-  }
-
-  const nextSaturday = new Date(today);
-  nextSaturday.setDate(today.getDate() + daysUntilSaturday);
-  nextSaturday.setHours(20, 0, 0, 0); // Set time to 20:00:00.000
-
-  const year = nextSaturday.getFullYear();
-  const month = String(nextSaturday.getMonth() + 1).padStart(2, '0');
-  const day = String(nextSaturday.getDate()).padStart(2, '0');
-  const dateString = `${year}-${month}-${day}`;
-  const timeString = '20:00';
-
-  return { dateString, timeString };
-}
-
 export default function NewEventPage() {
   const router = useRouter();
   const params = useParams();
   const groupId = params.id as string;
 
   const CREATE_EVENT_DRAFT_KEY = `event-draft-${groupId}`;
-  const { dateString: defaultDate, timeString: defaultTime } = getNextSaturday20h();
+  const { dateString: defaultDate, timeString: defaultTime } = getMinimumEventDateTime();
 
   const [draftState] = useState(() => {
     if (typeof window !== 'undefined' && groupId) {
       const stored = window.localStorage.getItem(`event-draft-${groupId}`);
       if (stored) {
         try {
-          return JSON.parse(stored) as CreateEventData;
+          return sanitizeCreateEventDraft(JSON.parse(stored) as Partial<CreateEventData>);
         } catch {
           window.localStorage.removeItem(`event-draft-${groupId}`);
         }
@@ -112,7 +92,9 @@ export default function NewEventPage() {
         p_title: `Partido en ${parsed.data.locationName}`,
         p_date_time: dateTime,
         p_location: parsed.data.locationName,
+        p_field_maps_url: parsed.data.googleMapsLink || null,
         p_modality: parsed.data.modality,
+        p_notes: parsed.data.notes || null,
         p_created_by: (await supabase.auth.getUser()).data.user?.id || '',
       });
       if (!result.ok) throw new Error(result.error.message);
@@ -144,6 +126,7 @@ export default function NewEventPage() {
             <input
               type="date"
               value={date}
+              min={defaultDate}
               onChange={(e) => setDate(e.target.value)}
               className="mt-2 w-full bg-transparent font-headline text-lg font-bold text-white outline-none placeholder:text-white/20"
             />

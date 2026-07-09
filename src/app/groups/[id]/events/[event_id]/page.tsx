@@ -311,6 +311,7 @@ export default function EventViewPage() {
   }
 
   const attendanceLocked = !canEditAttendance(event.status);
+  const showAttendanceSummary = event.status !== 'played' && event.status !== 'cancelled';
   const attendanceDisabled =
     savingAttendance ||
     attendanceLocked ||
@@ -404,6 +405,7 @@ export default function EventViewPage() {
           </div>
         </header>
 
+        {showAttendanceSummary ? (
         <section className="border border-white/10 bg-concrete-overlay p-5">
           <div className="mb-4">
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
@@ -454,7 +456,9 @@ export default function EventViewPage() {
             eventName={event.field_name}
           />
         </section>
+        ) : null}
 
+        {showAttendanceSummary ? (
         <section className="border border-white/10 bg-concrete-overlay p-5">
           <div className="mb-4">
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
@@ -467,6 +471,7 @@ export default function EventViewPage() {
 
           <EventAttendeesList attendees={attendees} />
         </section>
+        ) : null}
 
         {event.status === 'drawn' ? (
           <div className="grid gap-3 md:grid-cols-2">

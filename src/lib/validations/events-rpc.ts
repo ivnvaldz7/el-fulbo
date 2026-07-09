@@ -31,7 +31,7 @@ export const cancelEventRpcSchema = z.object({
 
 export const updateAttendanceSchema = z.object({
   p_event_id: z.string().uuid(),
-  p_status: z.enum(['going', 'not_going', 'pending']),
+  p_status: z.enum(['going', 'not_going', 'maybe']),
 });
 
 export const updateCheckInSchema = z.object({
