@@ -37,6 +37,7 @@ export async function runAppUpdateCampaign(
     .select('user_id');
 
   if (subscriptionsError) {
+    console.error('[app-update-campaign] Error fetching push subscriptions:', subscriptionsError);
     result.errors.push(mapSupabaseError(subscriptionsError).message);
     return result;
   }
@@ -55,6 +56,7 @@ export async function runAppUpdateCampaign(
     .eq('push_enabled', true);
 
   if (preferencesError) {
+    console.error('[app-update-campaign] Error fetching notification preferences:', preferencesError);
     result.errors.push(mapSupabaseError(preferencesError).message);
     return result;
   }
