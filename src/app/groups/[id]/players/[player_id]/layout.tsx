@@ -4,6 +4,7 @@ import { PageContent } from '@/components/ui/page-content';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { PageHeader } from '@/components/ui/page-header';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { routes } from '@/lib/routes';
 
 export default async function PlayerProfileLayout({
   children,
@@ -34,17 +35,17 @@ export default async function PlayerProfileLayout({
     .is('archived_at', null)
     .single();
 
-  if (!player) redirect(`/groups/${id}/dashboard`);
+  if (!player) redirect(routes.groupDashboard(id));
 
   const isAdminOrOwner = membership && (membership.role === 'admin' || membership.role === 'owner');
   const isSelf = player.user_id === user.id;
 
-  if (!isAdminOrOwner && !isSelf) redirect(`/groups/${id}/dashboard`);
+  if (!isAdminOrOwner && !isSelf) redirect(routes.groupDashboard(id));
 
   return (
     <ImmersiveScreen>
       <PageContent className="max-w-md">
-        <PageHeader title="JUGADOR" backHref={`/groups/${id}/dashboard`} />
+        <PageHeader title="JUGADOR" backHref={routes.groupDashboard(id)} />
         <div className="mb-6 flex items-center gap-3 px-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-white/5 font-headline text-2xl font-black text-white/20">
           {player.display_name.slice(0, 1).toUpperCase()}

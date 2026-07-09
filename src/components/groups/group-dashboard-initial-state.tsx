@@ -11,6 +11,7 @@ import { CopyAliasButton } from '@/components/groups/copy-alias-button';
 import type { CurrentBoost, PlayerPosition, PlayerStats } from '@/lib/types';
 import toast from 'react-hot-toast';
 import { PushOptinBanner } from '@/components/notifications/push-optin-banner';
+import { routes } from '@/lib/routes';
 
 type UpcomingEvent = {
   id: string;
@@ -99,7 +100,7 @@ export function GroupDashboardInitialState({
     <ImmersiveScreen contentClassName="mx-auto max-w-xl">
       <FloatingPanel className="w-full border-2 border-white/10">
         <div className="mb-6 flex items-center justify-between">
-          <Link href="/groups" className="link-interactive flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white">
+          <Link href={routes.groups} className="link-interactive flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white">
             <Home className="h-4 w-4" /> Volver a mis equipos
           </Link>
         </div>
@@ -120,7 +121,7 @@ export function GroupDashboardInitialState({
                   MVP de la fecha
                   <span className="inline-block h-px w-4 bg-amber-300/50" />
                 </p>
-                <Link href={`/groups/${groupId}/players/${currentMvp.mvpPlayer.id}`} className="mt-3 block hover:opacity-80 transition-opacity">
+                <Link href={routes.groupPlayer(groupId, currentMvp.mvpPlayer.id)} className="mt-3 block hover:opacity-80 transition-opacity">
                   <h2 className="truncate font-headline text-2xl font-black italic uppercase leading-none text-white">
                     {currentMvp.mvpPlayer.displayName}
                   </h2>
@@ -131,7 +132,7 @@ export function GroupDashboardInitialState({
                   )}
                 </p>
                 <Link
-                  href={`/groups/${groupId}/events/${currentMvp.eventId}`}
+                  href={routes.groupEvent(groupId, currentMvp.eventId)}
                   className="link-interactive mt-2 inline-flex items-center gap-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white/50 hover:text-amber-300"
                 >
                   {currentMvp.teamAName} {currentMvp.teamAScore} — {currentMvp.teamBScore} {currentMvp.teamBName}
@@ -139,7 +140,7 @@ export function GroupDashboardInitialState({
                 </Link>
               </div>
               <Link
-                href={`/groups/${groupId}/players/${currentMvp.mvpPlayer.id}`}
+                href={routes.groupPlayer(groupId, currentMvp.mvpPlayer.id)}
                 className="relative flex h-24 w-24 shrink-0 items-center justify-center border-2 border-amber-300/50 bg-amber-300/10 text-4xl font-black text-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.2)] hover:opacity-80 transition-opacity self-center"
               >
                 {currentMvp.mvpPlayer.photoUrl ? (
@@ -171,7 +172,7 @@ export function GroupDashboardInitialState({
               confirmar asistencia a los partidos.
             </p>
             <a
-              href="./pending"
+              href={routes.groupPending(groupId)}
               className="btn-interactive mt-4 inline-flex min-h-12 items-center justify-center bg-amber-400 px-6 py-2 font-headline text-sm font-bold uppercase text-black hover:bg-amber-300"
             >
               Ver estado
@@ -184,7 +185,7 @@ export function GroupDashboardInitialState({
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400">Admin</p>
             <h2 className="mt-1 font-headline text-xl font-black italic uppercase text-white">Tenés {adminPendingTotal} pendientes</h2>
             <a
-              href="./admin-tasks"
+              href={routes.groupAdminTasks(groupId)}
               className="btn-interactive mt-4 inline-flex min-h-12 items-center justify-center bg-amber-400 px-6 py-2 font-headline text-sm font-bold uppercase text-black hover:bg-amber-300"
             >
               Ver ahora
@@ -195,25 +196,25 @@ export function GroupDashboardInitialState({
         {isAdminOrOwner ? (
           <div className="animate-stagger mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Link
-              href={`/groups/${groupId}/admin-tasks`}
+              href={routes.groupAdminTasks(groupId)}
               className="btn-interactive flex min-h-12 items-center justify-center border border-white/10 bg-black/30 px-4 font-headline text-sm font-bold uppercase italic text-white hover:border-white/30 hover:bg-white/10"
             >
               Pendientes
             </Link>
             <Link
-              href={`/groups/${groupId}/settings/owners`}
+              href={routes.groupOwners(groupId)}
               className="btn-interactive flex min-h-12 items-center justify-center bg-pitch-green px-4 font-headline text-sm font-bold uppercase italic text-black hover:brightness-110"
             >
               Owners
             </Link>
             <Link
-              href={`/groups/${groupId}/settings/recurring`}
+              href={routes.groupRecurring(groupId)}
               className="btn-interactive flex min-h-12 items-center justify-center border border-white/10 bg-black/30 px-4 font-headline text-sm font-bold uppercase italic text-white hover:border-white/30 hover:bg-white/10"
             >
               Fijo
             </Link>
             <Link
-              href={`/groups/${groupId}/players`}
+              href={routes.groupPlayers(groupId)}
               className="btn-interactive flex min-h-12 items-center justify-center border border-white/10 bg-black/30 px-4 font-headline text-sm font-bold uppercase italic text-white hover:border-white/30 hover:bg-white/10"
             >
               Jugadores
@@ -229,7 +230,7 @@ export function GroupDashboardInitialState({
                 {upcomingEvents.map((event, index) => (
                   <li key={event.id}>
                     <Link
-                      href={`/groups/${groupId}/events/${event.id}`}
+                      href={routes.groupEvent(groupId, event.id)}
                       className={`btn-interactive flex min-h-14 w-full items-center justify-between border px-5 py-4 transition ${
                         index === 0
                           ? 'border-pitch-green/40 bg-pitch-green/10 hover:border-pitch-green/60 hover:bg-pitch-green/15'
@@ -285,7 +286,7 @@ export function GroupDashboardInitialState({
 
           {isAdminOrOwner ? (
             <Link
-              href={`/groups/${groupId}/events/new`}
+              href={routes.groupEventNew(groupId)}
               className="btn-interactive mt-4 flex min-h-14 w-full items-center justify-center bg-pitch-green px-6 font-headline text-sm font-black italic uppercase text-white hover:brightness-110"
             >
               + Crear partido
@@ -329,9 +330,11 @@ export function GroupDashboardInitialState({
                 </div>
               ) : null}
               <Link
-                href={`/groups/${groupId}/events/${recentPlayedEvents[0]!.id}${
-                  recentPlayedEvents[0]!.mvpName ? '' : `?votar-mvp=${recentPlayedEvents[0]!.id}`
-                }`}
+                href={
+                  recentPlayedEvents[0]!.mvpName
+                    ? routes.groupEvent(groupId, recentPlayedEvents[0]!.id)
+                    : routes.groupEventMvpVote(groupId, recentPlayedEvents[0]!.id)
+                }
                 className="btn-interactive mt-4 flex min-h-12 w-full items-center justify-center border border-white/10 bg-white/[0.04] px-4 font-headline text-sm font-bold italic uppercase text-white hover:border-amber-300/40 hover:bg-amber-300/10 hover:text-amber-300"
               >
                 {recentPlayedEvents[0]!.mvpName ? 'Ver resumen' : 'Entrar a votar / ver votos'}
@@ -354,10 +357,10 @@ export function GroupDashboardInitialState({
             <PlayerCardSharePanel groupName={groupName} player={shareablePlayer} />
             {currentPlayerId ? (
               <Link
-                href={`/groups/${groupId}/players/${currentPlayerId}`}
+                href={routes.groupPlayer(groupId, currentPlayerId)}
                 className="btn-interactive mt-3 flex min-h-12 w-full items-center justify-center border border-white/20 px-6 font-headline text-sm font-bold italic uppercase text-white/70 hover:border-white/40 hover:bg-white/5 hover:text-white"
               >
-                Ver / editar mi carta
+                Ver mi carta
               </Link>
             ) : null}
           </>

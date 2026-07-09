@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import type { PlayerStats, PlayerPosition } from '@/lib/types';
+import { routes } from '@/lib/routes';
 
 type EditCardFormProps = {
   groupId: string;
@@ -84,7 +85,7 @@ export function EditCardForm({
 
       if (error) throw error;
 
-      router.push(`/groups/${groupId}/players/${playerId}`);
+      router.push(routes.groupPlayer(groupId, playerId));
       router.refresh();
     } catch (err) {
       console.error(err);

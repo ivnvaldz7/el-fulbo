@@ -37,6 +37,7 @@ El proyecto está en V2 completa y en producción. La etapa actual confirmada es
 - `maintenance` es el runner inicial del dispatcher.
 - No se implementa lógica de “70%” todavía.
 - La estrategia Free/Pro quedó documentada como decisión futura en `docs/FREE_PRO_GUIDELINES.md`: Free = organizado, Pro = piloto automático. No hay pricing, pagos ni paywall implementados.
+- El contrato de Free readiness quedó documentado en `docs/FREE_READINESS.md`; las rutas críticas deben centralizarse en `src/lib/routes.ts`.
 
 ## 3.1 Lineamientos de notificaciones
 
@@ -151,6 +152,7 @@ Después de cada implementación o auditoría importante, actualizar este archiv
 - 2026-07-08 — Prueba real Chrome `attendance_changed`: Supabase local reseteado, Chrome real generó endpoint FCM, `maintenance` devolvió `claimed: 1`, `sent: 1`, `failed: 0`, y la notification quedó con `pushed_at` seteado, `push_attempt_count = 1` y `push_last_error = null`.
 - 2026-07-08 — Investigación scheduler: Vercel Hobby limita cron a una ejecución diaria; para notificaciones con menor latencia conviene mover el runner a Supabase Cron/Edge Function, Cloudflare Workers Cron o QStash.
 - 2026-07-08 — Free/Pro guidelines: documentado el framing futuro `Free = organizado` / `Pro = piloto automático`, comprador inicial organizador y precio referencial USD 4.99/mes por grupo, sin implementar paywall.
+- 2026-07-09 — Free readiness: agregado contrato de rutas centralizado, entrypoints de card/MVP más consistentes y documentación de alcance Free sin paywall.
 
 ## 12. Última actualización operativa
 

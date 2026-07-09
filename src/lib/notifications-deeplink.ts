@@ -1,3 +1,5 @@
+import { routes } from './routes';
+
 export type NotificationType =
   | 'event_created'
   | 'attendance_changed'
@@ -35,16 +37,16 @@ export function getNotificationDeepLink(
     case 'event_cancelled':
     case 'event_updated':
     case 'mvp_awarded':
-      return group_id && event_id ? `/groups/${group_id}/events/${event_id}` : '/';
+      return group_id && event_id ? routes.groupEvent(group_id, event_id) : routes.home;
 
     case 'boost_applied':
-      return group_id && player_id ? `/groups/${group_id}/players/${player_id}` : '/';
+      return group_id && player_id ? routes.groupPlayer(group_id, player_id) : routes.home;
 
     case 'match_result_loaded':
-      return group_id && event_id ? `/groups/${group_id}/events/${event_id}` : '/';
+      return group_id && event_id ? routes.groupEvent(group_id, event_id) : routes.home;
 
     default:
-      return '/';
+      return routes.home;
   }
 }
 

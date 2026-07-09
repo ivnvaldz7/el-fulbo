@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { EditCardForm } from './edit-card-form';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
+import { routes } from '@/lib/routes';
 
 export default async function EditPlayerCardPage({
   params,
@@ -27,7 +28,7 @@ export default async function EditPlayerCardPage({
   const isAdminOrOwner = membership?.role === 'admin' || membership?.role === 'owner';
 
   if (!isAdminOrOwner) {
-    redirect(`/groups/${id}/players/${player_id}`);
+    redirect(routes.groupPlayer(id, player_id));
   }
 
   const { data: player } = await supabase
@@ -38,13 +39,13 @@ export default async function EditPlayerCardPage({
     .is('archived_at', null)
     .single();
 
-  if (!player) redirect(`/groups/${id}/dashboard`);
+  if (!player) redirect(routes.groupDashboard(id));
 
   return (
     <ImmersiveScreen align="center" className="flex-col py-12">
       <h1 className="font-headline text-3xl font-black italic uppercase text-white">Editar Carta</h1>
       <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-pitch-green">
-        Modo Dios (Solo Admins)
+        Admin / owner
       </p>
 
       <div className="mt-8 flex w-full justify-center">

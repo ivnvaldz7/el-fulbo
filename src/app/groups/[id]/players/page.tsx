@@ -8,6 +8,7 @@ import { getPlayersInGroup } from '@/lib/services/player.service';
 import { calculateOverall } from '@/lib/types';
 import { PlayerCarousel } from '@/components/players/player-carousel';
 import type { PlayerPosition, PlayerStats } from '@/lib/types';
+import { routes } from '@/lib/routes';
 
 function hasStats(stats: PlayerStats | undefined): stats is PlayerStats {
   return !!stats;
@@ -34,7 +35,7 @@ export default async function GroupPlayersPage({ params }: { params: Promise<{ i
   const isAdminOrOwner = membership && (membership.role === 'admin' || membership.role === 'owner');
 
   if (!isAdminOrOwner) {
-    redirect(`/groups/${id}/dashboard`);
+    redirect(routes.groupDashboard(id));
   }
 
   const playersResult = await getPlayersInGroup(supabase, id);
@@ -55,7 +56,7 @@ export default async function GroupPlayersPage({ params }: { params: Promise<{ i
       <FloatingPanel className="w-full border-2 border-white/10">
         <div className="mb-6 flex items-center justify-between">
           <Link
-            href={`/groups/${id}/dashboard`}
+            href={routes.groupDashboard(id)}
             className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors active:scale-95"
           >
             <ArrowLeft className="h-4 w-4" /> Volver al dashboard

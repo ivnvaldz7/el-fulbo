@@ -3,8 +3,10 @@ import { PlayerCardPreview } from '@/components/cards/player-card-preview';
 import { PhotoUpload } from '@/components/players/photo-upload';
 import { ReliabilityBadge } from '@/components/players/reliability-badge';
 import { LeaveGroupButton } from '@/components/players/leave-group-button';
+import { PlayerCardSharePanel } from '@/components/share/player-card-share-panel';
 import { fetchPlayerStats } from '@/lib/services/player-stats.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { routes } from '@/lib/routes';
 
 export default async function PlayerProfilePage({
   params,
@@ -38,7 +40,8 @@ export default async function PlayerProfilePage({
 
   const userRole = membership?.role;
   const isAdminOrOwner = userRole === 'admin' || userRole === 'owner';
-  const canEdit = isAdminOrOwner || user.id === player.user_id;
+  const isSelf = user.id === player.user_id;
+  const canUploadPhoto = isAdminOrOwner || (isSelf && player.stats_status === 'pending_approval');
 
   const statsResult = await fetchPlayerStats(supabase, player_id);
 
@@ -64,18 +67,32 @@ export default async function PlayerProfilePage({
         playerId={player_id}
         groupId={id}
         currentPhotoUrl={player.photo_url}
-        canEdit={canEdit}
+        canEdit={canUploadPhoto}
       />
+      {isSelf ? (
+        <div className="mt-8 w-full">
+          <PlayerCardSharePanel
+            groupName="El Fulbo"
+            player={{
+              displayName: player.display_name,
+              primaryPosition: player.primary_position,
+              stats: player.stats,
+              currentBoost: player.current_boost,
+              photoUrl: player.photo_url,
+            }}
+          />
+        </div>
+      ) : null}
       {isAdminOrOwner && (
         <a
-          href={`/groups/${id}/players/${player_id}/edit-card`}
+          href={routes.groupPlayerEditCard(id, player_id)}
           className="mt-6 flex items-center justify-center border border-pitch-green/40 bg-pitch-green/10 px-6 py-3 font-headline text-sm font-bold uppercase italic text-pitch-green transition-colors hover:bg-pitch-green/20 active:scale-95"
         >
-          Editar Carta (Modo Dios)
+          Editar carta
         </a>
       )}
 
-      {user.id === player.user_id && (
+      {isSelf && (
         <LeaveGroupButton playerId={player_id} groupId={id} />
       )}
     </div>

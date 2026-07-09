@@ -24,6 +24,7 @@ import {
   type PlayedMatchSummaryItem,
   EventsService,
 } from '@/lib/services/events.service';
+import { routes } from '@/lib/routes';
 
 const ATTENDANCE_OPTIONS: Array<{ value: AttendanceStatus; label: string; accent: string }> = [
   { value: 'going', label: 'Voy', accent: 'bg-emerald-500 text-black' },
@@ -275,7 +276,7 @@ export default function EventViewPage() {
       if (!result.ok) throw new Error(result.error.message);
 
       toast.success('Partido cancelado.');
-      window.location.href = `/groups/${groupId}/dashboard`;
+      window.location.href = routes.groupDashboard(groupId);
     } catch (cancelError) {
       console.error(cancelError);
       toast.error('No pudimos cancelar el partido.');
@@ -321,7 +322,7 @@ export default function EventViewPage() {
   return (
     <ImmersiveScreen>
       <PageContent className="max-w-md">
-        <PageHeader title="PARTIDO" backHref={`/groups/${groupId}/dashboard`} />
+        <PageHeader title="PARTIDO" backHref={routes.groupDashboard(groupId)} />
         {overlayConfirmar === eventId && !overlayClosed ? (
           <AttendanceConfirmationOverlay
             eventId={eventId}
@@ -336,7 +337,7 @@ export default function EventViewPage() {
             playedSummary={playedSummary}
             hasVoted={hasVotedForMvp}
             isVotingClosed={!!event.mvp_player_id}
-            homeHref={`/groups/${groupId}/dashboard`}
+            homeHref={routes.groupDashboard(groupId)}
             onClose={() => setOverlayClosed(true)}
             onVoteSubmitted={() => {
               void queryClient.invalidateQueries({ queryKey: ['event', eventId] });
@@ -471,7 +472,7 @@ export default function EventViewPage() {
           <div className="grid gap-3 md:grid-cols-2">
             <button
               type="button"
-              onClick={() => router.push(`/groups/${groupId}/events/${eventId}/teams`)}
+              onClick={() => router.push(routes.groupEventTeams(groupId, eventId))}
               className="w-full rounded-lg bg-pitch-green px-4 py-4 font-headline text-xl font-black italic uppercase text-black"
             >
               Ver equipos
@@ -479,7 +480,7 @@ export default function EventViewPage() {
             {isAdminOrOwner ? (
               <button
                 type="button"
-                onClick={() => router.push(`/groups/${groupId}/events/${eventId}/result`)}
+                onClick={() => router.push(routes.groupEventResult(groupId, eventId))}
                 className="w-full rounded-lg bg-amber-400 px-4 py-4 font-headline text-xl font-black italic uppercase text-black"
               >
                 Cargar resultado
@@ -521,7 +522,7 @@ export default function EventViewPage() {
                       type="button"
                       onClick={() => {
                         void navigator.clipboard.writeText(
-                          `${window.location.origin}/groups/${groupId}/events/${eventId}?votar-mvp=${eventId}`,
+                          `${window.location.origin}${routes.groupEventMvpVote(groupId, eventId)}`,
                         );
                         toast.success('Link de votación MVP copiado.');
                       }}
@@ -538,7 +539,7 @@ export default function EventViewPage() {
                     <p className="mt-2 text-sm text-white/60">Tu voto ya quedó guardado. Cuando se cierre la votación vas a poder ver el resultado.</p>
                     <button
                       type="button"
-                      onClick={() => router.push(`/groups/${groupId}/dashboard`)}
+                      onClick={() => router.push(routes.groupDashboard(groupId))}
                       className="mt-4 w-full rounded-lg bg-amber-400 px-4 py-3 font-headline text-base font-black italic uppercase text-black transition-transform active:scale-[0.98]"
                     >
                       Volver al inicio
@@ -639,7 +640,7 @@ export default function EventViewPage() {
               {canOpenCheckIn(event.status, event.scheduled_at) ? (
                 <button
                   type="button"
-                  onClick={() => router.push(`/groups/${groupId}/events/${eventId}/check-in`)}
+                  onClick={() => router.push(routes.groupEventCheckIn(groupId, eventId))}
                   className="h-12 rounded-lg bg-emerald-500 font-headline text-lg font-bold italic uppercase tracking-tight text-black transition-transform active:scale-95"
                 >
                   Check-in
@@ -647,7 +648,7 @@ export default function EventViewPage() {
               ) : null}
               <button
                 type="button"
-                onClick={() => router.push(`/groups/${groupId}/events/${eventId}/edit`)}
+                onClick={() => router.push(routes.groupEventEdit(groupId, eventId))}
                 className="h-12 rounded-lg bg-blue-600 font-headline text-lg font-bold italic uppercase tracking-tight text-white transition-transform active:scale-95"
               >
                 Editar

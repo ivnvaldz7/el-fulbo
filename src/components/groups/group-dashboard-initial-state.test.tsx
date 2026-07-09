@@ -174,4 +174,29 @@ describe('GroupDashboardInitialState', () => {
 
     expect(screen.getByRole('button', { name: 'Compartir mi card' })).toBeInTheDocument();
   });
+
+  it('links the current player to their own card when available', () => {
+    render(
+      <GroupDashboardInitialState
+        {...BASE_PROPS}
+        currentPlayerId="33333333-3333-3333-3333-333333333333"
+        groupName="Fulbito"
+        modality="F5"
+        activePlayers={10}
+        isAdminOrOwner={false}
+        upcomingEvents={[]}
+        shareablePlayer={{
+          displayName: 'Juan',
+          primaryPosition: 'DEL',
+          stats: { pac: 8, sho: 7, pas: 6, dri: 5, def: 4, phy: 3 },
+          currentBoost: null,
+        }}
+      />,
+    );
+
+    expect(screen.getByRole('link', { name: 'Ver mi carta' })).toHaveAttribute(
+      'href',
+      '/groups/22222222-2222-2222-2222-222222222222/players/33333333-3333-3333-3333-333333333333',
+    );
+  });
 });

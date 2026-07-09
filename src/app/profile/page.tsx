@@ -7,6 +7,7 @@ import { FloatingPanel } from '@/components/ui/floating-panel';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { PlayerCardPreview } from '@/components/cards/player-card-preview';
 import type { PlayerPosition, PlayerStats } from '@/lib/types';
+import { routes } from '@/lib/routes';
 
 export default async function ProfilePage() {
   const supabase = await createServerSupabaseClient();
@@ -44,7 +45,7 @@ export default async function ProfilePage() {
         <header className="mb-8 flex items-center justify-between">
           <div>
             <Link
-              href="/groups"
+              href={routes.groups}
               className="group mb-4 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 transition-colors hover:text-white"
             >
               <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
@@ -74,6 +75,12 @@ export default async function ProfilePage() {
               photoUrl={latestCard.photo_url}
               showBoostIndicator={false}
             />
+            <Link
+              href={routes.groupPlayer(latestCard.group_id, latestCard.id)}
+              className="mt-6 flex min-h-12 w-full items-center justify-center border border-white/20 px-6 font-headline text-sm font-bold italic uppercase text-white/70 transition-colors hover:border-white/40 hover:bg-white/5 hover:text-white active:scale-95"
+            >
+              Ver carta en el equipo
+            </Link>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center space-y-4 rounded-xl border border-dashed border-white/20 bg-white/5 py-10 text-center">

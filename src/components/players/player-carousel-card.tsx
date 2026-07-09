@@ -5,6 +5,7 @@ import { Edit2 } from 'lucide-react';
 import { RemovePlayerButton } from '@/app/groups/[id]/players/remove-player-button';
 import { getCardTier, getTierStyles } from '@/lib/utils/card-tiers';
 import type { PlayerPosition } from '@/lib/types';
+import { routes } from '@/lib/routes';
 
 type PlayerCarouselCardProps = {
   id: string;
@@ -84,7 +85,7 @@ export function PlayerCarouselCard({
 
         <div className={`flex items-center gap-4 transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-60'}`}>
           <Link
-            href={`/groups/${groupId}/players/${id}/edit-card`}
+            href={routes.groupPlayerEditCard(groupId, id)}
             className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/60 transition-colors hover:bg-white/15 hover:text-white active:scale-95"
             title="Editar carta"
           >

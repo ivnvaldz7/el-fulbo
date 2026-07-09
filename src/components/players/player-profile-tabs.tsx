@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { routes } from '@/lib/routes';
 
 export function PlayerProfileTabs({
   groupId,
@@ -11,11 +12,10 @@ export function PlayerProfileTabs({
   playerId: string;
 }) {
   const pathname = usePathname();
-  const basePath = `/groups/${groupId}/players/${playerId}`;
 
   const tabs = [
-    { label: 'Carta', href: basePath },
-    { label: 'Estadísticas', href: `${basePath}/stats` },
+    { label: 'Carta', href: routes.groupPlayer(groupId, playerId) },
+    { label: 'Estadísticas', href: routes.groupPlayerStats(groupId, playerId) },
   ];
 
   return (
