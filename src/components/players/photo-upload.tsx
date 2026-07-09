@@ -26,8 +26,9 @@ export function PhotoUpload({ playerId, groupId, currentPhotoUrl, canEdit }: Pho
       setIsUploading(true);
 
       const options = {
-        maxSizeMB: 0.5,
-        maxWidthOrHeight: 800,
+        maxSizeMB: 1.2,
+        maxWidthOrHeight: 1600,
+        initialQuality: 0.9,
         useWebWorker: true,
       };
 
@@ -70,7 +71,7 @@ export function PhotoUpload({ playerId, groupId, currentPhotoUrl, canEdit }: Pho
   if (!canEdit) return null;
 
   return (
-    <div className="mt-4 flex flex-col items-center">
+    <div className="flex flex-col items-stretch">
       <input
         type="file"
         accept="image/*"
@@ -81,7 +82,7 @@ export function PhotoUpload({ playerId, groupId, currentPhotoUrl, canEdit }: Pho
       <button
         onClick={() => fileInputRef.current?.click()}
         disabled={isUploading}
-        className="flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-6 py-3 font-headline text-sm font-bold uppercase italic text-white transition-colors hover:bg-white/10 active:scale-95 disabled:opacity-50"
+        className="flex min-h-12 items-center justify-center gap-2 border border-pitch-green/40 bg-pitch-green/10 px-6 py-3 font-headline text-sm font-bold uppercase italic text-pitch-green transition-colors hover:bg-pitch-green/20 active:scale-95 disabled:opacity-50"
       >
         {isUploading ? (
           <Loader2 className="h-5 w-5 animate-spin" />
