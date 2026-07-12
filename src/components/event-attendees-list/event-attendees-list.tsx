@@ -9,65 +9,42 @@ interface EventAttendeesListProps {
   pendingConfirmationPlayers?: PendingConfirmationPlayer[];
 }
 
-const SECTIONS: Array<{ status: AttendanceStatus; label: string; empty: string }> = [
-  { status: 'going', label: 'Van', empty: 'Todavía nadie confirmó que va.' },
-  { status: 'waitlist', label: 'Lista de Espera', empty: 'No hay nadie en espera por ahora.' },
-  { status: 'not_going', label: 'No van', empty: 'Todavía nadie avisó que no va.' },
-  { status: 'maybe', label: 'Tal vez', empty: 'No hay respuestas en duda por ahora.' },
+const SECTIONS: Array<{
+  status: AttendanceStatus;
+  label: string;
+  empty: string;
+  tone: string;
+  titleTone: string;
+}> = [
+  {
+    status: 'going',
+    label: 'Van',
+    empty: 'Todavía nadie confirmó que va.',
+    tone: 'border-pitch-green/40 bg-pitch-green/10',
+    titleTone: 'text-pitch-green',
+  },
+  {
+    status: 'waitlist',
+    label: 'Lista de Espera',
+    empty: 'No hay nadie en espera por ahora.',
+    tone: 'border-amber-400/40 bg-amber-400/10',
+    titleTone: 'text-amber-300',
+  },
+  {
+    status: 'not_going',
+    label: 'No van',
+    empty: 'Todavía nadie avisó que no va.',
+    tone: 'border-red-500/40 bg-red-500/10',
+    titleTone: 'text-red-300',
+  },
+  {
+    status: 'maybe',
+    label: 'Tal vez',
+    empty: 'No hay respuestas en duda por ahora.',
+    tone: 'border-amber-400/40 bg-amber-400/10',
+    titleTone: 'text-amber-300',
+  },
 ];
-
-function statusLabel(attendee: EventAttendee) {
-  if (attendee.checkedIn) {
-    return 'Presente';
-  }
-
-  switch (attendee.status) {
-    case 'going':
-      return 'Voy';
-    case 'not_going':
-      return 'No voy';
-    case 'maybe':
-      return 'Tal vez';
-    case 'waitlist':
-      return 'En Espera';
-  }
-}
-
-function statusClasses(attendee: EventAttendee) {
-  if (attendee.checkedIn) {
-    return 'bg-sky-500/20 text-sky-200 border-sky-400/30';
-  }
-
-  switch (attendee.status) {
-    case 'going':
-      return 'bg-emerald-500/20 text-emerald-200 border-emerald-400/30';
-    case 'not_going':
-      return 'bg-zinc-500/20 text-zinc-200 border-zinc-400/30';
-    case 'maybe':
-      return 'bg-amber-500/20 text-amber-200 border-amber-400/30';
-    case 'waitlist':
-      return 'bg-purple-500/20 text-purple-200 border-purple-400/30';
-  }
-}
-
-function PlayerAvatar({ displayName, photoUrl }: { displayName: string; photoUrl: string | null }) {
-  if (photoUrl) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={photoUrl}
-        alt={displayName}
-        className="h-9 w-9 rounded-full object-cover ring-1 ring-white/10"
-      />
-    );
-  }
-
-  return (
-    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 font-mono text-xs font-bold uppercase text-pitch-green ring-1 ring-white/10">
-      {displayName.slice(0, 2)}
-    </div>
-  );
-}
 
 const EventAttendeesList = memo(function EventAttendeesList({
   attendees,
@@ -75,9 +52,9 @@ const EventAttendeesList = memo(function EventAttendeesList({
 }: EventAttendeesListProps) {
   return (
     <div className="space-y-3">
-      <details className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.03]">
+      <details className="overflow-hidden rounded-lg border border-amber-400/40 bg-amber-400/10">
         <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3">
-          <span className="font-headline text-lg font-bold italic uppercase text-white">
+          <span className="font-headline text-lg font-bold italic uppercase text-amber-300">
             Faltan confirmar: {pendingConfirmationPlayers.length}
           </span>
           <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
@@ -91,17 +68,8 @@ const EventAttendeesList = memo(function EventAttendeesList({
           ) : (
             <ul className="divide-y divide-white/10">
               {pendingConfirmationPlayers.map((player) => (
-                <li key={player.playerId} className="flex items-center justify-between gap-3 px-4 py-3">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <PlayerAvatar displayName={player.displayName} photoUrl={player.photoUrl} />
-                    <span className="truncate text-sm font-medium text-white">
-                      {player.displayName}
-                    </span>
-                  </div>
-
-                  <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-white/60">
-                    Sin responder
-                  </span>
+                <li key={player.playerId} className="px-4 py-3">
+                  <span className="block truncate text-sm font-medium text-white">{player.displayName}</span>
                 </li>
               ))}
             </ul>
@@ -115,10 +83,10 @@ const EventAttendeesList = memo(function EventAttendeesList({
         return (
           <details
             key={section.status}
-            className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.03]"
+            className={`overflow-hidden rounded-lg border ${section.tone}`}
           >
             <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3">
-              <span className="font-headline text-lg font-bold italic uppercase text-white">
+              <span className={`font-headline text-lg font-bold italic uppercase ${section.titleTone}`}>
                 {section.label}: {items.length}
               </span>
               <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
@@ -132,18 +100,9 @@ const EventAttendeesList = memo(function EventAttendeesList({
               ) : (
                 <ul className="divide-y divide-white/10">
                   {items.map((attendee) => (
-                    <li key={attendee.playerId} className="flex items-center justify-between gap-3 px-4 py-3">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <PlayerAvatar displayName={attendee.displayName} photoUrl={attendee.photoUrl} />
-                        <span className="truncate text-sm font-medium text-white">
-                          {attendee.displayName}
-                        </span>
-                      </div>
-
-                      <span
-                        className={`rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${statusClasses(attendee)}`}
-                      >
-                        {statusLabel(attendee)}
+                    <li key={attendee.playerId} className="px-4 py-3">
+                      <span className="block truncate text-sm font-medium text-white">
+                        {attendee.displayName}
                       </span>
                     </li>
                   ))}

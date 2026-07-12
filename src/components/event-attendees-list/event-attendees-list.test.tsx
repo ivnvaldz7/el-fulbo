@@ -56,7 +56,7 @@ describe('EventAttendeesList', () => {
     expect(screen.getByText('Todos los jugadores aprobados ya respondieron.')).toBeInTheDocument();
   });
 
-  it('preserves response sections, attendees and counts', () => {
+  it('renders compact player rows with only names and keeps section counts', () => {
     render(
       <EventAttendeesList
         pendingConfirmationPlayers={pendingPlayers}
@@ -74,9 +74,15 @@ describe('EventAttendeesList', () => {
     expect(screen.getByText('No van: 1')).toBeInTheDocument();
     expect(screen.getByText('Tal vez: 1')).toBeInTheDocument();
 
-    expect(within(screen.getByText('Gonzalo Va').closest('li') as HTMLElement).getByText('Voy')).toBeInTheDocument();
-    expect(within(screen.getByText('Wanda Espera').closest('li') as HTMLElement).getByText(/En Espera/i)).toBeInTheDocument();
-    expect(within(screen.getByText('Noelia No Va').closest('li') as HTMLElement).getByText('No voy')).toBeInTheDocument();
-    expect(within(screen.getByText('Mateo Tal Vez').closest('li') as HTMLElement).getByText('Tal vez')).toBeInTheDocument();
+    for (const name of ['Mario Pendiente', 'Nico Sin Responder', 'Gonzalo Va', 'Wanda Espera', 'Noelia No Va', 'Mateo Tal Vez']) {
+      const row = screen.getByText(name).closest('li') as HTMLElement;
+      expect(within(row).getByText(name)).toBeInTheDocument();
+      expect(row.querySelector('img')).not.toBeInTheDocument();
+    }
+
+    expect(screen.queryByText('Sin responder')).not.toBeInTheDocument();
+    expect(screen.queryByText('Voy')).not.toBeInTheDocument();
+    expect(screen.queryByText(/En Espera/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('No voy')).not.toBeInTheDocument();
   });
 });
