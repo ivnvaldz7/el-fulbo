@@ -2,10 +2,11 @@
 
 import { memo } from 'react';
 import type { AttendanceStatus } from '@/lib/types';
-import type { EventAttendee } from '@/lib/services/events.service';
+import type { EventAttendee, PendingConfirmationPlayer } from '@/lib/services/events.service';
 
 interface EventAttendeesListProps {
   attendees: EventAttendee[];
+  pendingConfirmationPlayers?: PendingConfirmationPlayer[];
 }
 
 const SECTIONS: Array<{ status: AttendanceStatus; label: string; empty: string }> = [
@@ -49,13 +50,13 @@ function statusClasses(attendee: EventAttendee) {
   }
 }
 
-function Avatar({ attendee }: { attendee: EventAttendee }) {
-  if (attendee.photoUrl) {
+function PlayerAvatar({ displayName, photoUrl }: { displayName: string; photoUrl: string | null }) {
+  if (photoUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={attendee.photoUrl}
-        alt={attendee.displayName}
+        src={photoUrl}
+        alt={displayName}
         className="h-9 w-9 rounded-full object-cover ring-1 ring-white/10"
       />
     );
@@ -63,14 +64,51 @@ function Avatar({ attendee }: { attendee: EventAttendee }) {
 
   return (
     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 font-mono text-xs font-bold uppercase text-pitch-green ring-1 ring-white/10">
-      {attendee.displayName.slice(0, 2)}
+      {displayName.slice(0, 2)}
     </div>
   );
 }
 
-const EventAttendeesList = memo(function EventAttendeesList({ attendees }: EventAttendeesListProps) {
+const EventAttendeesList = memo(function EventAttendeesList({
+  attendees,
+  pendingConfirmationPlayers = [],
+}: EventAttendeesListProps) {
   return (
     <div className="space-y-3">
+      <details className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.03]">
+        <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3">
+          <span className="font-headline text-lg font-bold italic uppercase text-white">
+            Faltan confirmar: {pendingConfirmationPlayers.length}
+          </span>
+          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
+            Ver lista
+          </span>
+        </summary>
+
+        <div className="border-t border-white/10">
+          {pendingConfirmationPlayers.length === 0 ? (
+            <p className="px-4 py-4 text-sm text-white/60">Todos los jugadores aprobados ya respondieron.</p>
+          ) : (
+            <ul className="divide-y divide-white/10">
+              {pendingConfirmationPlayers.map((player) => (
+                <li key={player.playerId} className="flex items-center justify-between gap-3 px-4 py-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <PlayerAvatar displayName={player.displayName} photoUrl={player.photoUrl} />
+                    <span className="truncate text-sm font-medium text-white">
+                      {player.displayName}
+                    </span>
+                  </div>
+
+                  <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-white/60">
+                    Sin responder
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </details>
+
       {SECTIONS.map((section) => {
         const items = attendees.filter((attendee) => attendee.status === section.status);
 
@@ -96,7 +134,7 @@ const EventAttendeesList = memo(function EventAttendeesList({ attendees }: Event
                   {items.map((attendee) => (
                     <li key={attendee.playerId} className="flex items-center justify-between gap-3 px-4 py-3">
                       <div className="flex min-w-0 items-center gap-3">
-                        <Avatar attendee={attendee} />
+                        <PlayerAvatar displayName={attendee.displayName} photoUrl={attendee.photoUrl} />
                         <span className="truncate text-sm font-medium text-white">
                           {attendee.displayName}
                         </span>

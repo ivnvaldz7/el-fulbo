@@ -44,6 +44,14 @@ export interface EventAttendee {
   isPhantom: boolean;
 }
 
+export interface PendingConfirmationPlayer {
+  playerId: PlayerId;
+  userId: UserId | null;
+  displayName: string;
+  photoUrl: string | null;
+  joinedAt: string | null;
+}
+
 export interface CurrentPlayerAttendanceContext {
   userId: UserId;
   playerId: PlayerId;
@@ -117,6 +125,16 @@ export class EventsService {
       checkedInAt: row.checked_in_at ?? null,
       statsStatus: player.stats_status as PlayerStatsStatus,
       isPhantom: Boolean(player.is_phantom),
+    };
+  }
+
+  private normalizePendingConfirmationPlayer(row: any): PendingConfirmationPlayer {
+    return {
+      playerId: row.id,
+      userId: row.user_id ?? null,
+      displayName: row.display_name,
+      photoUrl: row.photo_url ?? null,
+      joinedAt: row.joined_at ?? null,
     };
   }
 
@@ -223,6 +241,52 @@ export class EventsService {
       });
 
     return { ok: true, data: attendees };
+  }
+
+  async getPendingConfirmationPlayers(
+    groupId: GroupId,
+    eventId: EventId,
+  ): Promise<Result<PendingConfirmationPlayer[]>> {
+    const { data: players, error: playersError } = await this.supabase
+      .from('players')
+      .select('id, user_id, display_name, photo_url, joined_at, stats_status, archived_at, group_id')
+      .eq('group_id', groupId)
+      .eq('stats_status', 'approved')
+      .is('archived_at', null);
+
+    if (playersError) return { ok: false, error: mapSupabaseError(playersError) };
+
+    const { data: attendances, error: attendancesError } = await this.supabase
+      .from('event_attendances')
+      .select('player_id')
+      .eq('event_id', eventId);
+
+    if (attendancesError) return { ok: false, error: mapSupabaseError(attendancesError) };
+
+    const answeredPlayerIds = new Set((attendances ?? []).map((attendance: any) => attendance.player_id));
+
+    const pendingPlayers = (players ?? [])
+      .filter(
+        (player: any) =>
+          player.group_id === groupId &&
+          player.stats_status === 'approved' &&
+          player.archived_at === null &&
+          !answeredPlayerIds.has(player.id),
+      )
+      .map((player) => this.normalizePendingConfirmationPlayer(player))
+      .sort((left, right) => {
+        const byJoinedAt =
+          (left.joinedAt ? Date.parse(left.joinedAt) : 0) -
+          (right.joinedAt ? Date.parse(right.joinedAt) : 0);
+
+        if (byJoinedAt !== 0) {
+          return byJoinedAt;
+        }
+
+        return left.displayName.localeCompare(right.displayName, 'es');
+      });
+
+    return { ok: true, data: pendingPlayers };
   }
 
   async getDrawPlayers(eventId: EventId): Promise<Result<PlayerForDraw[]>> {
