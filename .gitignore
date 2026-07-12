@@ -75,7 +75,6 @@ test-results/
 
 # Temp test scripts
 .test-scripts/
-test-visual.py
 
 # Agent local cache
 .atl/.skill-registry.cache.json
