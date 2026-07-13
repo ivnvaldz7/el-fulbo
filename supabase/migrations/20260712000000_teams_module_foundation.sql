@@ -42,7 +42,7 @@ create table public.teams (
 create table public.team_members (
   id uuid primary key default gen_random_uuid(),
   team_id uuid not null references public.teams(id) on delete cascade,
-  user_id uuid not null references public.users(id) on delete cascade,
+  user_id uuid not null references public.users(id) on delete restrict,
   role public.team_role not null default 'member',
   primary_position public.player_position not null,
   secondary_position public.player_position,
@@ -97,7 +97,7 @@ create table public.team_match_signups (
   id uuid primary key default gen_random_uuid(),
   team_match_id uuid not null,
   team_id uuid not null,
-  user_id uuid not null references public.users(id) on delete cascade,
+  user_id uuid not null references public.users(id) on delete restrict,
   status public.team_match_signup_status not null default 'going',
   signed_up_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -110,7 +110,7 @@ create table public.team_stat_submissions (
   id uuid primary key default gen_random_uuid(),
   team_id uuid not null,
   team_match_id uuid not null,
-  user_id uuid not null references public.users(id) on delete cascade,
+  user_id uuid not null references public.users(id) on delete restrict,
   stat_kind public.team_stat_kind not null,
   value smallint not null check (value >= 0 and value <= 99),
   status public.team_stat_submission_status not null default 'pending',
@@ -119,7 +119,7 @@ create table public.team_stat_submissions (
   reviewed_at timestamptz,
   rejection_reason text,
   constraint team_stat_submissions_match_team_fk foreign key (team_match_id, team_id)
-    references public.team_matches(id, team_id) on delete cascade,
+    references public.team_matches(id, team_id) on delete restrict,
   constraint team_stat_submissions_unique unique (team_match_id, user_id, stat_kind),
   constraint team_stat_submissions_review_consistent check (
     (status = 'pending' and reviewed_by_user_id is null and reviewed_at is null and rejection_reason is null)
@@ -325,6 +325,20 @@ security definer
 set search_path = public, app_private
 as $$
 begin
+  if tg_op = 'UPDATE' and old.status in ('approved', 'rejected') then
+    if new.team_id is distinct from old.team_id
+      or new.team_match_id is distinct from old.team_match_id
+      or new.user_id is distinct from old.user_id
+      or new.stat_kind is distinct from old.stat_kind
+      or new.value is distinct from old.value
+      or new.status is distinct from old.status
+      or new.reviewed_by_user_id is distinct from old.reviewed_by_user_id
+      or new.reviewed_at is distinct from old.reviewed_at
+      or new.rejection_reason is distinct from old.rejection_reason then
+      raise exception 'TEAM_STAT_SUBMISSION_FINAL' using errcode = '23514';
+    end if;
+  end if;
+
   if new.status = 'pending' then
     new.reviewed_by_user_id := null;
     new.reviewed_at := null;
@@ -344,7 +358,7 @@ end;
 $$;
 
 create trigger seal_team_stat_submission_review_before_insert_update
-before insert or update of status, reviewed_by_user_id, reviewed_at, rejection_reason
+before insert or update of team_id, team_match_id, user_id, stat_kind, value, status, reviewed_by_user_id, reviewed_at, rejection_reason
 on public.team_stat_submissions
 for each row
 execute function app_private.seal_team_stat_submission_review();
@@ -451,7 +465,7 @@ with (security_invoker = true)
 as
 select
   tm.team_id,
-  count(distinct tm.id)::int as matches_played,
+  count(distinct tss.team_match_id)::int as matches_played,
   coalesce(sum(tss.value) filter (where tss.stat_kind = 'goals'), 0) as goals,
   coalesce(sum(tss.value) filter (where tss.stat_kind = 'assists'), 0) as assists,
   coalesce(sum(tss.value) filter (where tss.stat_kind = 'tackles'), 0) as tackles
@@ -531,15 +545,14 @@ create policy team_stat_submissions_insert_own_member on public.team_stat_submis
   );
 create policy team_stat_submissions_update_admin on public.team_stat_submissions
   for update using (app_private.is_team_admin(team_id)) with check (app_private.is_team_admin(team_id));
-create policy team_stat_submissions_delete_admin on public.team_stat_submissions
-  for delete using (app_private.is_team_admin(team_id));
 
 grant select, insert, update, delete on public.teams to authenticated;
 grant select, insert, update, delete on public.team_members to authenticated;
 grant select, insert, update, delete on public.team_invitations to authenticated;
 grant select, insert, update, delete on public.team_matches to authenticated;
 grant select, insert, update, delete on public.team_match_signups to authenticated;
-grant select, insert, update, delete on public.team_stat_submissions to authenticated;
+grant select, insert, update on public.team_stat_submissions to authenticated;
+revoke update, delete on public.team_stat_submissions from authenticated;
 grant select on public.team_approved_stat_totals to authenticated;
 
 revoke all on function app_private.validate_team_match_signup_member() from public, anon, authenticated;

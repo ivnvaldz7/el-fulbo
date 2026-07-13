@@ -288,25 +288,23 @@ describe('teams module persistence and RLS', () => {
       ),
     );
 
-    await asUser(client, admin.id, () =>
-      client.query(
-        `
-          update public.team_stat_submissions
-          set status = 'approved', reviewed_by_user_id = $1, reviewed_at = now()
-          where team_id = $2 and user_id = $3
-        `,
-        [admin.id, teamId, forward.id],
-      ),
+    const approvedSubmission = await client.query<{ id: string }>(
+      `
+        select id
+        from public.team_stat_submissions
+        where team_id = $1 and user_id = $2
+      `,
+      [teamId, forward.id],
     );
     await asUser(client, admin.id, () =>
-      client.query(
-        `
-          update public.team_stat_submissions
-          set status = 'rejected', reviewed_by_user_id = $1, reviewed_at = now(), rejection_reason = 'inflated'
-          where id = $2
-        `,
-        [admin.id, rejectedSubmission.rows[0]!.id],
-      ),
+      client.query(`select * from public.review_team_stat_submission($1, 'approved'::public.team_stat_submission_status)`, [
+        approvedSubmission.rows[0]!.id,
+      ]),
+    );
+    await asUser(client, admin.id, () =>
+      client.query(`select * from public.review_team_stat_submission($1, 'rejected'::public.team_stat_submission_status, 'inflated')`, [
+        rejectedSubmission.rows[0]!.id,
+      ]),
     );
 
     const totals = await asUser(client, forward.id, () =>
@@ -463,6 +461,19 @@ describe('teams module persistence and RLS', () => {
       acceptInviteFunction.indexOf('insert into public.team_members'),
     );
     expect(acceptInviteFunction).not.toMatch(/select \* into v_invitation[\s\S]*from public\.team_invitations/);
+  });
+
+  it('keeps stat review atomic by updating pending submissions only', () => {
+    const migration = readFileSync('supabase/migrations/20260712010000_teams_module_services_progression.sql', 'utf8');
+    const reviewFunction = migration.slice(
+      migration.indexOf('create or replace function public.review_team_stat_submission'),
+      migration.indexOf('create or replace function public.process_team_player_progression'),
+    );
+
+    expect(reviewFunction).toMatch(
+      /update public\.team_stat_submissions[\s\S]*where id = p_submission_id[\s\S]*status = 'pending'[\s\S]*returning \* into v_submission;/,
+    );
+    expect(reviewFunction).toMatch(/if v_submission\.id is null then[\s\S]*TEAM_STAT_SUBMISSION_FINAL/);
   });
 
   it('does not expose internal team helper functions as public callable RPCs', async () => {
@@ -729,15 +740,18 @@ describe('teams module persistence and RLS', () => {
         [teamId, match.rows[0]!.id, forward.id],
       ),
     );
+    const submission = await client.query<{ id: string }>(
+      `
+        select id
+        from public.team_stat_submissions
+        where team_id = $1 and user_id = $2
+      `,
+      [teamId, forward.id],
+    );
     await asUser(client, admin.id, () =>
-      client.query(
-        `
-          update public.team_stat_submissions
-          set status = 'approved'
-          where team_id = $1 and user_id = $2
-        `,
-        [teamId, forward.id],
-      ),
+      client.query(`select * from public.review_team_stat_submission($1, 'approved'::public.team_stat_submission_status)`, [
+        submission.rows[0]!.id,
+      ]),
     );
 
     const [matches, signups, submissions, invitations, totals] = await asUser(client, outsider.id, async () => {
@@ -757,7 +771,7 @@ describe('teams module persistence and RLS', () => {
     expect(totals.rowCount).toBe(0);
   });
 
-  it('seals stat submission reviewer fields to the acting admin on approval and rejection', async () => {
+  it('forces stat review through the RPC and seals reviewer fields to the acting admin', async () => {
     const admin = await seedUser(client, 'team-admin-review-seal');
     const otherAdmin = await seedUser(client, 'team-other-admin-review-seal');
     const forward = await seedUser(client, 'team-forward-review-seal');
@@ -813,26 +827,46 @@ describe('teams module persistence and RLS', () => {
       ),
     );
 
-    await asUser(client, admin.id, () =>
-      client.query(
-        `
-          update public.team_stat_submissions
-          set status = 'approved', reviewed_by_user_id = $1, reviewed_at = now()
-          where id = $2
-        `,
-        [outsider.id, approved.rows[0]!.id],
+    await expect(
+      asUser(client, admin.id, () =>
+        client.query(
+          `
+            update public.team_stat_submissions
+            set status = 'approved', reviewed_by_user_id = $1, reviewed_at = now()
+            where id = $2
+          `,
+          [outsider.id, approved.rows[0]!.id],
+        ),
       ),
+    ).rejects.toThrow(/permission denied|violates row-level security/i);
+
+    await asUser(client, admin.id, () =>
+      client.query(`select * from public.review_team_stat_submission($1, 'approved'::public.team_stat_submission_status)`, [
+        approved.rows[0]!.id,
+      ]),
     );
     await asUser(client, otherAdmin.id, () =>
-      client.query(
-        `
-          update public.team_stat_submissions
-          set status = 'rejected', reviewed_by_user_id = $1, reviewed_at = now(), rejection_reason = 'incorrect'
-          where id = $2
-        `,
-        [outsider.id, rejected.rows[0]!.id],
-      ),
+      client.query(`select * from public.review_team_stat_submission($1, 'rejected'::public.team_stat_submission_status, 'incorrect')`, [
+        rejected.rows[0]!.id,
+      ]),
     );
+
+    await expect(
+      asUser(client, admin.id, () => client.query(`delete from public.team_stat_submissions where id = $1`, [approved.rows[0]!.id])),
+    ).rejects.toThrow(/permission denied|violates row-level security/i);
+    const stillApproved = await client.query(`select id from public.team_stat_submissions where id = $1`, [approved.rows[0]!.id]);
+
+    expect(stillApproved.rowCount).toBe(1);
+
+    await expect(
+      asUser(client, admin.id, () => client.query(`delete from public.team_matches where id = $1`, [match.rows[0]!.id])),
+    ).rejects.toThrow(/foreign key|violates/i);
+
+    await expect(
+      asUser(client, admin.id, () => client.query(`delete from public.teams where id = $1`, [teamId])),
+    ).rejects.toThrow(/foreign key|violates/i);
+
+    await expect(client.query(`delete from public.users where id = $1`, [forward.id])).rejects.toThrow(/foreign key|violates/i);
 
     const reviewed = await client.query(
       `

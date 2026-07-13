@@ -43,12 +43,23 @@ Chain strategy: feature-branch-chain
 - [x] 1.R6 RED/GREEN: consumir invitaciones de equipo como single-use antes de side effects, bloqueando doble aceptación por otro usuario.
 ## Fase 2: Servicios y reglas de negocio
 
-- [ ] 2.1 RED: cubrir en integración creación de equipo, invitación, alta/baja de roster, creación de partido e inscripción solo de miembros.
-- [ ] 2.2 GREEN: crear `src/lib/services/teams.service.ts` y `src/lib/validations/teams.ts` con validaciones Zod y permisos admin.
-- [ ] 2.3 RED: probar submissions por posición, rechazo de tipo incorrecto y agregados solo con stats aprobadas.
-- [ ] 2.4 GREEN: implementar lifecycle `pending/approved/rejected`; rejected no agrega, no prueba participación y no progresa.
-- [ ] 2.5 RED: probar progresión global por MVPs múltiplos de 3 y rachas con participación aprobada.
-- [ ] 2.6 GREEN: aplicar mejoras automáticas por posición, cap 99 y tier visual por overall.
+- [x] 2.1 RED: cubrir en integración creación de equipo, invitación, alta/baja de roster, creación de partido e inscripción solo de miembros.
+- [x] 2.2 GREEN: crear `src/lib/services/teams.service.ts` y `src/lib/validations/teams.ts` con validaciones Zod y permisos admin.
+- [x] 2.3 RED: probar submissions por posición, rechazo de tipo incorrecto y agregados solo con stats aprobadas.
+- [x] 2.4 GREEN: implementar lifecycle `pending/approved/rejected`; rejected no agrega, no prueba participación y no progresa.
+- [x] 2.5 RED: probar progresión global por MVPs múltiplos de 3 y rachas con participación aprobada.
+- [x] 2.6 GREEN: aplicar mejoras automáticas por posición, cap 99 y tier visual por overall.
+
+### Review fix batch: PR 2 services/progression blockers
+
+- [x] 2.R1 RED/GREEN: procesar progresión sobre la primera carta base aprobada del usuario, no sobre la última card unida.
+- [x] 2.R2 RED/GREEN: contar `matches_played` solo con participaciones aprobadas en `team_approved_stat_totals`.
+- [x] 2.R3 RED/GREEN: hacer inmutable el lifecycle de submissions después de aprobación o rechazo final.
+- [x] 2.R4 RED/GREEN: bloquear updates directos autenticados sobre columnas protegidas de `team_stat_submissions`; mantener revisión vía RPC.
+- [x] 2.R5 RED/GREEN: cubrir denegación de review no-admin, progresión no autorizada y mappings MED/ARQ.
+- [x] 2.R6 RED/GREEN: bloquear DELETE directo de `team_stat_submissions` para admins, manteniendo submissions finales revisadas no removibles vía tabla.
+- [x] 2.R7 RED/GREEN: hacer atómica la transición de `review_team_stat_submission` con `status = pending` en el UPDATE y error `TEAM_STAT_SUBMISSION_FINAL` si no muta.
+- [x] 2.R8 RED/GREEN: contar rachas históricas por submissions aprobadas, no por membresía activa actual.
 
 ## Fase 3: UI e integración
 
