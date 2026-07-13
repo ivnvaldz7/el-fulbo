@@ -47,8 +47,8 @@ export async function seedUser(client: Client, label: string) {
   try {
     await client.query(
       `
-        insert into auth.users (id, aud, role, email, email_confirmed_at, raw_user_meta_data, created_at, updated_at)
-        values ($1, 'authenticated', 'authenticated', $2, now(), '{}'::jsonb, now(), now())
+        insert into auth.users (id, aud, role, email, raw_user_meta_data, created_at, updated_at)
+        values ($1, 'authenticated', 'authenticated', $2, '{}'::jsonb, now(), now())
       `,
       [id, email],
     );
