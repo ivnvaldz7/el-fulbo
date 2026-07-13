@@ -4,15 +4,14 @@ test.describe('Home page', () => {
   test('loads and displays the brand title', async ({ page }) => {
     await page.goto('/');
 
-    // The brand is rendered as two lines: "EL" and "FULBO"
-    await expect(page.getByText('EL', { exact: true })).toBeVisible();
-    await expect(page.getByText('FULBO', { exact: true })).toBeVisible();
+    await expect(page.getByText('Elegí tu cancha')).toBeVisible();
+    await expect(page.getByText('El Fulbo')).toBeVisible();
   });
 
   test('has an ENTRAR button that links to /login', async ({ page }) => {
     await page.goto('/');
 
-    const entrarButton = page.getByRole('link', { name: /ENTRAR/i });
+    const entrarButton = page.getByRole('link', { name: 'Entrar', exact: true });
     await expect(entrarButton).toBeVisible();
     await expect(entrarButton).toHaveAttribute('href', '/login');
   });
@@ -31,5 +30,13 @@ test.describe('Home page', () => {
     const joinLink = page.getByRole('link', { name: /código de invitación/i });
     await expect(joinLink).toBeVisible();
     await expect(joinLink).toHaveAttribute('href', '/join');
+  });
+
+  test('shows the section selector with Grupos and Equipos', async ({ page }) => {
+    await page.goto('/');
+
+    await expect(page.getByText('Elegí tu cancha')).toBeVisible();
+    await expect(page.getByRole('link', { name: /entrar a grupos/i })).toHaveAttribute('href', '/groups');
+    await expect(page.getByRole('link', { name: /entrar a equipos/i })).toHaveAttribute('href', '/teams');
   });
 });
