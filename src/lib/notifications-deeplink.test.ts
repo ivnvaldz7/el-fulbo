@@ -33,6 +33,10 @@ describe('getNotificationDeepLink', () => {
   it('returns / when required payload fields are missing', () => {
     expect(getNotificationDeepLink('event_created', {})).toBe('/');
   });
+
+  it('app_update links to home', () => {
+    expect(getNotificationDeepLink('app_update', {})).toBe('/');
+  });
 });
 
 describe('getNotificationCopy', () => {
@@ -63,5 +67,11 @@ describe('getNotificationCopy', () => {
     const copy = getNotificationCopy('event_cancelled', {});
     expect(copy.title).toBeTruthy();
     expect(copy.body).toBeTruthy();
+  });
+
+  it('returns app update copy', () => {
+    const copy = getNotificationCopy('app_update', {});
+    expect(copy.title).toBe('Nueva versión de El Fulbo');
+    expect(copy.body).toContain('nuevo icono');
   });
 });

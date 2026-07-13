@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { ShareableCard } from './shareable-card';
 
 describe('ShareableCard', () => {
-  it('renders watermark and boost badges', () => {
+  it('renders group name and boost deltas without visual watermark or remaining label', () => {
     render(
       <ShareableCard
         name="Juan"
@@ -18,8 +18,9 @@ describe('ShareableCard', () => {
       />,
     );
 
-    expect(screen.getByText('El Fulbo')).toBeInTheDocument();
-    expect(screen.getByText('Boost: 2 partidos más')).toBeInTheDocument();
+    expect(screen.getByText('Fulbito')).toBeInTheDocument();
+    expect(screen.queryByText('El Fulbo')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Boost:/i)).not.toBeInTheDocument();
     expect(screen.getByText('+3')).toBeInTheDocument();
     expect(screen.getByText('+1')).toBeInTheDocument();
   });

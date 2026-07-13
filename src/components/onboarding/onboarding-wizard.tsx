@@ -279,6 +279,7 @@ export function OnboardingWizard({
             position={draft.primaryPosition ?? 'MED'}
             stats={stats}
             pending
+            size="compact"
           />
         </section>
 

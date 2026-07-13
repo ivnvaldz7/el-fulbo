@@ -9,7 +9,8 @@ export type NotificationType =
   | 'event_updated'
   | 'boost_applied'
   | 'mvp_awarded'
-  | 'match_result_loaded';
+  | 'match_result_loaded'
+  | 'app_update';
 
 export type NotificationPayload = {
   group_id?: string;
@@ -44,6 +45,9 @@ export function getNotificationDeepLink(
 
     case 'match_result_loaded':
       return group_id && event_id ? routes.groupEvent(group_id, event_id) : routes.home;
+
+    case 'app_update':
+      return routes.home;
 
     default:
       return routes.home;
@@ -85,6 +89,11 @@ export function getNotificationCopy(
       return { title: 'Boost aplicado', body: 'Te aplicaron un boost por el partido.' };
     case 'match_result_loaded':
       return { title: 'Resultado cargado', body: `Se cargó el resultado del partido en ${group}.` };
+    case 'app_update':
+      return {
+        title: 'Nueva versión de El Fulbo',
+        body: 'Abrí la app para activar notificaciones y ver el nuevo icono.',
+      };
     default:
       return { title: 'El Fulbo', body: 'Tenés una notificación nueva.' };
   }

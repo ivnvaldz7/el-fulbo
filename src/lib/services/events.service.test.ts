@@ -234,6 +234,156 @@ describe('EventsService', () => {
     expect(result.ok).toBe(true);
   });
 
+  it('returns approved active same-group players without attendance rows as pending confirmations', async () => {
+    const playersQuery = createQueryMock({
+      data: [
+        {
+          id: 'player-2',
+          user_id: null,
+          display_name: 'Bruno',
+          photo_url: null,
+          joined_at: '2026-01-02T00:00:00Z',
+          stats_status: 'approved',
+          archived_at: null,
+          group_id: 'group-1',
+        },
+        {
+          id: 'player-1',
+          user_id: 'user-1',
+          display_name: 'Alvaro',
+          photo_url: 'https://example.com/alvaro.jpg',
+          joined_at: '2026-01-01T00:00:00Z',
+          stats_status: 'approved',
+          archived_at: null,
+          group_id: 'group-1',
+        },
+        {
+          id: 'player-3',
+          user_id: null,
+          display_name: 'Carlos',
+          photo_url: null,
+          joined_at: '2026-01-03T00:00:00Z',
+          stats_status: 'approved',
+          archived_at: null,
+          group_id: 'group-1',
+        },
+      ],
+      error: null,
+    });
+    const attendancesQuery = createQueryMock({
+      data: [{ player_id: 'player-3' }],
+      error: null,
+    });
+    const from = vi.fn((table: string) => (table === 'players' ? playersQuery : attendancesQuery));
+
+    const service = new EventsService({ from } as unknown as SupabaseClient);
+    const result = await service.getPendingConfirmationPlayers('group-1', 'event-1');
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data).toEqual([
+        {
+          playerId: 'player-1',
+          userId: 'user-1',
+          displayName: 'Alvaro',
+          photoUrl: 'https://example.com/alvaro.jpg',
+          joinedAt: '2026-01-01T00:00:00Z',
+        },
+        {
+          playerId: 'player-2',
+          userId: null,
+          displayName: 'Bruno',
+          photoUrl: null,
+          joinedAt: '2026-01-02T00:00:00Z',
+        },
+      ]);
+    }
+  });
+
+  it('filters pending, rejected, archived, other-group and already answered players out of pending confirmations', async () => {
+    const playersQuery = createQueryMock({
+      data: [
+        {
+          id: 'approved-pending-answer',
+          user_id: null,
+          display_name: 'Diego',
+          photo_url: null,
+          joined_at: '2026-02-01T00:00:00Z',
+          stats_status: 'approved',
+          archived_at: null,
+          group_id: 'group-1',
+        },
+        {
+          id: 'pending-approval',
+          user_id: null,
+          display_name: 'Pending',
+          photo_url: null,
+          joined_at: '2026-02-02T00:00:00Z',
+          stats_status: 'pending_approval',
+          archived_at: null,
+          group_id: 'group-1',
+        },
+        {
+          id: 'rejected',
+          user_id: null,
+          display_name: 'Rejected',
+          photo_url: null,
+          joined_at: '2026-02-03T00:00:00Z',
+          stats_status: 'rejected',
+          archived_at: null,
+          group_id: 'group-1',
+        },
+        {
+          id: 'archived',
+          user_id: null,
+          display_name: 'Archived',
+          photo_url: null,
+          joined_at: '2026-02-04T00:00:00Z',
+          stats_status: 'approved',
+          archived_at: '2026-02-05T00:00:00Z',
+          group_id: 'group-1',
+        },
+        {
+          id: 'other-group',
+          user_id: null,
+          display_name: 'Other Group',
+          photo_url: null,
+          joined_at: '2026-02-06T00:00:00Z',
+          stats_status: 'approved',
+          archived_at: null,
+          group_id: 'group-2',
+        },
+        {
+          id: 'answered',
+          user_id: null,
+          display_name: 'Answered',
+          photo_url: null,
+          joined_at: '2026-02-07T00:00:00Z',
+          stats_status: 'approved',
+          archived_at: null,
+          group_id: 'group-1',
+        },
+      ],
+      error: null,
+    });
+    const attendancesQuery = createQueryMock({
+      data: [{ player_id: 'answered' }],
+      error: null,
+    });
+    const from = vi.fn((table: string) => (table === 'players' ? playersQuery : attendancesQuery));
+
+    const service = new EventsService({ from } as unknown as SupabaseClient);
+    const result = await service.getPendingConfirmationPlayers('group-1', 'event-1');
+
+    expect(playersQuery.eq).toHaveBeenCalledWith('group_id', 'group-1');
+    expect(playersQuery.eq).toHaveBeenCalledWith('stats_status', 'approved');
+    expect(playersQuery.is).toHaveBeenCalledWith('archived_at', null);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.map((player) => player.playerId)).toEqual(['approved-pending-answer']);
+    }
+  });
+
   // Note on delivery_strategy and local database environment verification:
   // The 'delivery_strategy: auto-chain' and skipping of local database environment verification
   // are concerns handled by the 'update_event' RPC function definition on the Supabase database side,
@@ -242,3 +392,14 @@ describe('EventsService', () => {
   // on the correct payload being sent to the RPC.
 
 });
+
+function createQueryMock(result: { data: unknown; error: unknown }) {
+  const query: any = {
+    select: vi.fn(() => query),
+    eq: vi.fn(() => query),
+    is: vi.fn(() => query),
+    then: (resolve: (value: typeof result) => unknown) => Promise.resolve(result).then(resolve),
+  };
+
+  return query;
+}

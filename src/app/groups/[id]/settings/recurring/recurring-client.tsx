@@ -22,6 +22,15 @@ interface Props {
   schedules: RecurringSchedule[];
 }
 
+interface RecurringSaveResponse {
+  ok: boolean;
+  data?: RecurringSchedule & {
+    _eventCreated?: boolean;
+    _eventError?: string | null;
+  };
+  error?: { message: string };
+}
+
 const EMPTY_FORM = {
   day_of_week: 1,
   scheduled_time: '21:00',
@@ -39,18 +48,20 @@ export function RecurringClient({ groupId, schedules: initial }: Props) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ tone: 'success' | 'pending' | 'error'; message: string } | null>(null);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError(null);
+    setNotice(null);
 
     const res = await fetch(`/api/groups/${groupId}/settings/recurring`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...form, days_ahead: Number(form.days_ahead) }),
     });
-    const json = await res.json() as { ok: boolean; data?: RecurringSchedule; error?: { message: string } };
+    const json = await res.json() as RecurringSaveResponse;
     setSaving(false);
 
     if (!json.ok) {
@@ -69,6 +80,24 @@ export function RecurringClient({ groupId, schedules: initial }: Props) {
     });
     setShowForm(false);
     setForm(EMPTY_FORM);
+
+    if (json.data?._eventError) {
+      setNotice({
+        tone: 'error',
+        message: `Partido fijo guardado, pero no se pudo crear el próximo evento: ${json.data._eventError}`,
+      });
+    } else if (json.data?._eventCreated) {
+      setNotice({
+        tone: 'success',
+        message: 'Partido fijo guardado y próximo evento creado automáticamente.',
+      });
+    } else {
+      setNotice({
+        tone: 'pending',
+        message: 'Partido fijo guardado. El próximo evento se creará automáticamente cuando entre en ventana y corra el mantenimiento diario.',
+      });
+    }
+
     router.refresh();
   }
 
@@ -99,6 +128,20 @@ export function RecurringClient({ groupId, schedules: initial }: Props) {
 
   return (
     <div className="space-y-4 pb-12">
+      {notice ? (
+        <p
+          className={`font-mono text-[10px] font-bold uppercase ${
+            notice.tone === 'success'
+              ? 'text-pitch-green'
+              : notice.tone === 'error'
+                ? 'text-red-400'
+                : 'text-amber-300'
+          }`}
+        >
+          {notice.message}
+        </p>
+      ) : null}
+
       {schedules.length > 0 ? (
         <ul className="divide-y divide-white/5 border border-white/10">
           {schedules.map((s) => (

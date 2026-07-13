@@ -18,13 +18,13 @@ El proyecto está en V2 completa y en producción. La etapa actual confirmada es
 - Tests principales reportados:
   - `npm test` / unitarios de Vitest: reportado en sesión previa.
   - Integration con `npm run supabase db reset`: reportado y usado en los reportes E2E.
-  - E2E semi-local: documentado en `E2E_EVENT_CREATED_PUSH_TEST_REPORT.md`.
-  - Prueba real Chrome: documentada en `REAL_BROWSER_EVENT_CREATED_PUSH_TEST.md`.
-  - Prueba real Chrome para `attendance_changed`: documentada en `REAL_BROWSER_ATTENDANCE_CHANGED_PUSH_TEST.md`.
+  - E2E semi-local: documentado en `docs/reports/push/E2E_EVENT_CREATED_PUSH_TEST_REPORT.md`.
+  - Prueba real Chrome: documentada en `docs/reports/push/REAL_BROWSER_EVENT_CREATED_PUSH_TEST.md`.
+  - Prueba real Chrome para `attendance_changed`: documentada en `docs/reports/push/REAL_BROWSER_ATTENDANCE_CHANGED_PUSH_TEST.md`.
 - Reportes E2E existentes:
-  - `E2E_EVENT_CREATED_PUSH_TEST_REPORT.md`
-  - `REAL_BROWSER_EVENT_CREATED_PUSH_TEST.md`
-  - `REAL_BROWSER_ATTENDANCE_CHANGED_PUSH_TEST.md`
+  - `docs/reports/push/E2E_EVENT_CREATED_PUSH_TEST_REPORT.md`
+  - `docs/reports/push/REAL_BROWSER_EVENT_CREATED_PUSH_TEST.md`
+  - `docs/reports/push/REAL_BROWSER_ATTENDANCE_CHANGED_PUSH_TEST.md`
 
 ## 3. Decisiones técnicas tomadas
 

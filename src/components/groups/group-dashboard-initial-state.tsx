@@ -126,11 +126,6 @@ export function GroupDashboardInitialState({
                     {currentMvp.mvpPlayer.displayName}
                   </h2>
                 </Link>
-                <p className="mt-1 font-mono text-xs font-bold uppercase text-amber-300/80">
-                  {currentMvp.mvpPlayer.primaryPosition} · Overall {Math.round(
-                    Object.values(currentMvp.mvpPlayer.stats).reduce((a, b) => a + Number(b), 0) / 6 * 10
-                  )}
-                </p>
                 <Link
                   href={routes.groupEvent(groupId, currentMvp.eventId)}
                   className="link-interactive mt-2 inline-flex items-center gap-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white/50 hover:text-amber-300"

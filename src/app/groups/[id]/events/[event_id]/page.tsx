@@ -21,6 +21,7 @@ import type { AttendanceStatus, Event, EventId, EventStatus, GroupId } from '@/l
 import {
   type CurrentPlayerAttendanceContext,
   type EventAttendee,
+  type PendingConfirmationPlayer,
   type PlayedMatchSummaryItem,
   EventsService,
 } from '@/lib/services/events.service';
@@ -110,14 +111,16 @@ export default function EventViewPage() {
       if (!eventResult.ok) throw new Error(eventResult.error.message);
       const eventData = eventResult.data;
 
-      const [attendeesResult, playerResult, adminResult, groupResponse] = await Promise.all([
+      const [attendeesResult, pendingPlayersResult, playerResult, adminResult, groupResponse] = await Promise.all([
         eventsService.getEventAttendees(eventId),
+        eventsService.getPendingConfirmationPlayers(eventData.group_id, eventId),
         eventsService.getCurrentPlayerAttendanceContext(eventData.group_id, eventId),
         eventsService.isCurrentUserAdminOrOwner(eventData.group_id),
         supabase.from('groups').select('name').eq('id', eventData.group_id).single(),
       ]);
 
       if (!attendeesResult.ok) throw new Error(attendeesResult.error.message);
+      if (!pendingPlayersResult.ok) throw new Error(pendingPlayersResult.error.message);
       if (!playerResult.ok) throw new Error(playerResult.error.message);
       if (!adminResult.ok) throw new Error(adminResult.error.message);
 
@@ -144,6 +147,7 @@ export default function EventViewPage() {
         event: eventData,
         groupName: groupResponse.data?.name ?? 'El Fulbo',
         attendees: attendeesResult.data,
+        pendingConfirmationPlayers: pendingPlayersResult.data,
         currentPlayer: playerResult.data,
         isAdminOrOwner: adminResult.data,
         playedSummary,
@@ -155,6 +159,7 @@ export default function EventViewPage() {
   const event = data?.event ?? null;
   const groupName = data?.groupName ?? 'El Fulbo';
   const attendees = data?.attendees ?? [];
+  const pendingConfirmationPlayers = data?.pendingConfirmationPlayers ?? [];
   const currentPlayer = data?.currentPlayer ?? null;
   const playedSummary = data?.playedSummary ?? [];
   const isAdminOrOwner = data?.isAdminOrOwner ?? false;
@@ -228,6 +233,7 @@ export default function EventViewPage() {
       if (!oldData) return oldData;
       
       const current = oldData.attendees as EventAttendee[];
+      const currentPending = oldData.pendingConfirmationPlayers as PendingConfirmationPlayer[];
       const existingIndex = current.findIndex((attendee) => attendee.playerId === currentPlayer.playerId);
       const newAttendees = existingIndex === -1 
         ? [...current, optimisticAttendee]
@@ -241,6 +247,7 @@ export default function EventViewPage() {
         ...oldData,
         currentPlayer: { ...oldData.currentPlayer, attendanceStatus: nextStatus },
         attendees: newAttendees,
+        pendingConfirmationPlayers: currentPending.filter((player) => player.playerId !== currentPlayer.playerId),
       };
     });
 
@@ -469,7 +476,10 @@ export default function EventViewPage() {
             </h2>
           </div>
 
-          <EventAttendeesList attendees={attendees} />
+          <EventAttendeesList
+            attendees={attendees}
+            pendingConfirmationPlayers={pendingConfirmationPlayers}
+          />
         </section>
         ) : null}
 

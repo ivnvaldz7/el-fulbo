@@ -10,6 +10,7 @@ import { ShareableCard } from './shareable-card';
 export function PlayerCardSharePanel({
   groupName,
   player,
+  showPreview = true,
 }: {
   groupName: string;
   player: {
@@ -19,6 +20,7 @@ export function PlayerCardSharePanel({
     currentBoost?: CurrentBoost | null;
     photoUrl?: string | null;
   };
+  showPreview?: boolean;
 }) {
   const [sharing, setSharing] = useState(false);
   const shareRef = useRef<HTMLDivElement>(null);
@@ -62,18 +64,21 @@ export function PlayerCardSharePanel({
 
   return (
     <>
-      <div className="mt-10">
+      <div className={showPreview ? 'mt-10' : ''}>
         <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Tu card</p>
-        <div className="mt-4 flex flex-col items-center gap-4">
-          <div className="w-full max-w-[280px]">
-            <PlayerCardPreview
-              name={player.displayName}
-              position={player.primaryPosition}
-              stats={player.stats}
-              currentBoost={player.currentBoost}
-              photoUrl={player.photoUrl}
-            />
-          </div>
+        <div className={`mt-4 flex flex-col gap-4 ${showPreview ? 'items-center' : 'items-stretch'}`}>
+          {showPreview ? (
+            <div className="w-full max-w-[250px]">
+              <PlayerCardPreview
+                name={player.displayName}
+                position={player.primaryPosition}
+                stats={player.stats}
+                currentBoost={player.currentBoost}
+                photoUrl={player.photoUrl}
+                size="compact"
+              />
+            </div>
+          ) : null}
           <button
             type="button"
             onClick={() => void handleShare()}

@@ -6,4 +6,5 @@ grant select, insert, update on public.events to service_role;
 grant select on public.players to service_role;
 grant select on public.event_attendances to service_role;
 grant select, update on public.notifications to service_role;
+grant select on public.user_notification_preferences to service_role;
 grant select, delete on public.push_subscriptions to service_role;

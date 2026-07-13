@@ -259,3 +259,5 @@ export interface PlayerStatsAggregate {
   attendanceRate: number | null;
   lateDropouts: number;
 }
+
+export type * from './types/teams.types';
