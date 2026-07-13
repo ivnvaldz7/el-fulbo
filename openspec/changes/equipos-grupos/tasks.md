@@ -9,11 +9,11 @@
 | Chained PRs recomendados | Yes |
 | Split sugerido | PR 1 dominio/DB → PR 2 servicios/RPCs → PR 3 UI/share |
 | Delivery strategy | ask-on-risk |
-| Chain strategy | pending |
+| Chain strategy | feature-branch-chain |
 
 Decision needed before apply: Yes
 Chained PRs recommended: Yes
-Chain strategy: pending
+Chain strategy: feature-branch-chain
 400-line budget risk: High
 
 ### Work Units sugeridos
@@ -26,10 +26,21 @@ Chain strategy: pending
 
 ## Fase 1: Dominio y persistencia
 
-- [ ] 1.1 RED: crear tests de integración para tablas/RLS de equipos, miembros, partidos, inscripciones y stats pendientes/aprobadas/rechazadas.
-- [ ] 1.2 GREEN: agregar migración Supabase para entidades de equipos, membresías/admins, partidos, inscripciones y submissions con estados.
-- [ ] 1.3 REFACTOR: ajustar políticas/RPCs para separar permisos de `Equipos` y `Grupos` sin acoplar flujos existentes.
+- [x] 1.1 RED: crear tests de integración para tablas/RLS de equipos, miembros, partidos, inscripciones y stats pendientes/aprobadas/rechazadas.
+- [x] 1.2 GREEN: agregar migración Supabase para entidades de equipos, membresías/admins, partidos, inscripciones y submissions con estados.
+- [x] 1.3 REFACTOR: ajustar políticas/RPCs para separar permisos de `Equipos` y `Grupos` sin acoplar flujos existentes.
 
+
+### Review fix batch: PR 1 DB/RLS blockers
+
+- [x] 1.R1 RED/GREEN: bloquear ejecución directa autenticada de helpers internos de RLS, manteniendo público solo `accept_team_invite` como superficie callable.
+- [x] 1.R1b RED/GREEN: mover helpers internos de RLS/triggers a schema privado `app_private`, eliminar exposición RPC pública y cubrir intento `PREPARE/EXECUTE`.
+- [x] 1.R2 RED/GREEN: impedir que admins muevan inscripciones de partido a usuarios que no son miembros activos del equipo.
+- [x] 1.R3 RED/GREEN: hacer que `accept_team_invite` herede posición primaria/secundaria desde el perfil `players` existente, con fallback validado.
+- [x] 1.R3b RED/GREEN: rechazar aceptación de invitación si el usuario autenticado no tiene perfil `players` válido para fuente de posición.
+- [x] 1.R4 RED/GREEN: cubrir visibilidad outsider en matches, signups, stat submissions, invitations y approved totals.
+- [x] 1.R5 RED/GREEN: sellar auditoría de aprobación/rechazo con `auth.uid()` y limpiar reviewer en pending.
+- [x] 1.R6 RED/GREEN: consumir invitaciones de equipo como single-use antes de side effects, bloqueando doble aceptación por otro usuario.
 ## Fase 2: Servicios y reglas de negocio
 
 - [ ] 2.1 RED: cubrir en integración creación de equipo, invitación, alta/baja de roster, creación de partido e inscripción solo de miembros.
