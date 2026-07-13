@@ -2,8 +2,11 @@ export const routes = {
   home: '/',
   login: '/login',
   groups: '/groups',
+  teams: '/teams',
   join: '/join',
   profile: '/profile',
+  teamDetail: (teamId: string, tab?: 'members' | 'matches' | 'stats' | 'card' | 'moderation') =>
+    tab ? `/teams/${teamId}?tab=${tab}` : `/teams/${teamId}`,
   groupDashboard: (groupId: string) => `/groups/${groupId}/dashboard`,
   groupPending: (groupId: string) => `/groups/${groupId}/pending`,
   groupAdminTasks: (groupId: string) => `/groups/${groupId}/admin-tasks`,

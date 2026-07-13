@@ -48,3 +48,54 @@ export interface TeamProgressionResult {
   overall: number;
   cardTier: TeamCardTier;
 }
+
+export interface TeamHubItem {
+  id: TeamId;
+  name: string;
+  slug: string;
+  primaryColor: string | null;
+  secondaryColor: string | null;
+  role: TeamRole;
+  memberCount: number;
+  matchesPlayed: number;
+  goals: number;
+  assists: number;
+  tackles: number;
+}
+
+export interface TeamRosterMemberView {
+  id: TeamMemberId;
+  displayName: string;
+  role: TeamRole;
+  primaryPosition: PlayerPosition;
+  secondaryPosition: PlayerPosition | null;
+  photoUrl?: string | null;
+}
+
+export interface TeamMatchView {
+  id: TeamMatchId;
+  scheduledAt: string;
+  opponentName: string | null;
+  fieldName: string | null;
+  status: TeamMatchStatus;
+  signupCount: number;
+  teamScore?: number | null;
+  opponentScore?: number | null;
+}
+
+export interface TeamSubmissionView {
+  id: TeamStatSubmissionId;
+  playerName: string;
+  matchLabel: string;
+  statKind: TeamStatKind;
+  value: number;
+  status: TeamSubmissionStatus;
+}
+
+export interface TeamDetailView extends TeamHubItem {
+  members: TeamRosterMemberView[];
+  matches: TeamMatchView[];
+  submissions: TeamSubmissionView[];
+}
+
+export type TeamDetailTab = 'members' | 'matches' | 'stats' | 'card' | 'moderation';

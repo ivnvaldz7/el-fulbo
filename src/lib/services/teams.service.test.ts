@@ -14,6 +14,76 @@ function createRpcSupabase(result: { data?: unknown; error?: unknown }) {
   } as unknown as SupabaseClient & { rpc: ReturnType<typeof vi.fn> };
 }
 
+type QueryCall = { table: string; method: string; args: unknown[] };
+
+function createQuerySupabase({
+  user = { id: 'user-1' },
+  handler,
+}: {
+  user?: { id: string } | null;
+  handler: (table: string, calls: QueryCall[]) => { data?: unknown; error?: unknown };
+}) {
+  const calls: QueryCall[] = [];
+
+  class QueryBuilder {
+    private localCalls: QueryCall[] = [];
+
+    constructor(private table: string) {}
+
+    private record(method: string, args: unknown[]) {
+      const call = { table: this.table, method, args };
+      calls.push(call);
+      this.localCalls.push(call);
+      return this;
+    }
+
+    select(...args: unknown[]) {
+      return this.record('select', args);
+    }
+
+    eq(...args: unknown[]) {
+      return this.record('eq', args);
+    }
+
+    is(...args: unknown[]) {
+      return this.record('is', args);
+    }
+
+    in(...args: unknown[]) {
+      return this.record('in', args);
+    }
+
+    order(...args: unknown[]) {
+      return this.record('order', args);
+    }
+
+    limit(...args: unknown[]) {
+      return this.record('limit', args);
+    }
+
+    maybeSingle() {
+      this.record('maybeSingle', []);
+      return Promise.resolve(handler(this.table, this.localCalls));
+    }
+
+    then<TResult1 = { data?: unknown; error?: unknown }, TResult2 = never>(
+      onfulfilled?: ((value: { data?: unknown; error?: unknown }) => TResult1 | PromiseLike<TResult1>) | null,
+      onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+    ) {
+      return Promise.resolve(handler(this.table, this.localCalls)).then(onfulfilled, onrejected);
+    }
+  }
+
+  const supabase = {
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user } }),
+    },
+    from: vi.fn((table: string) => new QueryBuilder(table)),
+  };
+
+  return { supabase: supabase as unknown as SupabaseClient, calls, from: supabase.from, getUser: supabase.auth.getUser };
+}
+
 describe('teams service validation and orchestration', () => {
   it('validates team creation input before calling the RPC', async () => {
     const supabase = createRpcSupabase({ data: [{ team_id: 'team-1' }] });
@@ -104,5 +174,183 @@ describe('teams service validation and orchestration', () => {
     expect(getCardTierByOverall(74)).toBe('silver');
     expect(getCardTierByOverall(84)).toBe('gold');
     expect(getCardTierByOverall(90)).toBe('premium_gold');
+  });
+
+  it('maps teams for the current user from memberships, counts and approved totals', async () => {
+    const { supabase } = createQuerySupabase({
+      handler: (table, calls) => {
+        if (table === 'team_members') {
+          const selected = String(calls.find((call) => call.method === 'select')?.args[0] ?? '');
+          if (selected === 'team_id') {
+            return {
+              data: [{ team_id: 'team-1' }, { team_id: 'team-1' }, { team_id: 'team-2' }],
+              error: null,
+            };
+          }
+
+          return {
+            data: [
+              {
+                id: 'member-1',
+                role: 'admin',
+                team_id: 'team-1',
+                teams: { id: 'team-1', name: 'La Máquina', slug: 'la-maquina', primary_color: '#16a34a', secondary_color: '#020617' },
+              },
+            ],
+            error: null,
+          };
+        }
+
+        if (table === 'team_approved_stat_totals') {
+          return { data: [{ team_id: 'team-1', matches_played: 8, goals: 24, assists: 13, tackles: 31 }], error: null };
+        }
+
+        return { data: [], error: null };
+      },
+    });
+    const service = new TeamsService(supabase);
+
+    const result = await service.getTeamsForCurrentUser();
+
+    expect(result).toEqual({
+      ok: true,
+      data: [
+        {
+          id: 'team-1',
+          name: 'La Máquina',
+          slug: 'la-maquina',
+          primaryColor: '#16a34a',
+          secondaryColor: '#020617',
+          role: 'admin',
+          memberCount: 2,
+          matchesPlayed: 8,
+          goals: 24,
+          assists: 13,
+          tackles: 31,
+        },
+      ],
+    });
+  });
+
+  it('maps team detail submissions for admins', async () => {
+    const { supabase } = createQuerySupabase({
+      handler: (table) => {
+        if (table === 'teams') {
+          return { data: { id: 'team-1', name: 'La Máquina', slug: 'la-maquina', primary_color: '#16a34a', secondary_color: '#020617' }, error: null };
+        }
+
+        if (table === 'team_members') {
+          return {
+            data: [
+              {
+                id: 'member-1',
+                user_id: 'user-1',
+                role: 'admin',
+                primary_position: 'DEL',
+                secondary_position: 'MED',
+                users: { display_name: 'Juan Pérez', photo_url: 'photo.jpg' },
+              },
+            ],
+            error: null,
+          };
+        }
+
+        if (table === 'team_matches') {
+          return {
+            data: [
+              {
+                id: 'match-1',
+                scheduled_at: '2026-07-20T22:00:00.000Z',
+                opponent_name: 'Los Pibes',
+                field_name: 'Cancha 5',
+                status: 'played',
+                team_score: 4,
+                opponent_score: 2,
+                team_match_signups: [{ id: 'signup-1' }, { id: 'signup-2' }],
+              },
+            ],
+            error: null,
+          };
+        }
+
+        if (table === 'team_stat_submissions') {
+          return {
+            data: [
+              {
+                id: 'submission-1',
+                stat_kind: 'goals',
+                value: 2,
+                status: 'pending',
+                team_matches: { opponent_name: 'Los Pibes', scheduled_at: '2026-07-20T22:00:00.000Z' },
+                users: { display_name: 'Juan Pérez' },
+              },
+            ],
+            error: null,
+          };
+        }
+
+        if (table === 'team_approved_stat_totals') {
+          return { data: { matches_played: 1, goals: 4, assists: 1, tackles: 6 }, error: null };
+        }
+
+        return { data: [], error: null };
+      },
+    });
+    const service = new TeamsService(supabase);
+
+    const result = await service.getTeamDetail('team-1');
+
+    expect(result).toMatchObject({
+      ok: true,
+      data: {
+        id: 'team-1',
+        role: 'admin',
+        memberCount: 1,
+        matches: [{ id: 'match-1', signupCount: 2, teamScore: 4, opponentScore: 2 }],
+        submissions: [{ id: 'submission-1', playerName: 'Juan Pérez', matchLabel: 'vs Los Pibes', statKind: 'goals', value: 2, status: 'pending' }],
+      },
+    });
+  });
+
+  it('does not fetch or expose moderation submissions for non-admin team members', async () => {
+    const { supabase, calls } = createQuerySupabase({
+      handler: (table) => {
+        if (table === 'teams') {
+          return { data: { id: 'team-1', name: 'La Máquina', slug: 'la-maquina', primary_color: null, secondary_color: null }, error: null };
+        }
+
+        if (table === 'team_members') {
+          return {
+            data: [
+              {
+                id: 'member-1',
+                user_id: 'user-1',
+                role: 'member',
+                primary_position: 'DEF',
+                secondary_position: null,
+                users: { display_name: 'Leo Díaz', photo_url: null },
+              },
+            ],
+            error: null,
+          };
+        }
+
+        if (table === 'team_matches') {
+          return { data: [], error: null };
+        }
+
+        if (table === 'team_approved_stat_totals') {
+          return { data: null, error: null };
+        }
+
+        throw new Error(`Unexpected query for ${table}`);
+      },
+    });
+    const service = new TeamsService(supabase);
+
+    const result = await service.getTeamDetail('team-1');
+
+    expect(result).toMatchObject({ ok: true, data: { role: 'member', submissions: [] } });
+    expect(calls.some((call) => call.table === 'team_stat_submissions')).toBe(false);
   });
 });

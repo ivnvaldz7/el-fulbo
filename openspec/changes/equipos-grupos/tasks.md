@@ -63,11 +63,11 @@ Chain strategy: feature-branch-chain
 
 ## Fase 3: UI e integración
 
-- [ ] 3.1 RED: tests de flujo para selector inicial `Grupos`/`Equipos` y navegación sin alterar grupos.
-- [ ] 3.2 GREEN: modificar `src/app/page.tsx` y `src/lib/routes.ts`; crear `/teams` y detalle con tabs Members, Matches, Stats, Card, Moderation.
-- [ ] 3.3 RED: tests de UI para roster admin, inscripción, carga de stats y aprobación/rechazo.
-- [ ] 3.4 GREEN: construir pantallas `src/app/teams/*` conectadas al servicio y estados de moderación.
-- [ ] 3.5 GREEN: crear `TeamCardArtwork` y `TeamShareableCard` con agregados aprobados y datos públicos seguros.
+- [x] 3.1 RED: tests de flujo para selector inicial `Grupos`/`Equipos` y navegación sin alterar grupos.
+- [x] 3.2 GREEN: modificar `src/app/page.tsx` y `src/lib/routes.ts`; crear `/teams` y detalle con tabs Members, Matches, Stats, Card, Moderation.
+- [x] 3.3 RED/GREEN: tests de UI para roster admin, inscripción, carga de stats y aprobación/rechazo con callbacks ejecutables; sin mutaciones backend ni server actions.
+- [x] 3.4 GREEN: construir pantallas `src/app/teams/*` conectadas al servicio y estados de moderación.
+- [x] 3.5 GREEN: crear `TeamCardArtwork` y `TeamShareableCard` con agregados aprobados y datos públicos seguros.
 
 ## Fase 4: Verificación y refactor
 
