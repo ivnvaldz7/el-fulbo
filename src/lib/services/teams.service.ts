@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { FieldStats, GoalkeeperStats, PlayerPosition, Result } from '@/lib/types';
-import type { TeamCardTier, TeamProgressionResult, TeamStatKind, ProgressableStatKey } from '@/lib/types/teams.types';
+import type { TeamCardTier, TeamProgressionResult, TeamStatKind, ProgressableStatKey, TeamDetailView, TeamHubItem, TeamMatchView, TeamRosterMemberView, TeamSubmissionView } from '@/lib/types/teams.types';
 import {
   createTeamInvitationSchema,
   createTeamMatchSchema,
@@ -302,6 +302,194 @@ export class TeamsService {
         stats: row.stats as FieldStats | GoalkeeperStats,
         overall: Number(row.overall ?? 0),
         cardTier: row.card_tier as TeamCardTier,
+      },
+    };
+  }
+  async getTeamsForCurrentUser(): Promise<Result<TeamHubItem[]>> {
+    const { data: { user } } = await this.supabase.auth.getUser();
+
+    if (!user) {
+      return { ok: true, data: [] };
+    }
+
+    const { data: memberships, error: membershipError } = await this.supabase
+      .from('team_members')
+      .select(`
+        id,
+        role,
+        team_id,
+        teams!inner (
+          id,
+          name,
+          slug,
+          primary_color,
+          secondary_color
+        )
+      `)
+      .eq('user_id', user.id)
+      .is('archived_at', null);
+
+    if (membershipError) {
+      return { ok: false, error: mapSupabaseError(membershipError) };
+    }
+
+    const teamIds = (memberships ?? []).map((row: any) => String(row.team_id));
+    const [memberCountsResult, totalsResult] = await Promise.all([
+      teamIds.length > 0
+        ? this.supabase.from('team_members').select('team_id').in('team_id', teamIds).is('archived_at', null)
+        : Promise.resolve({ data: [], error: null }),
+      teamIds.length > 0
+        ? this.supabase.from('team_approved_stat_totals').select('team_id,matches_played,goals,assists,tackles').in('team_id', teamIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+    if (memberCountsResult.error) {
+      return { ok: false, error: mapSupabaseError(memberCountsResult.error) };
+    }
+
+    if (totalsResult.error) {
+      return { ok: false, error: mapSupabaseError(totalsResult.error) };
+    }
+
+    const memberCounts = new Map<string, number>();
+    for (const row of memberCountsResult.data ?? []) {
+      const teamId = String((row as any).team_id);
+      memberCounts.set(teamId, (memberCounts.get(teamId) ?? 0) + 1);
+    }
+
+    const totals = new Map<string, any>();
+    for (const row of totalsResult.data ?? []) {
+      totals.set(String((row as any).team_id), row);
+    }
+
+    return {
+      ok: true,
+      data: (memberships ?? []).map((membership: any) => {
+        const team = membership.teams as any;
+        const total = totals.get(String(membership.team_id));
+        return {
+          id: String(team.id),
+          name: String(team.name),
+          slug: String(team.slug),
+          primaryColor: team.primary_color ?? null,
+          secondaryColor: team.secondary_color ?? null,
+          role: membership.role,
+          memberCount: memberCounts.get(String(membership.team_id)) ?? 0,
+          matchesPlayed: Number(total?.matches_played ?? 0),
+          goals: Number(total?.goals ?? 0),
+          assists: Number(total?.assists ?? 0),
+          tackles: Number(total?.tackles ?? 0),
+        } satisfies TeamHubItem;
+      }),
+    };
+  }
+
+  async getTeamDetail(teamId: string): Promise<Result<TeamDetailView | null>> {
+    const { data: team, error: teamError } = await this.supabase
+      .from('teams')
+      .select('id,name,slug,primary_color,secondary_color')
+      .eq('id', teamId)
+      .maybeSingle();
+
+    if (teamError) {
+      return { ok: false, error: mapSupabaseError(teamError) };
+    }
+
+    if (!team) {
+      return { ok: true, data: null };
+    }
+
+    const { data: { user } } = await this.supabase.auth.getUser();
+
+    const [membersResult, matchesResult, totalsResult] = await Promise.all([
+      this.supabase
+        .from('team_members')
+        .select('id,user_id,role,primary_position,secondary_position,users!team_members_user_id_fkey(display_name,photo_url)')
+        .eq('team_id', teamId)
+        .is('archived_at', null)
+        .order('joined_at', { ascending: true }),
+      this.supabase
+        .from('team_matches')
+        .select('id,scheduled_at,opponent_name,field_name,status,team_score,opponent_score,team_match_signups(id)')
+        .eq('team_id', teamId)
+        .order('scheduled_at', { ascending: false })
+        .limit(20),
+      this.supabase
+        .from('team_approved_stat_totals')
+        .select('matches_played,goals,assists,tackles')
+        .eq('team_id', teamId)
+        .maybeSingle(),
+    ]);
+
+    for (const result of [membersResult, matchesResult, totalsResult]) {
+      if (result.error) {
+        return { ok: false, error: mapSupabaseError(result.error) };
+      }
+    }
+
+    const currentMember = (membersResult.data ?? []).find((row: any) => row.user_id === user?.id) as any;
+    const canModerate = currentMember?.role === 'admin';
+    const submissionsResult = canModerate
+      ? await this.supabase
+        .from('team_stat_submissions')
+        .select('id,stat_kind,value,status,team_matches!team_stat_submissions_match_team_fk(opponent_name,scheduled_at),users!team_stat_submissions_user_id_fkey(display_name)')
+        .eq('team_id', teamId)
+        .order('submitted_at', { ascending: false })
+        .limit(30)
+      : { data: [], error: null };
+
+    if (submissionsResult.error) {
+      return { ok: false, error: mapSupabaseError(submissionsResult.error) };
+    }
+
+    const members: TeamRosterMemberView[] = (membersResult.data ?? []).map((row: any) => ({
+      id: String(row.id),
+      displayName: String(row.users?.display_name ?? 'Jugador'),
+      role: row.role,
+      primaryPosition: row.primary_position,
+      secondaryPosition: row.secondary_position ?? null,
+      photoUrl: row.users?.photo_url ?? null,
+    }));
+
+    const matches: TeamMatchView[] = (matchesResult.data ?? []).map((row: any) => ({
+      id: String(row.id),
+      scheduledAt: String(row.scheduled_at),
+      opponentName: row.opponent_name ?? null,
+      fieldName: row.field_name ?? null,
+      status: row.status,
+      signupCount: Array.isArray(row.team_match_signups) ? row.team_match_signups.length : 0,
+      teamScore: row.team_score ?? null,
+      opponentScore: row.opponent_score ?? null,
+    }));
+
+    const submissions: TeamSubmissionView[] = (submissionsResult.data ?? []).map((row: any) => ({
+      id: String(row.id),
+      playerName: String(row.users?.display_name ?? 'Jugador'),
+      matchLabel: row.team_matches?.opponent_name ? `vs ${row.team_matches.opponent_name}` : 'Partido cerrado',
+      statKind: row.stat_kind,
+      value: Number(row.value ?? 0),
+      status: row.status,
+    }));
+
+    const totals = totalsResult.data as any;
+
+    return {
+      ok: true,
+      data: {
+        id: String((team as any).id),
+        name: String((team as any).name),
+        slug: String((team as any).slug),
+        primaryColor: (team as any).primary_color ?? null,
+        secondaryColor: (team as any).secondary_color ?? null,
+        role: currentMember?.role === 'admin' ? 'admin' : 'member',
+        memberCount: members.length,
+        matchesPlayed: Number(totals?.matches_played ?? 0),
+        goals: Number(totals?.goals ?? 0),
+        assists: Number(totals?.assists ?? 0),
+        tackles: Number(totals?.tackles ?? 0),
+        members,
+        matches,
+        submissions,
       },
     };
   }
