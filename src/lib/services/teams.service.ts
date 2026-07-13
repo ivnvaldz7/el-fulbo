@@ -305,6 +305,53 @@ export class TeamsService {
       },
     };
   }
+  async validateTeamInvite(code: string): Promise<Result<{
+    valid: boolean;
+    teamId: string | null;
+    teamName: string | null;
+    alreadyMember: boolean;
+  }>> {
+    const { data, error } = await this.supabase.rpc('validate_team_invite', {
+      p_code: code,
+    });
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    const row = Array.isArray(data) ? data[0] : null;
+    if (!row) {
+      return { ok: true, data: { valid: false, teamId: null, teamName: null, alreadyMember: false } };
+    }
+
+    return {
+      ok: true,
+      data: {
+        valid: Boolean(row.valid),
+        teamId: row.team_id ? String(row.team_id) : null,
+        teamName: row.team_name ? String(row.team_name) : null,
+        alreadyMember: Boolean(row.already_member),
+      },
+    };
+  }
+
+  async acceptTeamInvite(code: string): Promise<Result<{ teamId: string }>> {
+    const { data, error } = await this.supabase.rpc('accept_team_invite', {
+      p_code: code,
+    });
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    const row = Array.isArray(data) ? data[0] : null;
+    if (!row?.team_id) {
+      return { ok: false, error: { code: 'INTERNAL_ERROR', message: 'Algo salio mal.' } };
+    }
+
+    return { ok: true, data: { teamId: String(row.team_id) } };
+  }
+
   async getTeamsForCurrentUser(): Promise<Result<TeamHubItem[]>> {
     const { data: { user } } = await this.supabase.auth.getUser();
 

@@ -13,6 +13,15 @@ export function TeamsHub({ teams }: { teams: TeamHubItem[] }) {
         </p>
       </header>
 
+      <div className="mb-6 flex items-center justify-end">
+        <Link
+          href={routes.teamNew}
+          className="btn-interactive inline-flex min-h-11 items-center justify-center bg-pitch-green px-5 py-2 font-headline text-sm font-black italic uppercase text-black hover:brightness-110"
+        >
+          + Crear equipo
+        </Link>
+      </div>
+
       {teams.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2">
           {teams.map((team) => (

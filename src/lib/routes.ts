@@ -3,6 +3,8 @@ export const routes = {
   login: '/login',
   groups: '/groups',
   teams: '/teams',
+  teamNew: '/teams/new',
+  teamInvite: (code: string) => `/invite/teams/${code}`,
   join: '/join',
   profile: '/profile',
   teamDetail: (teamId: string, tab?: 'members' | 'matches' | 'stats' | 'card' | 'moderation') =>

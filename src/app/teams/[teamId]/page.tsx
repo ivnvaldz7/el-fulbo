@@ -62,7 +62,7 @@ export default async function TeamDetailPage({
         <TeamDetailTabs teamId={team.id} activeTab={activeTab} />
 
         <div className="mt-8 rounded-[2rem] bg-black/45 p-5 ring-1 ring-white/10">
-          {activeTab === 'members' ? <TeamRosterPanel members={team.members} canManage={canManage} /> : null}
+          {activeTab === 'members' ? <TeamRosterPanel teamId={team.id} members={team.members} canManage={canManage} /> : null}
           {activeTab === 'matches' ? <TeamMatchesPanel teamId={team.id} matches={team.matches} /> : null}
           {activeTab === 'stats' ? <TeamStatsPanel totals={team} /> : null}
           {activeTab === 'card' ? <TeamCardPanel team={team} /> : null}
