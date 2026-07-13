@@ -163,19 +163,27 @@ function buildAssignments(team: 'A' | 'B', buckets: TeamBuckets, warnings: DrawW
   );
 }
 
-export function drawTeams(input: { modality: Modality; players: PlayerForDraw[]; seed: string }): DrawResult {
+export function drawTeams(input: {
+  modality: Modality;
+  players: PlayerForDraw[];
+  seed: string;
+  allowUnderfilled?: boolean;
+}): DrawResult {
   const warnings: DrawWarning[] = [];
   const teamSize = getTeamSize(input.modality);
   const totalNeeded = teamSize * 2;
 
   if (input.players.length < totalNeeded) {
-    return {
-      assignments: [],
-      teamAOverallAvg: 0,
-      teamBOverallAvg: 0,
-      ratingDiff: 0,
-      warnings: [{ kind: 'not_enough_players', needed: totalNeeded, got: input.players.length }],
-    };
+    if (!input.allowUnderfilled) {
+      return {
+        assignments: [],
+        teamAOverallAvg: 0,
+        teamBOverallAvg: 0,
+        ratingDiff: 0,
+        warnings: [{ kind: 'not_enough_players', needed: totalNeeded, got: input.players.length }],
+      };
+    }
+    warnings.push({ kind: 'not_enough_players', needed: totalNeeded, got: input.players.length });
   }
 
   const players = [...input.players].sort((left, right) => {

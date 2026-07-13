@@ -56,6 +56,7 @@ export default function EventDrawPage() {
       modality: event.modality,
       players,
       seed,
+      allowUnderfilled: true,
     });
   }, [event, data?.players, seed]);
 

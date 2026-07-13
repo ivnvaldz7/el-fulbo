@@ -241,6 +241,21 @@ export default function EventCheckInPage() {
         >
           {canProceed ? 'Ir al sorteo' : `Faltan ${Math.max(minimumPlayers - checkedCount, 0)} jugadores`}
         </button>
+
+        {!canProceed && isAdminOrOwner && (
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm('Faltan jugadores para llenar dos equipos. ¿Forzar sorteo igual?')) {
+                void handleGoToDraw();
+              }
+            }}
+            disabled={saving}
+            className="w-full rounded-lg border-2 border-dashed border-amber-500/50 px-4 py-3 font-headline text-base font-bold italic uppercase text-amber-400 hover:border-amber-400 hover:text-amber-300 disabled:opacity-50"
+          >
+            ⚠ Forzar sorteo
+          </button>
+        )}
         </div>
       </PageContent>
     </ImmersiveScreen>
