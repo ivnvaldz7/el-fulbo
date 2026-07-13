@@ -55,7 +55,7 @@ el-fulbo/
 │   ├── integration/           ← RPC + RLS tests (vitest, real Supabase)
 │   └── e2e/                   ← Playwright smoke tests
 ├── supabase/
-│   ├── migrations/            ← 58 migration files
+│   ├── migrations/            ← 72 migration files
 │   └── config.toml
 ├── scripts/                   ← Dev/deploy utilities (reset, check, setup)
 ├── specs/                     ← SDD specs (source of truth)

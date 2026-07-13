@@ -2,114 +2,105 @@
 
 > Vista rápida del estado. Para detalle, leer `handoff.md`.
 
-**Sesión abierta:** 2026-05-07.
-**Versión activa:** V2.
-**Features V2 escritos:** **15 de 15**.
-**Bootstrap del código:** **completado**.
-**Estado del código:** feat-015 cerrada. TODOS los 15 features del roadmap V2 implementados. TypeScript limpio (0 errores, 140 tests). UI migrada completamente a Nocturnal Pitch.
+**Última actualización:** 2026-07-13.
+**Versión activa:** V2 completa + Teams module (feat-017).
+**Rama activa:** `master` (única rama; default branch en GitHub).
+**Deploy:** Vercel (Hobby plan) — en producción.
 
 ## Features completos
 
-Todos los 15 features escritos:
+Los 16 features del roadmap V2 + teams module están implementados y en producción:
 
-- ✅ `feat-001-onboarding-user.md`
-- ✅ `feat-002-create-group.md`
-- ✅ `feat-003-join-group.md`
-- ✅ `feat-004-admin-dashboard.md`
-- ✅ `feat-005-create-event.md`
-- ✅ `feat-006-confirm-attendance.md`
-- ✅ `feat-007-check-in-and-draw.md`
-- ✅ `feat-008-load-result-and-mvp.md`
-- ✅ `feat-009-boost-system.md`
-- ✅ `feat-010-share-card.md`
-- ✅ `feat-011-manage-owners.md`
-- ✅ `feat-012-notifications.md`
-- ✅ `feat-013-phantom-player.md`
-- ✅ `feat-014-export-data.md`
-- ✅ `feat-015-player-stats.md`
+- ✅ `feat-001` — Onboarding
+- ✅ `feat-002` — Create Group
+- ✅ `feat-003` — Join Group
+- ✅ `feat-004` — Admin Dashboard
+- ✅ `feat-005` — Create Event
+- ✅ `feat-006` — Confirm Attendance
+- ✅ `feat-007` — Check-in & Draw
+- ✅ `feat-008` — Load Result + MVP
+- ✅ `feat-009` — Boost System
+- ✅ `feat-010` — Share Card
+- ✅ `feat-011` — Manage Owners
+- ✅ `feat-012` — Notifications
+- ✅ `feat-013` — Phantom Player
+- ✅ `feat-014` — Export Data
+- ✅ `feat-015` — Player Stats
+- ✅ `feat-016` — Victory Streak / Share Event
+- ✅ `feat-017` — Teams module (Equipos)
 
-## Engram
+## Teams module (feat-017) — estado
 
-- **144 decisiones** activas.
-- Fase de diseño cerrada con `dec-140`; `feat-015` agregada después con `dec-141` a `dec-144`.
+### Implementado y desplegado
+- DB foundation + migraciones SQL ✅
+- RLS policies + RPCs ✅
+- Servicios (`teams.service.ts`) + validaciones Zod ✅
+- Hub de navegación Equipos/Grupos (`AppSectionSelector`) ✅
+- Páginas: `/teams`, `/teams/new`, `/teams/[teamId]` (detail con tabs) ✅
+- Invitación por código: `/invite/teams/[code]` + `validate_team_invite` RPC ✅
+- Componentes: `TeamsHub`, `TeamDetailTabs`, `TeamRosterPanel`, `TeamMatchesPanel`, `TeamStatsPanel`, `TeamModerationPanel`, `TeamCardPanel`, `TeamCardArtwork`, `CreateTeamForm` ✅
+- Tests unitarios: `teams.service.test.ts`, `team-panels.test.tsx`, `teams-navigation.test.tsx`, `app-section-selector.test.tsx` ✅
+- Archive SDD complete en `openspec/changes/archive/2026-07-13-equipos-grupos/`
 
-## Próximo
+### No verificado post-últimos commits
+- `tsc --noEmit` no corrido después de commits `7794094` y `0839667`
+- `vitest run --dir src` no corrido después de esos commits
+- Tests de integración para teams RPCs (dependen de Supabase local)
+- Playwright smoke tests
+- Fase 4 del task plan (verificación) no está tiqueada en `openspec/changes/equipos-grupos/tasks.md`
 
-- **feat-008 (Load Result + MVP)**: ✅ cerrada de punta a punta, con backend transaccional, UI mínima y resumen post-partido.
-- **feat-009 (Boost System)**: ✅ cerrada con aplicación/decremento transaccional, card con badges/chip y feed de “Últimos partidos” montado sobre `events`.
-- **feat-010 (Share Card)**: ✅ cerrada con share de imagen para la card propia y para el resumen post-partido, usando Web Share API con fallback a descarga.
-- **feat-014 (Export Data)**: ✅ cerrada con ZIP server-side (JSON + CSV), anonimización de IDs, descarga automática y fallback manual.
-- **feat-013 (Phantom Player)**: ✅ cerrada con creación en check-in, badge FANTASMA, widget de resolución en admin-tasks, conversión con magic link y cron de auto-archive a los 7 días.
-- **feat-012 (Notifications)**: ✅ cerrada con push web, badge in-app, feed `/notifications`, preferencias `/settings/notifications`, opt-in contextual, digest diario/semanal y 3 cron jobs.
-- **feat-011 (Manage Owners)**: ✅ cerrada con owners fijos desde settings, invitación/aceptación de owner temporal y job programable para designación/expiración automática.
-- **feat-006 / feat-007**: ✅ blindados con RPC real y guardrails documentados.
-- Mantener registro actualizado antes de cada pasada.
+## Últimos commits en master
 
-- **feat-015 (Player Stats)**: ✅ cerrada con perfil de jugador, tabs Carta/Estadísticas, VIEW `player_stats_aggregate` expuesta via RPC segura, y componentes `PlayerProfileTabs` + `PlayerStatsView`.
-- **Última pasada completada:** cierre de `feat-015` — todos los features del roadmap V2 implementados.
-- Implementado en esta pasada (feat-012):
-  - Migración con tabla `user_notification_preferences` + RLS en `notifications` y `push_subscriptions` + RPCs de mark/count/upsert.
-  - `worker/index.js` para handlers push en el service worker (next-pwa).
-  - Utilidad `notifications-deeplink.ts` con deeplinks y copy para todos los tipos.
-  - Servicios: `notifications.service.ts`, `push-subscription.service.ts`, `push-sender.service.ts`.
-  - Cliente Supabase service role en `src/lib/supabase/service.ts`.
-  - API routes: subscribe, lista, mark read, read-all, settings, push-delivery, daily-digest, weekly-digest.
-  - Hooks: `use-push-subscription`, `use-notifications` (con Realtime).
-  - Componentes: `NotificationBadge`, `NotificationItem`, `PushOptinBanner`.
-  - Páginas: `/notifications` y `/settings/notifications`.
-  - `vercel.json` con 3 crons nuevos (push-delivery c/5min, daily-digest 9AM, weekly-digest dom 10AM).
-  - `web-push` + `@types/web-push` en `package.json`.
-- Pendiente (requiere env): instalar `web-push` con `npm install` y configurar `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY` en `.env.local`.
-- Implementado en pasada anterior (feat-011):
-  - Se implementó `load_match_result` como RPC transaccional.
-  - Se agregó el helper de dominio `src/lib/match-result.ts` con cálculo y decremento de boosts.
-  - Se agregaron tests unitarios e integración real para el slice de resultado.
-  - Se montó la pantalla `/groups/[id]/events/[event_id]/result`.
-  - Se añadió el resumen post-partido en `/groups/[id]/events/[event_id]`.
-  - Se agregó `src/lib/services/events.load-match-result.test.ts`.
-  - Se mantuvo la cobertura real de `update_attendance` y `confirm_draw` por `supabase.rpc(...)`.
-  - Se agregó `src/lib/boost.ts` para la lectura/aplicación visual del boost.
-  - `PlayerCardPreview` ahora muestra badges `+N`, highlight de MVP boost y chip de partidos restantes.
-  - El dashboard del grupo dejó de consultar `matches` y ahora usa `events` + `match_participations` para “Últimos partidos”.
-  - Se agregó `src/lib/share.ts` para centralizar Web Share API con files y fallback a descarga.
-  - Se agregaron `ShareableCard`, `PlayerCardSharePanel`, `ShareableMatchSummary` y `ShareMatchSummaryButton`.
-  - El dashboard ahora deja compartir la propia card y el post-partido comparte imagen en vez de texto plano.
-  - Se agregaron RPCs `assign_owner`, `remove_owner`, `designate_temporary_owners`, `respond_temporary_owner_invite` y `process_temporary_owner_jobs`.
-  - Se montó `/groups/[id]/settings/owners` para gestión real de owners fijos.
-  - Se montó `/temporary-owner/[event_id]` para aceptar/rechazar designación temporal.
-  - Se agregó `vercel.json` con cron cada 15 minutos para `/api/jobs/temporary-owners`.
-- Verificación:
-  - `src/lib/match-result.test.ts` ✅
-  - `src/lib/services/events.load-match-result.test.ts` ✅
-  - `src/lib/boost.test.ts` ✅
-  - `src/lib/share.test.ts` ✅
-  - `src/lib/services/owners.service.test.ts` ✅
-  - `src/lib/services/temporary-owners.service.test.ts` ✅
-  - `src/lib/notifications-deeplink.test.ts` ✅
-  - `src/lib/services/notifications.service.test.ts` ✅
-  - `src/lib/services/push-subscription.service.test.ts` ✅
-  - `src/components/cards/player-card-preview.test.tsx` ✅
-  - `src/components/share/shareable-card.test.tsx` ✅
-  - `src/components/groups/group-dashboard-initial-state.test.tsx` ✅
-  - `tests/integration/feat-008-load-match-result-rpc.test.ts` ✅
-  - `tests/integration/feat-006-attendance-rpc.test.ts` ✅
-  - `tests/integration/feat-007-confirm-draw-rpc.test.ts` ✅
-  - `public.update_attendance`, `public.confirm_draw` y `public.load_match_result` funcionan por `supabase.rpc(...)` después de recargar schema cache cuando corresponde.
+```
+0839667 feat: complete teams frontend - create, invite and join flows
+7794094 fix: polish navigation, attendance list and event button colors
+```
+
+Ambos pusheados a `origin/master` y deployados en Vercel.
+
+## Stack actual (verificado contra package.json)
+
+- **Runtime:** Next.js 16 + React 19
+- **Language:** TypeScript 6 strict (`noUncheckedIndexedAccess`)
+- **Styling:** Tailwind CSS v4 + Nocturnal Pitch design system
+- **Backend:** Supabase (Postgres, RLS, RPCs, Realtime, Storage)
+- **State:** TanStack React Query v5 + Zustand v5
+- **Validation:** Zod v3
+- **PWA:** Serwist v9 (+ next-pwa vestigial en package.json)
+- **Auth:** Supabase SSR (Google OAuth)
+- **Testing:** Vitest v4 + Testing Library + MSW v2 + Playwright
+- **Push:** web-push (VAPID)
+- **Deploy:** Vercel (Hobby plan, daily crons)
+
+## Comandos de test
+
+```json
+{
+  "test": "vitest run --dir src",
+  "test:unit": "vitest run --dir src",
+  "test:integration": "npm run supabase:reset && npm run local:check && vitest run --dir tests/integration --fileParallelism=false",
+  "test:e2e": "playwright test",
+  "typecheck": "tsc --noEmit"
+}
+```
+
+## Contradicciones documentales encontradas (ya corregidas en esta actualización)
+
+- `current-state.md` decía "15 de 15 features" → ahora 17 (16 V2 + teams)
+- `current-state.md` decía "Next 14" → ahora Next.js 16
+- `handoff.md` decía "configurar env vars y hacer deploy" → deploy ya está hecho
+- `handoff.md` decía "Next.js 14" → ahora Next.js 16
+- `AGENTS.md` decía "58 migration files" → ahora 72
+- `CHANGELOG.md` quedó en 2026-05-07 (no incluye feat-016, feat-017, ni polish fixes)
+- `openspec/changes/equipos-grupos/` (activo) sobrevive al archive — se puede limpiar
 
 ## Bloqueos
 
-- Ninguno de código. Env vars pendientes de configurar antes de producción (ver handoff).
+- Ninguno conocido. El proyecto está en producción funcionando.
 
-## Evidencia verificada
+## Pendientes (no verificados)
 
-- `package.json` ya tiene Next 14, Supabase, Vitest y Playwright.
-- `src/app/page.tsx` confirma app inicial funcionando.
-- `supabase/migrations/20260426000000_initial_schema_v2.sql` confirma schema inicial ya generado.
-- `src/lib/services/events.service.ts` llama `supabase.rpc('update_attendance', { p_event_id, p_status })`, `supabase.rpc('confirm_draw', ...)` y `supabase.rpc('load_match_result', ...)`.
-- `src/app/groups/[id]/dashboard/page.tsx` ya no depende del modelo falso `matches`; consulta `events` y compone el feed con `getPlayedMatchSummary`.
-- `src/components/share/*` concentra la generación de PNG compartibles para la card propia y el resumen del partido.
-- `src/app/groups/[id]/settings/owners/*` y `src/app/temporary-owner/[event_id]/*` cierran la gestión funcional de owners.
-- `vercel.json` deja cableado el scheduler para temporary owners sobre `/api/jobs/temporary-owners`.
-- `supabase/migrations/20260504013000_feat_006_update_attendance_rpc.sql` define `public.update_attendance(p_event_id uuid, p_status public.attendance_status)`.
-- `supabase/migrations/20260505234500_feat_008_load_match_result_rpc.sql` define `public.load_match_result(...)`.
-- `supabase/config.toml` expone `public` en PostgREST.
+- Correr `tsc --noEmit` y `vitest run --dir src` post-últimos commits
+- Verificar que el archive SDD de equipos-grupos refleje el estado post-polish
+- Limpiar `openspec/changes/equipos-grupos/` activo (ya archivado en `archive/`)
+- Actualizar `CHANGELOG.md`
