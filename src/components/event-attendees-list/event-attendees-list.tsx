@@ -24,13 +24,6 @@ const SECTIONS: Array<{
     titleTone: 'text-pitch-green',
   },
   {
-    status: 'waitlist',
-    label: 'Lista de Espera',
-    empty: 'No hay nadie en espera por ahora.',
-    tone: 'border-amber-400/40 bg-amber-400/10',
-    titleTone: 'text-amber-300',
-  },
-  {
     status: 'not_going',
     label: 'No van',
     empty: 'Todavía nadie avisó que no va.',
@@ -56,9 +49,6 @@ const EventAttendeesList = memo(function EventAttendeesList({
         <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3">
           <span className="font-headline text-lg font-bold italic uppercase text-amber-300">
             Faltan confirmar: {pendingConfirmationPlayers.length}
-          </span>
-          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
-            Ver lista
           </span>
         </summary>
 
@@ -88,9 +78,6 @@ const EventAttendeesList = memo(function EventAttendeesList({
             <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3">
               <span className={`font-headline text-lg font-bold italic uppercase ${section.titleTone}`}>
                 {section.label}: {items.length}
-              </span>
-              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
-                Ver lista
               </span>
             </summary>
 

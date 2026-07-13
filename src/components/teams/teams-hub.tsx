@@ -46,6 +46,12 @@ export function TeamsHub({ teams }: { teams: TeamHubItem[] }) {
           <p className="mx-auto mt-3 max-w-[360px] text-sm font-semibold leading-6 text-white/55">
             Pedile a un admin una invitación. Los equipos son roster fijo y no se mezclan con tus grupos.
           </p>
+          <Link
+            href={routes.home}
+            className="btn-interactive mt-6 inline-flex min-h-11 items-center justify-center border border-white/10 bg-black/30 px-5 font-headline text-sm font-bold italic uppercase text-white/75 hover:border-white/30 hover:text-white"
+          >
+            Volver al inicio
+          </Link>
         </div>
       )}
     </section>

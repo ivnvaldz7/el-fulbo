@@ -62,7 +62,6 @@ describe('EventAttendeesList', () => {
         pendingConfirmationPlayers={pendingPlayers}
         attendees={[
           attendee('going-1', 'Gonzalo Va', 'going'),
-          attendee('waitlist-1', 'Wanda Espera', 'waitlist'),
           attendee('not-going-1', 'Noelia No Va', 'not_going'),
           attendee('maybe-1', 'Mateo Tal Vez', 'maybe'),
         ]}
@@ -70,11 +69,10 @@ describe('EventAttendeesList', () => {
     );
 
     expect(screen.getByText('Van: 1')).toBeInTheDocument();
-    expect(screen.getByText(/Lista de espera: 1/i)).toBeInTheDocument();
     expect(screen.getByText('No van: 1')).toBeInTheDocument();
     expect(screen.getByText('Tal vez: 1')).toBeInTheDocument();
 
-    for (const name of ['Mario Pendiente', 'Nico Sin Responder', 'Gonzalo Va', 'Wanda Espera', 'Noelia No Va', 'Mateo Tal Vez']) {
+    for (const name of ['Mario Pendiente', 'Nico Sin Responder', 'Gonzalo Va', 'Noelia No Va', 'Mateo Tal Vez']) {
       const row = screen.getByText(name).closest('li') as HTMLElement;
       expect(within(row).getByText(name)).toBeInTheDocument();
       expect(row.querySelector('img')).not.toBeInTheDocument();

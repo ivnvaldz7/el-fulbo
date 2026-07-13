@@ -656,7 +656,7 @@ export default function EventViewPage() {
                 <button
                   type="button"
                   onClick={() => router.push(routes.groupEventCheckIn(groupId, eventId))}
-                  className="h-12 rounded-lg bg-emerald-500 font-headline text-lg font-bold italic uppercase tracking-tight text-black transition-transform active:scale-95"
+                  className="h-12 rounded-lg bg-pitch-green font-headline text-lg font-bold italic uppercase tracking-tight text-black transition-transform active:scale-95"
                 >
                   Check-in
                 </button>
@@ -664,14 +664,14 @@ export default function EventViewPage() {
               <button
                 type="button"
                 onClick={() => router.push(routes.groupEventEdit(groupId, eventId))}
-                className="h-12 rounded-lg bg-blue-600 font-headline text-lg font-bold italic uppercase tracking-tight text-white transition-transform active:scale-95"
+                className="h-12 rounded-lg border border-white/10 bg-white/[0.04] font-headline text-lg font-bold italic uppercase tracking-tight text-white transition-transform hover:border-white/30 active:scale-95"
               >
                 Editar
               </button>
               <button
                 type="button"
                 onClick={() => setShowCancelModal(true)}
-                className="h-12 rounded-lg bg-red-600 font-headline text-lg font-bold italic uppercase tracking-tight text-white transition-transform active:scale-95"
+                className="h-12 rounded-lg border border-red-500/40 bg-red-500/10 font-headline text-lg font-bold italic uppercase tracking-tight text-red-300 transition-transform hover:bg-red-500/20 active:scale-95"
               >
                 Cancelar
               </button>

@@ -100,8 +100,8 @@ export function GroupDashboardInitialState({
     <ImmersiveScreen contentClassName="mx-auto max-w-xl">
       <FloatingPanel className="w-full border-2 border-white/10">
         <div className="mb-6 flex items-center justify-between">
-          <Link href={routes.groups} className="link-interactive flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white">
-            <Home className="h-4 w-4" /> Volver a mis equipos
+          <Link href={routes.home} className="link-interactive flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white">
+            <Home className="h-4 w-4" /> Volver al inicio
           </Link>
         </div>
 
