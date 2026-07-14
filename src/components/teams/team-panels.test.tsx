@@ -17,8 +17,8 @@ vi.mock('@/lib/share', () => ({
 }));
 
 const members = [
-  { id: 'member-1', displayName: 'Juan Pérez', role: 'admin' as const, primaryPosition: 'DEL' as const, secondaryPosition: 'MED' as const },
-  { id: 'member-2', displayName: 'Leo Díaz', role: 'member' as const, primaryPosition: 'DEF' as const, secondaryPosition: null },
+  { id: 'member-1', userId: 'user-1', displayName: 'Juan Pérez', role: 'admin' as const, primaryPosition: 'DEL' as const, secondaryPosition: 'MED' as const },
+  { id: 'member-2', userId: 'user-2', displayName: 'Leo Díaz', role: 'member' as const, primaryPosition: 'DEF' as const, secondaryPosition: null },
 ];
 
 const matches = [

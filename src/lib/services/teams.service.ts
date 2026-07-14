@@ -491,6 +491,7 @@ export class TeamsService {
 
     const members: TeamRosterMemberView[] = (membersResult.data ?? []).map((row: any) => ({
       id: String(row.id),
+      userId: String(row.user_id),
       displayName: String(row.users?.display_name ?? 'Jugador'),
       role: row.role,
       primaryPosition: row.primary_position,

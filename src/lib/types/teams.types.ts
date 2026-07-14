@@ -65,6 +65,7 @@ export interface TeamHubItem {
 
 export interface TeamRosterMemberView {
   id: TeamMemberId;
+  userId: UserId;
   displayName: string;
   role: TeamRole;
   primaryPosition: PlayerPosition;
