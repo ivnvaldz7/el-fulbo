@@ -548,19 +548,7 @@ export default function EventViewPage() {
                   </>
                 ) : null}
 
-                {hasVotedForMvp ? (
-                  <div className="mt-4 rounded-lg border border-amber-400/40 bg-amber-400/5 p-4 text-center">
-                    <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">Voto registrado</p>
-                    <p className="mt-2 text-sm text-white/60">Tu voto ya quedó guardado. Cuando se cierre la votación vas a poder ver el resultado.</p>
-                    <button
-                      type="button"
-                      onClick={() => router.push(routes.groupDashboard(groupId))}
-                      className="mt-4 w-full rounded-lg bg-amber-400 px-4 py-3 font-headline text-base font-black italic uppercase text-black transition-transform active:scale-[0.98]"
-                    >
-                      Volver al inicio
-                    </button>
-                  </div>
-                ) : is24hPassed ? (
+{is24hPassed ? (
                   <div className="rounded-lg border border-red-500/40 bg-red-500/5 p-4 text-center mt-4">
                     <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-red-400">Votación cerrada</p>
                     <p className="mt-2 text-sm text-white/60">Pasaron las 24 horas y se cerró la votación.</p>

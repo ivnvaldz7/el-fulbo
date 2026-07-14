@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { MvpVotingOverlay } from './mvp-voting-overlay';
 
@@ -11,6 +12,17 @@ vi.mock('next/link', () => ({
     <a href={href} {...props}>{children}</a>
   ),
 }));
+
+// Mock the EventsService class properly - defined inside factory to avoid hoisting issues
+vi.mock('@/lib/services/events.service', () => {
+  class MockEventsService {
+    getMvpVotes = vi.fn().mockResolvedValue({
+      ok: true,
+      data: [{ playerId: 'player-2', votes: 1 }],
+    });
+  }
+  return { EventsService: MockEventsService };
+});
 
 const playedSummary = [
   {
@@ -35,9 +47,21 @@ const playedSummary = [
   },
 ];
 
+function renderWithQueryClient(ui: React.ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        refetchInterval: false,
+      },
+    },
+  });
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+}
+
 describe('MvpVotingOverlay', () => {
-  it('shows a closed voted message with a home action after the player has voted', () => {
-    render(
+  it('shows voting panel with real-time results and user vote indicated after voting', async () => {
+    renderWithQueryClient(
       <MvpVotingOverlay
         eventId="event-1"
         currentPlayerId="player-1"
@@ -51,8 +75,24 @@ describe('MvpVotingOverlay', () => {
     );
 
     expect(screen.getByText('Voto registrado')).toBeInTheDocument();
-    expect(screen.getByText('Tu voto ya quedó guardado. Cuando se cierre la votación vas a poder ver el resultado.')).toBeInTheDocument();
-    expect(screen.queryByText(/Esperando al resto/i)).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Volver al inicio' })).toHaveAttribute('href', '/groups/group-1/dashboard');
+    
+    // Wait for the vote data to load and render
+    await waitFor(
+      () => {
+        expect(screen.getByText('Tu voto: Player Two')).toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
+    
+    // The voted player (player-2) should show vote count
+    await waitFor(
+      () => {
+        expect(screen.getByText('1 voto')).toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
+    
+    expect(screen.getByRole('button', { name: 'Cerrar' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Volver al inicio' })).not.toBeInTheDocument();
   });
 });
