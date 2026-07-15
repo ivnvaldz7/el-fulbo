@@ -505,19 +505,40 @@ export default function EventViewPage() {
         ) : null}
 
         {event.status === 'played' ? (
-          <section className="space-y-4 border border-white/10 bg-concrete-overlay p-5">
+          <section className="animate-fade-slide-up space-y-4 border border-white/10 bg-concrete-overlay p-5">
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Resultado final</p>
             <div className="mt-3 flex items-center justify-between gap-4">
-              <div>
+              <div className="flex flex-col items-start gap-2">
                 <p className="font-headline text-xl font-black italic uppercase">{event.team_a_name ?? 'Equipo A'}</p>
-                <p className="mt-1 text-3xl font-black">{event.team_a_score ?? 0}</p>
+                <p className="animate-fade-slide-up text-3xl font-black" style={{ animationDelay: '100ms' }}>
+                  {event.team_a_score ?? 0}
+                </p>
+                {event.team_a_score != null && event.team_b_score != null && event.team_a_score > event.team_b_score ? (
+                  <span className="animate-winner-glow rounded-full bg-emerald-500/20 px-3 py-0.5 font-mono text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">
+                    GANADOR
+                  </span>
+                ) : null}
               </div>
               <span className="text-2xl font-black text-white/50">-</span>
-              <div className="text-right">
+              <div className="flex flex-col items-end gap-2">
                 <p className="font-headline text-xl font-black italic uppercase">{event.team_b_name ?? 'Equipo B'}</p>
-                <p className="mt-1 text-3xl font-black">{event.team_b_score ?? 0}</p>
+                <p className="animate-fade-slide-up text-3xl font-black" style={{ animationDelay: '150ms' }}>
+                  {event.team_b_score ?? 0}
+                </p>
+                {event.team_a_score != null && event.team_b_score != null && event.team_b_score > event.team_a_score ? (
+                  <span className="animate-winner-glow rounded-full bg-emerald-500/20 px-3 py-0.5 font-mono text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">
+                    GANADOR
+                  </span>
+                ) : null}
               </div>
             </div>
+            {event.team_a_score != null && event.team_b_score != null && event.team_a_score === event.team_b_score ? (
+              <div className="animate-draw-badge rounded-lg border border-amber-400/30 bg-amber-400/5 p-3 text-center">
+                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">
+                  EMPATE
+                </span>
+              </div>
+            ) : null}
             {event.notes ? <p className="mt-4 text-sm text-white/70">{event.notes}</p> : null}
             {mvp ? (
               <div className="rounded-lg border border-amber-400/40 bg-amber-400/10 p-4">
@@ -559,6 +580,8 @@ export default function EventViewPage() {
                       eventId={event.id}
                       currentPlayerId={currentPlayer?.playerId ?? null}
                       playedSummary={playedSummary}
+                      hasVoted={hasVotedForMvp}
+                      isVotingClosed={!!event.mvp_player_id}
                       onVoteSubmitted={() => {
                         void queryClient.invalidateQueries({ queryKey: ['event', eventId] });
                       }}

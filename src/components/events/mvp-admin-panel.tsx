@@ -15,14 +15,26 @@ export function MvpAdminPanel({ eventId, playedSummary }: MvpAdminPanelProps) {
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tiebreakerId, setTiebreakerId] = useState<string | null>(null);
-  
+  const supabase = createBrowserSupabaseClient();
+
   const { data: votesData, isLoading } = useQuery({
     queryKey: ['mvpVotes', eventId],
     queryFn: async () => {
-      const service = new EventsService(createBrowserSupabaseClient());
+      const service = new EventsService(supabase);
       const res = await service.getMvpVotes(eventId);
       if (!res.ok) throw new Error(res.error.message);
       return res.data;
+    },
+  });
+
+  const { data: voterIds } = useQuery({
+    queryKey: ['mvpVoters', eventId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('event_mvp_votes')
+        .select('voter_player_id')
+        .eq('event_id', eventId);
+      return new Set(data?.map(r => r.voter_player_id) ?? []);
     },
   });
 
@@ -30,6 +42,10 @@ export function MvpAdminPanel({ eventId, playedSummary }: MvpAdminPanelProps) {
   const topVoteCount = votes.length > 0 ? (votes[0]?.votes ?? 0) : 0;
   const tiedPlayers = votes.filter(v => v.votes === topVoteCount && topVoteCount > 0);
   const isTie = tiedPlayers.length > 1;
+
+  const missingVoters = voterIds
+    ? playedSummary.filter(p => !voterIds.has(p.playerId))
+    : [];
 
   const handleCloseVoting = async () => {
     if (isTie && !tiebreakerId) {
@@ -71,6 +87,25 @@ export function MvpAdminPanel({ eventId, playedSummary }: MvpAdminPanelProps) {
           {isSubmitting ? 'Cerrando...' : 'Cerrar Votación'}
         </button>
       </div>
+
+      {/* Quienes faltan votar */}
+      {!isLoading && missingVoters.length > 0 ? (
+        <div className="mt-4 rounded border border-amber-400/30 bg-amber-400/5 p-3">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400">
+            Faltan votar ({missingVoters.length}/{playedSummary.length})
+          </p>
+          <div className="mt-2 flex flex-wrap gap-1">
+            {missingVoters.map((p) => (
+              <span
+                key={p.playerId}
+                className="rounded-full bg-amber-400/10 px-2.5 py-0.5 font-mono text-[10px] font-bold text-amber-300"
+              >
+                {p.displayName}
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {isLoading ? (
         <p className="mt-4 font-mono text-xs text-white/50">Cargando votos...</p>

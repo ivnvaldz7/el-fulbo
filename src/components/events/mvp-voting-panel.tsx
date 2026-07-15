@@ -9,10 +9,19 @@ type MvpVotingPanelProps = {
   eventId: string;
   currentPlayerId: string | null;
   playedSummary: PlayedMatchSummaryItem[];
+  hasVoted: boolean;
+  isVotingClosed: boolean;
   onVoteSubmitted: () => void;
 };
 
-export function MvpVotingPanel({ eventId, currentPlayerId, playedSummary, onVoteSubmitted }: MvpVotingPanelProps) {
+export function MvpVotingPanel({
+  eventId,
+  currentPlayerId,
+  playedSummary,
+  hasVoted,
+  isVotingClosed,
+  onVoteSubmitted,
+}: MvpVotingPanelProps) {
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const supabase = createBrowserSupabaseClient();
@@ -38,7 +47,27 @@ export function MvpVotingPanel({ eventId, currentPlayerId, playedSummary, onVote
 
   const eligiblePlayers = playedSummary.filter(p => p.playerId !== currentPlayerId);
 
-  // If the current player didn't play, they shouldn't see the voting panel
+  // Votación cerrada (MVP ya asignado)
+  if (isVotingClosed) {
+    return (
+      <div className="rounded-lg border border-amber-400/40 bg-amber-400/5 p-4 text-center">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">Votación cerrada</p>
+        <p className="mt-2 text-sm text-white/60">El MVP ya fue elegido.</p>
+      </div>
+    );
+  }
+
+  // Ya votó
+  if (hasVoted) {
+    return (
+      <div className="rounded-lg border border-emerald-400/40 bg-emerald-400/10 p-4 text-center">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-300">Voto registrado</p>
+        <p className="mt-2 text-sm text-white/60">Tu voto ya quedó guardado. La votación sigue abierta.</p>
+      </div>
+    );
+  }
+
+  // No participó del partido
   if (!currentPlayerId || !playedSummary.find(p => p.playerId === currentPlayerId)) {
     return (
       <div className="rounded-lg border border-amber-400/40 bg-amber-400/5 p-4 text-center">
@@ -54,7 +83,7 @@ export function MvpVotingPanel({ eventId, currentPlayerId, playedSummary, onVote
         Elegí a la figura
       </p>
       <h3 className="mt-1 font-headline text-xl font-black italic uppercase text-white">¿Quién fue el MVP?</h3>
-      
+
       <div className="mt-4 grid grid-cols-2 gap-2">
         {eligiblePlayers.map((player) => (
           <button
