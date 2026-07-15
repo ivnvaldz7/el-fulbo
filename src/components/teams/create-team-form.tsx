@@ -37,17 +37,22 @@ export function CreateTeamForm() {
     setSubmitting(true);
     setError(null);
 
-    const supabase = createBrowserSupabaseClient();
-    const service = new TeamsService(supabase);
-    const result = await service.createTeam(parsed.data);
+    try {
+      const supabase = createBrowserSupabaseClient();
+      const service = new TeamsService(supabase);
+      const result = await service.createTeam(parsed.data);
 
-    if (!result.ok) {
+      if (!result.ok) {
+        setSubmitting(false);
+        setError(result.error.message);
+        return;
+      }
+
+      router.push(routes.teamDetail(result.data.teamId));
+    } catch (err) {
       setSubmitting(false);
-      setError(result.error.message);
-      return;
+      setError(err instanceof Error ? err.message : 'Error inesperado al crear el equipo.');
     }
-
-    router.push(routes.teamDetail(result.data.teamId));
   }
 
   if (submitting) {
