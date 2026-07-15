@@ -8,6 +8,7 @@ import {
   processTeamPlayerProgressionSchema,
   removeTeamMemberSchema,
   reviewTeamStatSubmissionSchema,
+  setTeamMatchMvpSchema,
   signUpForTeamMatchSchema,
   submitTeamStatSchema,
   teamMemberSchema,
@@ -17,6 +18,7 @@ import {
   type ProcessTeamPlayerProgressionData,
   type RemoveTeamMemberData,
   type ReviewTeamStatSubmissionData,
+  type SetTeamMatchMvpData,
   type SignUpForTeamMatchData,
   type SubmitTeamStatData,
   type TeamMemberData,
@@ -276,6 +278,25 @@ export class TeamsService {
     return { ok: true, data: undefined };
   }
 
+  async setTeamMatchMvp(input: SetTeamMatchMvpData): Promise<Result<void>> {
+    const parsed = setTeamMatchMvpSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, error: validationError(parsed.error.flatten()) };
+    }
+
+    const { error } = await this.supabase.rpc('set_team_match_mvp', {
+      p_team_id: parsed.data.teamId,
+      p_match_id: parsed.data.matchId,
+      p_mvp_user_id: parsed.data.mvpUserId,
+    });
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    return { ok: true, data: undefined };
+  }
+
   async processTeamPlayerProgression(input: ProcessTeamPlayerProgressionData): Promise<Result<TeamProgressionResult>> {
     const parsed = processTeamPlayerProgressionSchema.safeParse(input);
     if (!parsed.success) {
@@ -457,7 +478,7 @@ export class TeamsService {
         .order('joined_at', { ascending: true }),
       this.supabase
         .from('team_matches')
-        .select('id,scheduled_at,opponent_name,field_name,status,team_score,opponent_score,team_match_signups(id)')
+        .select('id,scheduled_at,opponent_name,field_name,status,team_score,opponent_score,mvp_user_id,users!team_matches_mvp_user_id_fkey(display_name),team_match_signups(id)')
         .eq('team_id', teamId)
         .order('scheduled_at', { ascending: false })
         .limit(20),
@@ -479,7 +500,7 @@ export class TeamsService {
     const submissionsResult = canModerate
       ? await this.supabase
         .from('team_stat_submissions')
-        .select('id,stat_kind,value,status,team_matches!team_stat_submissions_match_team_fk(opponent_name,scheduled_at),users!team_stat_submissions_user_id_fkey(display_name)')
+        .select('id,user_id,stat_kind,value,status,team_matches!team_stat_submissions_match_team_fk(opponent_name,scheduled_at),users!team_stat_submissions_user_id_fkey(display_name)')
         .eq('team_id', teamId)
         .order('submitted_at', { ascending: false })
         .limit(30)
@@ -508,10 +529,13 @@ export class TeamsService {
       signupCount: Array.isArray(row.team_match_signups) ? row.team_match_signups.length : 0,
       teamScore: row.team_score ?? null,
       opponentScore: row.opponent_score ?? null,
+      mvpUserId: row.mvp_user_id ?? null,
+      mvpUserName: row.users?.display_name ?? null,
     }));
 
     const submissions: TeamSubmissionView[] = (submissionsResult.data ?? []).map((row: any) => ({
       id: String(row.id),
+      userId: String(row.user_id),
       playerName: String(row.users?.display_name ?? 'Jugador'),
       matchLabel: row.team_matches?.opponent_name ? `vs ${row.team_matches.opponent_name}` : 'Partido cerrado',
       statKind: row.stat_kind,

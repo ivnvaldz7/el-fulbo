@@ -44,27 +44,6 @@ export default function TeamDetailPage() {
     },
   });
 
-  if (loading) {
-    return (
-      <ImmersiveScreen align="center" contentClassName="mx-auto text-center">
-        <div className="mx-auto h-12 w-12 animate-spin border-4 border-pitch-green border-t-transparent" />
-        <p className="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
-          Cargando equipo
-        </p>
-        <h2 className="mt-2 font-headline text-2xl font-black italic uppercase tracking-tight text-white">
-          Recuperando detalle...
-        </h2>
-      </ImmersiveScreen>
-    );
-  }
-
-  if (error || !data) {
-    notFound();
-  }
-
-  const team = data;
-  const canManage = team.role === 'admin';
-
   // Real-time subscription for team changes
   useEffect(() => {
     const channel = supabase
@@ -124,6 +103,27 @@ export default function TeamDetailPage() {
     };
   }, [teamId, queryClient, supabase]);
 
+  if (loading) {
+    return (
+      <ImmersiveScreen align="center" contentClassName="mx-auto text-center">
+        <div className="mx-auto h-12 w-12 animate-spin border-4 border-pitch-green border-t-transparent" />
+        <p className="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
+          Cargando equipo
+        </p>
+        <h2 className="mt-2 font-headline text-2xl font-black italic uppercase tracking-tight text-white">
+          Recuperando detalle...
+        </h2>
+      </ImmersiveScreen>
+    );
+  }
+
+  if (error || !data) {
+    notFound();
+  }
+
+  const team = data;
+  const canManage = team.role === 'admin';
+
   // Mutation handlers
   async function handleInviteMember() {
     try {
@@ -176,11 +176,42 @@ export default function TeamDetailPage() {
     }
   }
 
-  async function handleReviewSubmission(submissionId: string, status: Extract<TeamSubmissionStatus, 'approved' | 'rejected'>) {
+  async function handleSetMvp(matchId: string, mvpUserId: string | null) {
     try {
-      const result = await service.reviewTeamStatSubmission({ submissionId, decision: status });
+      const result = await service.setTeamMatchMvp({ teamId, matchId, mvpUserId });
+      if (!result.ok) throw new Error(result.error.message);
+      toast.success(mvpUserId ? 'MVP elegido' : 'MVP removido');
+      void queryClient.invalidateQueries({ queryKey: ['team', teamId] });
+    } catch (err: any) {
+      toast.error(err.message ?? 'No pudimos guardar el MVP');
+    }
+  }
+
+  async function handleReviewSubmission(
+    submissionId: string,
+    status: Extract<TeamSubmissionStatus, 'approved' | 'rejected'>,
+    rejectionReason?: string | null,
+  ) {
+    try {
+      const result = await service.reviewTeamStatSubmission({ submissionId, decision: status, rejectionReason });
       if (!result.ok) throw new Error(result.error.message);
       toast.success(status === 'approved' ? 'Stat aprobada' : 'Stat rechazada');
+
+      // Trigger progression when a stat is approved
+      if (status === 'approved') {
+        const submission = team.submissions.find((s) => s.id === submissionId);
+        if (submission?.userId) {
+          const progResult = await service.processTeamPlayerProgression({ userId: submission.userId });
+          if (progResult.ok) {
+            const tierLabels = { bronze: 'bronce', silver: 'plata', gold: 'oro', premium_gold: 'oro premium' };
+            toast.success(
+              `¡${submission.playerName} mejoró su carta! (${tierLabels[progResult.data.cardTier]})`,
+              { duration: 4000 },
+            );
+          }
+        }
+      }
+
       void queryClient.invalidateQueries({ queryKey: ['team', teamId] });
     } catch (err: any) {
       toast.error(err.message ?? 'No pudimos procesar la revisión');
@@ -212,8 +243,10 @@ export default function TeamDetailPage() {
             <TeamMatchesPanel
               teamId={team.id}
               matches={team.matches}
+              members={team.members.map((m) => ({ userId: m.userId, displayName: m.displayName }))}
               onSignup={({ matchId, status }) => handleSignup(matchId, status)}
               onSubmitStat={({ matchId, statKind, value }) => handleSubmitStat(matchId, statKind, value)}
+              onSetMvp={canManage ? ({ matchId, mvpUserId }) => handleSetMvp(matchId, mvpUserId) : undefined}
             />
           ) : null}
           {activeTab === 'stats' ? <TeamStatsPanel totals={team} /> : null}
@@ -222,7 +255,7 @@ export default function TeamDetailPage() {
             <TeamModerationPanel
               submissions={team.submissions}
               canModerate={canManage}
-              onReviewSubmission={({ submissionId, status }) => handleReviewSubmission(submissionId, status)}
+              onReviewSubmission={({ submissionId, status, rejectionReason }) => handleReviewSubmission(submissionId, status, rejectionReason)}
             />
           ) : null}
         </div>

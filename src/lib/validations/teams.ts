@@ -81,4 +81,11 @@ export type CreateTeamMatchData = z.infer<typeof createTeamMatchSchema>;
 export type SignUpForTeamMatchData = z.infer<typeof signUpForTeamMatchSchema>;
 export type SubmitTeamStatData = z.infer<typeof submitTeamStatSchema>;
 export type ReviewTeamStatSubmissionData = z.infer<typeof reviewTeamStatSubmissionSchema>;
+export const setTeamMatchMvpSchema = z.object({
+  teamId: uuidSchema,
+  matchId: uuidSchema,
+  mvpUserId: uuidSchema.nullable(),
+});
+
 export type ProcessTeamPlayerProgressionData = z.infer<typeof processTeamPlayerProgressionSchema>;
+export type SetTeamMatchMvpData = z.infer<typeof setTeamMatchMvpSchema>;

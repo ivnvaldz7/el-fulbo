@@ -22,14 +22,14 @@ const members = [
 ];
 
 const matches = [
-  { id: 'match-1', scheduledAt: '2026-07-20T22:00:00.000Z', opponentName: 'Los Pibes', fieldName: 'Cancha 5', status: 'scheduled' as const, signupCount: 7 },
-  { id: 'match-2', scheduledAt: '2026-07-10T22:00:00.000Z', opponentName: null, fieldName: null, status: 'played' as const, signupCount: 10, teamScore: 4, opponentScore: 2 },
+  { id: 'match-1', scheduledAt: '2026-07-20T22:00:00.000Z', opponentName: 'Los Pibes', fieldName: 'Cancha 5', status: 'scheduled' as const, signupCount: 7, mvpUserId: null, mvpUserName: null },
+  { id: 'match-2', scheduledAt: '2026-07-10T22:00:00.000Z', opponentName: null, fieldName: null, status: 'played' as const, signupCount: 10, teamScore: 4, opponentScore: 2, mvpUserId: null, mvpUserName: null },
 ];
 
 const submissions = [
-  { id: 'submission-1', playerName: 'Juan Pérez', matchLabel: 'vs Los Pibes', statKind: 'goals' as const, value: 2, status: 'pending' as const },
-  { id: 'submission-2', playerName: 'Leo Díaz', matchLabel: 'Partido cerrado', statKind: 'tackles' as const, value: 6, status: 'approved' as const },
-  { id: 'submission-3', playerName: 'Ana Ruiz', matchLabel: 'Partido cerrado', statKind: 'assists' as const, value: 1, status: 'rejected' as const },
+  { id: 'submission-1', userId: 'user-1', playerName: 'Juan Pérez', matchLabel: 'vs Los Pibes', statKind: 'goals' as const, value: 2, status: 'pending' as const },
+  { id: 'submission-2', userId: 'user-2', playerName: 'Leo Díaz', matchLabel: 'Partido cerrado', statKind: 'tackles' as const, value: 6, status: 'approved' as const },
+  { id: 'submission-3', userId: 'user-3', playerName: 'Ana Ruiz', matchLabel: 'Partido cerrado', statKind: 'assists' as const, value: 1, status: 'rejected' as const },
 ];
 
 const team = {
@@ -130,10 +130,18 @@ describe('team detail panels', () => {
     render(<TeamModerationPanel submissions={submissions} canModerate={true} onReviewSubmission={onReviewSubmission} />);
 
     fireEvent.click(screen.getByRole('button', { name: /aprobar stat de Juan Pérez/i }));
-    fireEvent.click(screen.getByRole('button', { name: /rechazar stat de Juan Pérez/i }));
-
     expect(onReviewSubmission).toHaveBeenCalledWith({ submissionId: 'submission-1', status: 'approved' });
-    expect(onReviewSubmission).toHaveBeenCalledWith({ submissionId: 'submission-1', status: 'rejected' });
+
+    fireEvent.click(screen.getByRole('button', { name: /rechazar stat de Juan Pérez/i }));
+    const textarea = screen.getByPlaceholderText(/Explicá por qué se rechaza/i);
+    fireEvent.change(textarea, { target: { value: 'Valor incorrecto' } });
+    fireEvent.click(screen.getByRole('button', { name: /confirmar rechazo/i }));
+
+    expect(onReviewSubmission).toHaveBeenCalledWith({
+      submissionId: 'submission-1',
+      status: 'rejected',
+      rejectionReason: 'Valor incorrecto',
+    });
   });
 
   it('hides moderation submission data from non-admin users', () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import type { FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import type { TeamId, TeamMatchId, TeamMatchSignupStatus, TeamMatchView, TeamStatKind } from '@/lib/types/teams.types';
 
 function formatMatchDate(value: string) {
@@ -10,15 +10,19 @@ function formatMatchDate(value: string) {
 interface TeamMatchesPanelProps {
   teamId: TeamId;
   matches: TeamMatchView[];
+  members?: Array<{ userId: string; displayName: string }>;
   onSignup?: (payload: { teamId: TeamId; matchId: TeamMatchId; status: TeamMatchSignupStatus }) => void;
   onSubmitStat?: (payload: { teamId: TeamId; matchId: TeamMatchId; statKind: TeamStatKind; value: number }) => void;
+  onSetMvp?: (payload: { teamId: TeamId; matchId: TeamMatchId; mvpUserId: string | null }) => void;
 }
 
 function getMatchLabel(match: TeamMatchView) {
   return match.opponentName ?? 'Partido cerrado';
 }
 
-export function TeamMatchesPanel({ teamId, matches, onSignup, onSubmitStat }: TeamMatchesPanelProps) {
+export function TeamMatchesPanel({ teamId, matches, members, onSignup, onSubmitStat, onSetMvp }: TeamMatchesPanelProps) {
+  const [mvpSelectId, setMvpSelectId] = useState<TeamMatchId | null>(null);
+
   function submitStat(event: FormEvent<HTMLFormElement>, matchId: TeamMatchId) {
     event.preventDefault();
 
@@ -71,29 +75,82 @@ export function TeamMatchesPanel({ teamId, matches, onSignup, onSubmitStat }: Te
               </div>
             ) : null}
             {match.status === 'played' ? (
-              <div className="mt-4">
-                {onSubmitStat ? (
-                  <form className="grid gap-3 sm:grid-cols-[1fr_8rem_auto]" onSubmit={(event) => submitStat(event, match.id)}>
-                    <label className="grid gap-1 text-xs font-bold uppercase text-white/55" htmlFor={`stat-kind-${match.id}`}>
-                      Stat para {getMatchLabel(match)}
-                      <select id={`stat-kind-${match.id}`} name="statKind" className="rounded-xl bg-black/60 px-3 py-2 text-white">
-                        <option value="goals">goals</option>
-                        <option value="assists">assists</option>
-                        <option value="tackles">tackles</option>
+              <>
+                {match.mvpUserName ? (
+                  <div className="mt-4 rounded-[1.35rem] bg-yellow-500/10 p-3 ring-1 ring-yellow-500/30">
+                    <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-yellow-400">
+                      MVP: {match.mvpUserName}
+                    </span>
+                  </div>
+                ) : null}
+
+                {onSetMvp && mvpSelectId !== match.id ? (
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      className="rounded-full border border-white/15 px-4 py-2 font-mono text-[10px] font-black uppercase tracking-[0.18em] text-white/70"
+                      onClick={() => setMvpSelectId(match.id)}
+                    >
+                      {match.mvpUserName ? 'Cambiar MVP' : 'Elegir MVP'} de {getMatchLabel(match)}
+                    </button>
+                  </div>
+                ) : null}
+
+                {onSetMvp && mvpSelectId === match.id ? (
+                  <div className="mt-4 space-y-3 rounded-[1.35rem] border border-yellow-500/30 bg-yellow-500/10 p-4">
+                    <label className="grid gap-1">
+                      <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-yellow-400">
+                        {match.mvpUserName ? 'Cambiar MVP:' : 'MVP del partido:'}
+                      </span>
+                      <select
+                        className="w-full rounded-xl bg-black/60 px-3 py-2 text-sm text-white ring-1 ring-white/10 focus:outline-none focus:ring-yellow-500/50"
+                        defaultValue={match.mvpUserId ?? ''}
+                        onChange={(e) => {
+                          if (!e.target.value) return;
+                          onSetMvp({ teamId, matchId: match.id, mvpUserId: e.target.value || null });
+                          setMvpSelectId(null);
+                        }}
+                      >
+                        <option value="">— Sin MVP —</option>
+                        {(members ?? []).map((m) => (
+                          <option key={m.userId} value={m.userId}>{m.displayName}</option>
+                        ))}
                       </select>
                     </label>
-                    <label className="grid gap-1 text-xs font-bold uppercase text-white/55" htmlFor={`stat-value-${match.id}`}>
-                      Valor para {getMatchLabel(match)}
-                      <input id={`stat-value-${match.id}`} name="value" type="number" min="0" defaultValue="1" className="rounded-xl bg-black/60 px-3 py-2 text-white" />
-                    </label>
-                    <button type="submit" className="self-end rounded-full bg-pitch-green px-4 py-2 font-mono text-[10px] font-black uppercase tracking-[0.18em] text-black">
-                      Cargar stat de {getMatchLabel(match)}
+                    <button
+                      type="button"
+                      className="rounded-full border border-white/15 px-4 py-2 font-mono text-[10px] font-black uppercase tracking-[0.18em] text-white/70"
+                      onClick={() => setMvpSelectId(null)}
+                    >
+                      Cancelar
                     </button>
-                  </form>
-                ) : (
-                  <p className="text-xs font-semibold text-white/45">Carga de stats pendiente: falta conectar callback seguro.</p>
-                )}
-              </div>
+                  </div>
+                ) : null}
+
+                <div className="mt-4">
+                  {onSubmitStat ? (
+                    <form className="grid gap-3 sm:grid-cols-[1fr_8rem_auto]" onSubmit={(event) => submitStat(event, match.id)}>
+                      <label className="grid gap-1 text-xs font-bold uppercase text-white/55" htmlFor={`stat-kind-${match.id}`}>
+                        Stat para {getMatchLabel(match)}
+                        <select id={`stat-kind-${match.id}`} name="statKind" className="rounded-xl bg-black/60 px-3 py-2 text-white">
+                          <option value="goals">goals</option>
+                          <option value="assists">assists</option>
+                          <option value="tackles">tackles</option>
+                        </select>
+                      </label>
+                      <label className="grid gap-1 text-xs font-bold uppercase text-white/55" htmlFor={`stat-value-${match.id}`}>
+                        Valor para {getMatchLabel(match)}
+                        <input id={`stat-value-${match.id}`} name="value" type="number" min="0" defaultValue="1" className="rounded-xl bg-black/60 px-3 py-2 text-white" />
+                      </label>
+                      <button type="submit" className="self-end rounded-full bg-pitch-green px-4 py-2 font-mono text-[10px] font-black uppercase tracking-[0.18em] text-black">
+                        Cargar stat de {getMatchLabel(match)}
+                      </button>
+                    </form>
+                  ) : (
+                    <p className="text-xs font-semibold text-white/45">Carga de stats pendiente: falta conectar callback seguro.</p>
+                  )}
+                </div>
+              </>
             ) : null}
           </article>
         )) : (

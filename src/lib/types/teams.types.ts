@@ -82,10 +82,13 @@ export interface TeamMatchView {
   signupCount: number;
   teamScore?: number | null;
   opponentScore?: number | null;
+  mvpUserId: string | null;
+  mvpUserName: string | null;
 }
 
 export interface TeamSubmissionView {
   id: TeamStatSubmissionId;
+  userId: UserId;
   playerName: string;
   matchLabel: string;
   statKind: TeamStatKind;
