@@ -478,7 +478,7 @@ export class TeamsService {
         .order('joined_at', { ascending: true }),
       this.supabase
         .from('team_matches')
-        .select('id,scheduled_at,opponent_name,field_name,status,team_score,opponent_score,mvp_user_id,users!team_matches_mvp_user_id_fkey(display_name),team_match_signups(id)')
+        .select('id,scheduled_at,opponent_name,field_name,status,team_score,opponent_score,mvp_user_id,team_match_signups(id)')
         .eq('team_id', teamId)
         .order('scheduled_at', { ascending: false })
         .limit(20),
@@ -520,6 +520,8 @@ export class TeamsService {
       photoUrl: row.users?.photo_url ?? null,
     }));
 
+    const membersByUserId = new Map(members.map((m) => [m.userId, m.displayName]));
+
     const matches: TeamMatchView[] = (matchesResult.data ?? []).map((row: any) => ({
       id: String(row.id),
       scheduledAt: String(row.scheduled_at),
@@ -530,7 +532,7 @@ export class TeamsService {
       teamScore: row.team_score ?? null,
       opponentScore: row.opponent_score ?? null,
       mvpUserId: row.mvp_user_id ?? null,
-      mvpUserName: row.users?.display_name ?? null,
+      mvpUserName: row.mvp_user_id ? (membersByUserId.get(row.mvp_user_id) ?? null) : null,
     }));
 
     const submissions: TeamSubmissionView[] = (submissionsResult.data ?? []).map((row: any) => ({
