@@ -103,6 +103,106 @@ describe('feat-007 confirm_draw RPC', () => {
     expect(notifications).toHaveLength(2);
   });
 
+  it('replaces participations when confirming an already drawn event again', async () => {
+    const admin = await seedUser(client, 'redraw-admin');
+    const playerA = await seedUser(client, 'redraw-a');
+    const playerB = await seedUser(client, 'redraw-b');
+    const group = await seedGroup(client, admin.id);
+
+    const { rows: insertedPlayers } = await client.query<{ id: string; user_id: string; display_name: string }>(
+      `
+        insert into public.players (user_id, group_id, display_name, primary_position, stats, stats_status)
+        values
+          ($1, $3, $4, 'ARQ', '{"div":6,"han":6,"kic":6,"ref":6,"spd":6,"pos":6}'::jsonb, 'approved'),
+          ($2, $3, $5, 'DEL', '{"pac":6,"sho":6,"pas":6,"dri":6,"def":6,"phy":6}'::jsonb, 'approved')
+        returning id, user_id, display_name
+      `,
+      [playerA.id, playerB.id, group.id, playerA.displayName, playerB.displayName],
+    );
+
+    const { rows: eventRows } = await client.query<{ id: string }>(
+      `
+        insert into public.events (group_id, modality, field_name, scheduled_at, created_by_user_id, status)
+        values ($1, 'F5', 'Cancha redraw', now() + interval '1 hour', $2, 'checked_in')
+        returning id
+      `,
+      [group.id, admin.id],
+    );
+
+    const eventId = eventRows[0]!.id;
+
+    for (const player of insertedPlayers) {
+      await client.query(
+        `
+          insert into public.event_attendances (event_id, player_id, status, checked_in, checked_in_at)
+          values ($1, $2, 'going', true, now())
+        `,
+        [eventId, player.id],
+      );
+    }
+
+    const firstAssignments = [
+      {
+        playerId: insertedPlayers[0]!.id,
+        team: 'A',
+        assignedPosition: 'ARQ',
+        playedPrimaryPosition: true,
+      },
+      {
+        playerId: insertedPlayers[1]!.id,
+        team: 'B',
+        assignedPosition: 'DEL',
+        playedPrimaryPosition: true,
+      },
+    ];
+    const secondAssignments = [
+      {
+        playerId: insertedPlayers[0]!.id,
+        team: 'B',
+        assignedPosition: 'ARQ',
+        playedPrimaryPosition: true,
+      },
+      {
+        playerId: insertedPlayers[1]!.id,
+        team: 'A',
+        assignedPosition: 'DEL',
+        playedPrimaryPosition: true,
+      },
+    ];
+
+    await asUser(client, admin.id, async () => {
+      await client.query(
+        `select public.confirm_draw($1::uuid, $2::text, $3::jsonb, $4::text, $5::text)`,
+        [eventId, 'seed-redraw-1', JSON.stringify(firstAssignments), 'Equipo A', 'Equipo B'],
+      );
+      await client.query(
+        `select public.confirm_draw($1::uuid, $2::text, $3::jsonb, $4::text, $5::text)`,
+        [eventId, 'seed-redraw-2', JSON.stringify(secondAssignments), 'Equipo A', 'Equipo B'],
+      );
+    });
+
+    const { rows: eventState } = await client.query(
+      `select status, draw_seed from public.events where id = $1`,
+      [eventId],
+    );
+
+    expect(eventState[0]?.status).toBe('drawn');
+    expect(eventState[0]?.draw_seed).toBe('seed-redraw-2');
+
+    const { rows: participations } = await client.query(
+      `select player_id, team from public.match_participations where event_id = $1 order by player_id`,
+      [eventId],
+    );
+
+    expect(participations).toHaveLength(2);
+    expect(participations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ player_id: insertedPlayers[0]!.id, team: 'B' }),
+        expect.objectContaining({ player_id: insertedPlayers[1]!.id, team: 'A' }),
+      ]),
+    );
+  });
+
   it('works through supabase.rpc after reloading the PostgREST schema cache', async () => {
     const admin = await seedAuthUser(client, 'draw-rpc-admin');
     const playerA = await seedUser(client, 'draw-rpc-a');
