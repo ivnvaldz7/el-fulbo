@@ -229,9 +229,10 @@ export function drawTeams(input: {
     const candidates = pool
       .filter((player) => player.primary_position === position)
       .sort((left, right) => getOverall(right) - getOverall(left));
+    const startsWithA = rng() >= 0.5;
 
     candidates.forEach((player, index) => {
-      const team = index % 2 === 0 ? bucketsA : bucketsB;
+      const team = (index % 2 === 0) === startsWithA ? bucketsA : bucketsB;
       const fallbackTeam = team === bucketsA ? bucketsB : bucketsA;
 
       if (team[position].length < slots[position]) {
