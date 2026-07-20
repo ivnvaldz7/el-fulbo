@@ -14,7 +14,7 @@ import { PageHeader } from '@/components/ui/page-header';
 
 function canOpenCheckIn(event: Event) {
   const hoursToEvent = (new Date(event.scheduled_at).getTime() - Date.now()) / 36e5;
-  return ['scheduled', 'confirming', 'checked_in'].includes(event.status) && hoursToEvent <= 4;
+  return ['scheduled', 'confirming', 'checked_in', 'drawn'].includes(event.status) && hoursToEvent <= 4;
 }
 
 export default function EventCheckInPage() {
