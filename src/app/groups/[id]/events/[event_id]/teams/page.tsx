@@ -73,16 +73,31 @@ export default function EventTeamsPage() {
           ))}
         </div>
 
-        <button
-          type="button"
-          onClick={() => router.push(`/groups/${groupId}/events/${eventId}`)}
-          className="border border-white/10 bg-white/[0.06] px-4 py-3 font-headline text-lg font-black italic uppercase"
-        >
-          Volver al evento
-        </button>
+        <div className="grid gap-3 md:grid-cols-3">
+          <button
+            type="button"
+            onClick={() => router.push(`/groups/${groupId}/events/${eventId}`)}
+            className="border border-white/10 bg-white/[0.06] px-4 py-3 font-headline text-lg font-black italic uppercase"
+          >
+            Volver al evento
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push(`/groups/${groupId}/events/${eventId}/check-in`)}
+            className="border border-white/10 bg-white/[0.06] px-4 py-3 font-headline text-lg font-black italic uppercase"
+          >
+            Ajustar check-in
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push(`/groups/${groupId}/events/${eventId}/draw`)}
+            className="bg-pitch-green px-4 py-3 font-headline text-lg font-black italic uppercase text-black"
+          >
+            Re-sortear
+          </button>
+        </div>
         </div>
       </PageContent>
     </ImmersiveScreen>
   );
 }
-
