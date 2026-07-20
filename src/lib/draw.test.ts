@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { PlayerForDraw } from '@/lib/types';
+import type { DrawResult, PlayerForDraw } from '@/lib/types';
 import { drawTeams } from '@/lib/draw';
 
 function makePlayer(
@@ -18,6 +18,18 @@ function makePlayer(
     is_phantom: false,
     joined_at: `2026-01-${String(Math.min(Number(id.replace(/\D/g, '')) || 1, 28)).padStart(2, '0')}T10:00:00Z`,
   };
+}
+
+function fieldStats(value: number): PlayerForDraw['stats'] {
+  return { pac: value, sho: value, pas: value, dri: value, def: value, phy: value };
+}
+
+function teamMembership(result: DrawResult) {
+  return Object.fromEntries(
+    result.assignments
+      .filter((assignment) => assignment.team === 'A' || assignment.team === 'B')
+      .map((assignment) => [assignment.playerId, assignment.team]),
+  );
 }
 
 describe('drawTeams', () => {
@@ -44,6 +56,29 @@ describe('drawTeams', () => {
     const second = drawTeams({ modality: 'F5', players, seed: 'seed-1' });
 
     expect(second).toEqual(first);
+  });
+
+  it('can change team membership across different redraw seeds', () => {
+    const players: PlayerForDraw[] = [
+      makePlayer('p1', 'ARQ', goalkeeper),
+      makePlayer('p2', 'ARQ', goalkeeper),
+      makePlayer('p3', 'DEF', fieldStats(9)),
+      makePlayer('p4', 'DEF', fieldStats(5)),
+      makePlayer('p5', 'MED', fieldStats(10)),
+      makePlayer('p6', 'MED', fieldStats(8)),
+      makePlayer('p7', 'MED', fieldStats(6)),
+      makePlayer('p8', 'MED', fieldStats(4)),
+      makePlayer('p9', 'DEL', fieldStats(9)),
+      makePlayer('p10', 'DEL', fieldStats(5)),
+    ];
+
+    const first = drawTeams({ modality: 'F5', players, seed: 'redraw-0' });
+    const firstMembership = teamMembership(first);
+    const changedMembership = Array.from({ length: 20 }, (_, index) =>
+      drawTeams({ modality: 'F5', players, seed: `redraw-${index + 1}` }),
+    ).some((result) => JSON.stringify(teamMembership(result)) !== JSON.stringify(firstMembership));
+
+    expect(changedMembership).toBe(true);
   });
 
   it('marks missing goalkeepers with warnings and still produces teams', () => {
@@ -83,7 +118,7 @@ describe('drawTeams', () => {
     const teamB = result.assignments.filter(a => a.team === 'B');
     expect(teamA).toHaveLength(7);
     expect(teamB).toHaveLength(7);
-    expect(result.warnings).toHaveLength(0); // Perfect distribution
+    expect(result.warnings).toHaveLength(0);
   });
 
   it('balances extreme rating differences successfully', () => {
@@ -102,7 +137,6 @@ describe('drawTeams', () => {
 
     const result = drawTeams({ modality: 'F5', players, seed: 'seed-4' });
 
-    // The rating difference should be minimal, ideally <= 1.0 or similar
     expect(result.ratingDiff).toBeLessThanOrEqual(2.0);
   });
 
@@ -111,7 +145,7 @@ describe('drawTeams', () => {
       makePlayer('p1', 'ARQ', goalkeeper),
       makePlayer('p2', 'DEF', baseField),
       makePlayer('p3', 'MED', baseField),
-    ]; // Only 3 players
+    ];
 
     const result = drawTeams({ modality: 'F5', players, seed: 'seed-5' });
 
@@ -128,7 +162,7 @@ describe('drawTeams', () => {
       makePlayer('p1', 'ARQ', goalkeeper),
       makePlayer('p2', 'ARQ', goalkeeper),
       ...Array.from({ length: 9 }, (_, i) => makePlayer(`f${i}`, 'MED', baseField)),
-    ]; // 11 players
+    ];
 
     const result = drawTeams({ modality: 'F5', players, seed: 'seed-6' });
 
