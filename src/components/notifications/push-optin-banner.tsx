@@ -26,7 +26,10 @@ export function PushOptinBanner({ variant = 'match' }: Props) {
   const { permission, isSubscribed, isLoading, subscribe } = usePushSubscription();
   const [dismissed, setDismissed] = useState(false);
 
+  const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
+    setIsMounted(true);
     try {
       const ts = localStorage.getItem(DISMISSED_KEY);
       if (ts) {
@@ -37,7 +40,7 @@ export function PushOptinBanner({ variant = 'match' }: Props) {
     }
   }, []);
 
-  if (permission === 'unsupported' || permission === 'granted' || isSubscribed || dismissed) {
+  if (!isMounted || permission === 'unsupported' || permission === 'granted' || isSubscribed || dismissed) {
     return null;
   }
 

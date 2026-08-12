@@ -6,7 +6,7 @@ export function TeamsHub({ teams }: { teams: TeamHubItem[] }) {
   return (
     <section className="mx-auto w-full max-w-4xl px-4 py-10">
       <header className="mb-8">
-        <p className="font-mono text-[10px] font-black uppercase tracking-[0.25em] text-pitch-green">Roster fijo</p>
+        <p className="font-mono text-[10px] font-black uppercase tracking-[0.25em] text-pitch-green">Members, Matches & Stats</p>
         <h1 className="mt-3 font-headline text-5xl font-black italic uppercase leading-none text-white">Equipos</h1>
         <p className="mt-3 max-w-[520px] text-sm font-semibold leading-6 text-white/60">
           Entrá a tus equipos, revisá miembros, partidos, stats aprobadas y la card pública.
@@ -53,7 +53,7 @@ export function TeamsHub({ teams }: { teams: TeamHubItem[] }) {
         <div className="rounded-[2rem] border border-dashed border-white/15 bg-white/5 p-8 text-center">
           <h2 className="font-headline text-2xl font-black italic uppercase text-white">Todavía no tenés equipos</h2>
           <p className="mx-auto mt-3 max-w-[360px] text-sm font-semibold leading-6 text-white/55">
-            Pedile a un admin una invitación. Los equipos son roster fijo y no se mezclan con tus grupos.
+            Pedile a un admin una invitación. Acá vas a poder gestionar tu participación, ver partidos, stats y logros oficiales.
           </p>
           <Link
             href={routes.home}

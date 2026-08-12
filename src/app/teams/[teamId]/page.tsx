@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { notFound, redirect, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -244,6 +246,13 @@ export default function TeamDetailPage() {
     <ImmersiveScreen contentClassName="w-full">
       <div className="mx-auto w-full max-w-5xl px-4 py-10">
         <header className="mb-8 rounded-[2rem] bg-white/7 p-6 ring-1 ring-white/10">
+          <Link
+            href="/teams"
+            className="group mb-4 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 transition-colors hover:text-white"
+          >
+            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+            Volver a Equipos
+          </Link>
           <p className="font-mono text-[10px] font-black uppercase tracking-[0.25em] text-pitch-green">Equipo</p>
           <h1 className="mt-3 font-headline text-5xl font-black italic uppercase leading-none text-white">{team.name}</h1>
           <p className="mt-3 text-sm font-semibold text-white/55">{team.memberCount} miembros · {team.matchesPlayed} partidos con stats aprobadas</p>
