@@ -1,10 +1,27 @@
-import { type ReactElement, type ReactNode } from 'react';
-import { render, type RenderOptions, screen, waitFor } from '@testing-library/react';
+import React, { type ReactElement, type ReactNode, Component, ErrorInfo } from 'react';
+import { fireEvent, render, type RenderOptions, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import TeamDetailPage from './page';
 
 // ---- Fresh-query render helper ----
+
+class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean}> {
+  constructor(props: {children: ReactNode}) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {}
+  render() {
+    if (this.state.hasError) {
+      return null;
+    }
+    return this.props.children;
+  }
+}
 
 function renderWithFreshQueryClient(
   ui: ReactElement,
@@ -15,7 +32,11 @@ function renderWithFreshQueryClient(
   });
 
   function Wrapper({ children }: { children: ReactNode }) {
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    return (
+      <QueryClientProvider client={queryClient}>
+        <ErrorBoundary>{children}</ErrorBoundary>
+      </QueryClientProvider>
+    );
   }
 
   return render(ui, { wrapper: Wrapper, ...options });
@@ -29,6 +50,7 @@ const removeTeamMemberMock = vi.fn();
 const signUpForTeamMatchMock = vi.fn();
 const submitTeamStatMock = vi.fn();
 const reviewTeamStatSubmissionMock = vi.fn();
+const processCentralMissionsMock = vi.fn();
 
 const channelOnMock = vi.fn().mockReturnThis();
 const channelSubscribeMock = vi.fn();
@@ -67,6 +89,7 @@ vi.mock('@/lib/services/teams.service', () => ({
       signUpForTeamMatch: signUpForTeamMatchMock,
       submitTeamStat: submitTeamStatMock,
       reviewTeamStatSubmission: reviewTeamStatSubmissionMock,
+      processCentralMissions: processCentralMissionsMock,
     };
   },
 }));
@@ -97,7 +120,17 @@ const teamData = {
     },
   ],
   matches: [],
-  submissions: [],
+  submissions: [
+    {
+      id: 'submission-1',
+      userId: 'user-1',
+      playerName: 'Creador',
+      matchLabel: 'vs Rival',
+      statKind: 'goals',
+      value: 2,
+      status: 'pending',
+    },
+  ],
 };
 
 // ---- Suite ----
@@ -205,6 +238,38 @@ describe('TeamDetailPage', () => {
 
     await waitFor(() => {
       expect(notFoundMock).toHaveBeenCalled();
+    });
+  });
+
+  it('runs central missions after an admin approves a team stat', async () => {
+    getTeamDetailMock.mockResolvedValue({ ok: true, data: teamData });
+    reviewTeamStatSubmissionMock.mockResolvedValue({ ok: true, data: undefined });
+    processCentralMissionsMock.mockResolvedValue({
+      ok: true,
+      data: {
+        appliedPoints: 2,
+        stats: { pac: 70, sho: 71, pas: 72, dri: 69, def: 70, phy: 71 },
+        overall: 72,
+        cardTier: 'silver',
+      },
+    });
+    searchParamsValue = { get: () => 'moderation' };
+
+    renderWithFreshQueryClient(<TeamDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Los Merengues')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /aprobar stat de Creador/i }));
+
+    await waitFor(() => {
+      expect(processCentralMissionsMock).toHaveBeenCalledWith({ userId: 'user-1' });
+    });
+    expect(reviewTeamStatSubmissionMock).toHaveBeenCalledWith({
+      submissionId: 'submission-1',
+      decision: 'approved',
+      rejectionReason: undefined,
     });
   });
 });

@@ -219,15 +219,15 @@ export default function TeamDetailPage() {
       if (!result.ok) throw new Error(result.error.message);
       toast.success(status === 'approved' ? 'Stat aprobada' : 'Stat rechazada');
 
-      // Trigger progression when a stat is approved
+      // Missions run automatically after each approved stat; rewards are idempotent
       if (status === 'approved') {
         const submission = team.submissions.find((s) => s.id === submissionId);
         if (submission?.userId) {
-          const progResult = await service.processTeamPlayerProgression({ userId: submission.userId });
-          if (progResult.ok) {
+          const missionResult = await service.processCentralMissions({ userId: submission.userId });
+          if (missionResult.ok && missionResult.data.appliedPoints > 0) {
             const tierLabels = { bronze: 'bronce', silver: 'plata', gold: 'oro', premium_gold: 'oro premium' };
             toast.success(
-              `¡${submission.playerName} mejoró su carta! (${tierLabels[progResult.data.cardTier]})`,
+              `¡${submission.playerName} ganó ${missionResult.data.appliedPoints} pts de misión! (${tierLabels[missionResult.data.cardTier]})`,
               { duration: 4000 },
             );
           }
