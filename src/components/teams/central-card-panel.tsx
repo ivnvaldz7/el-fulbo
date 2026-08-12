@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { FieldStats, GoalkeeperStats } from '@/lib/types';
 import type { TeamCardTier, TeamCentralCardView } from '@/lib/types/teams.types';
 
@@ -119,10 +120,18 @@ export function CentralCardPanel({ view }: { view: TeamCentralCardView | null })
             </dl>
           </div>
 
-          <p className="rounded-[1.35rem] bg-black/45 px-5 py-4 text-xs font-semibold leading-5 text-white/45 ring-1 ring-white/10">
-            Cada 5 MVPs oficiales sumás +2 a tus aptitudes y cada hito de goles, asistencias o tackles otorga +1. Solo
-            cuentan partidos jugados con stat aprobada y presencia confirmada.
-          </p>
+          <div className="flex flex-col gap-3">
+            <p className="rounded-[1.35rem] bg-black/45 px-5 py-4 text-xs font-semibold leading-5 text-white/45 ring-1 ring-white/10">
+              Cada 5 MVPs oficiales sumás +2 a tus aptitudes y cada hito de goles, asistencias o tackles otorga +1. Solo
+              cuentan partidos jugados con stat aprobada y presencia confirmada.
+            </p>
+            <Link 
+              href="/rewards"
+              className="btn-interactive flex h-12 w-full items-center justify-center rounded-[1.35rem] bg-pitch-green font-headline text-sm font-black uppercase text-black hover:scale-[1.02]"
+            >
+              Ver Recompensas y Misiones
+            </Link>
+          </div>
         </div>
       </div>
     </section>

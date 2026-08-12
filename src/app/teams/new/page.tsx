@@ -14,6 +14,20 @@ export default async function NewTeamPage() {
     redirect('/login');
   }
 
+  // Check if user has a base card
+  const { data: baseCard } = await supabase
+    .from('players')
+    .select('id')
+    .eq('user_id', user.id)
+    .is('archived_at', null)
+    .order('joined_at', { ascending: true })
+    .limit(1)
+    .single();
+
+  if (!baseCard) {
+    redirect('/onboarding-global');
+  }
+
   return (
     <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] lg:max-w-[480px]">
       <FloatingPanel className="border-2 border-white/10">

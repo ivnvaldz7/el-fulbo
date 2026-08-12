@@ -1,7 +1,9 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { JoinForm } from './join-form';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { FloatingPanel } from '@/components/ui/floating-panel';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export default async function JoinPage(props: {
   searchParams?: Promise<{ error?: string }>;
@@ -11,6 +13,26 @@ export default async function JoinPage(props: {
     searchParams?.error === 'invalid'
       ? 'No encontramos ese código. Revisá el link o pedile uno nuevo a quien organiza.'
       : null;
+
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  const { data: baseCard } = await supabase
+    .from('players')
+    .select('id')
+    .eq('user_id', user.id)
+    .is('archived_at', null)
+    .order('joined_at', { ascending: true })
+    .limit(1)
+    .single();
+
+  if (!baseCard) {
+    redirect('/onboarding-global');
+  }
 
   return (
     <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] lg:max-w-[480px]">
