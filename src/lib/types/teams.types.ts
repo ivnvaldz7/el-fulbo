@@ -84,6 +84,14 @@ export interface TeamMatchView {
   opponentScore?: number | null;
   mvpUserId: string | null;
   mvpUserName: string | null;
+  hasVotedForMvp?: boolean;
+}
+
+export interface TeamMatchMvpVote {
+  matchId: TeamMatchId;
+  voterId: UserId;
+  votedPlayerId: UserId;
+  createdAt: string;
 }
 
 export interface TeamSubmissionView {

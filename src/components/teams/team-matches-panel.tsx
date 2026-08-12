@@ -14,13 +14,15 @@ interface TeamMatchesPanelProps {
   onSignup?: (payload: { teamId: TeamId; matchId: TeamMatchId; status: TeamMatchSignupStatus }) => void;
   onSubmitStat?: (payload: { teamId: TeamId; matchId: TeamMatchId; statKind: TeamStatKind; value: number }) => void;
   onSetMvp?: (payload: { teamId: TeamId; matchId: TeamMatchId; mvpUserId: string | null }) => void;
+  onVoteMvp?: (payload: { teamId: TeamId; matchId: TeamMatchId; votedPlayerId: string }) => void;
+  onResolveMvp?: (payload: { teamId: TeamId; matchId: TeamMatchId }) => void;
 }
 
 function getMatchLabel(match: TeamMatchView) {
   return match.opponentName ?? 'Partido cerrado';
 }
 
-export function TeamMatchesPanel({ teamId, matches, members, onSignup, onSubmitStat, onSetMvp }: TeamMatchesPanelProps) {
+export function TeamMatchesPanel({ teamId, matches, members, onSignup, onSubmitStat, onSetMvp, onVoteMvp, onResolveMvp }: TeamMatchesPanelProps) {
   const [mvpSelectId, setMvpSelectId] = useState<TeamMatchId | null>(null);
 
   function submitStat(event: FormEvent<HTMLFormElement>, matchId: TeamMatchId) {
@@ -85,14 +87,54 @@ export function TeamMatchesPanel({ teamId, matches, members, onSignup, onSubmitS
                 ) : null}
 
                 {onSetMvp && mvpSelectId !== match.id ? (
-                  <div className="mt-4">
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
                     <button
                       type="button"
                       className="rounded-full border border-white/15 px-4 py-2 font-mono text-[10px] font-black uppercase tracking-[0.18em] text-white/70"
                       onClick={() => setMvpSelectId(match.id)}
                     >
-                      {match.mvpUserName ? 'Cambiar MVP' : 'Elegir MVP'} de {getMatchLabel(match)}
+                      {match.mvpUserName ? 'Cambiar MVP' : 'Elegir MVP manual'}
                     </button>
+                    {!match.mvpUserName && onResolveMvp ? (
+                      <button
+                        type="button"
+                        className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-4 py-2 font-mono text-[10px] font-black uppercase tracking-[0.18em] text-yellow-500"
+                        onClick={() => onResolveMvp({ teamId, matchId: match.id })}
+                      >
+                        Resolver MVP (Votos)
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {!match.mvpUserName && !match.hasVotedForMvp && onVoteMvp ? (
+                  <div className="mt-4 space-y-3 rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+                    <label className="grid gap-1">
+                      <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
+                        Votar por el MVP:
+                      </span>
+                      <select
+                        className="w-full rounded-xl bg-black/60 px-3 py-2 text-sm text-white ring-1 ring-white/10 focus:outline-none"
+                        defaultValue=""
+                        onChange={(e) => {
+                          if (!e.target.value) return;
+                          onVoteMvp({ teamId, matchId: match.id, votedPlayerId: e.target.value });
+                        }}
+                      >
+                        <option value="">— Elegir compañero —</option>
+                        {(members ?? []).map((m) => (
+                          <option key={m.userId} value={m.userId}>{m.displayName}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                ) : null}
+
+                {!match.mvpUserName && match.hasVotedForMvp ? (
+                  <div className="mt-4 rounded-[1.35rem] bg-white/5 p-3 ring-1 ring-white/10">
+                    <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-white/60">
+                      Ya votaste al MVP
+                    </span>
                   </div>
                 ) : null}
 

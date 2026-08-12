@@ -353,4 +353,58 @@ describe('teams service validation and orchestration', () => {
     expect(result).toMatchObject({ ok: true, data: { role: 'member', submissions: [] } });
     expect(calls.some((call) => call.table === 'team_stat_submissions')).toBe(false);
   });
+
+  it('calls the rpc for voteForTeamMatchMvp', async () => {
+    const supabase = createRpcSupabase({ data: null });
+    const service = new TeamsService(supabase);
+
+    const result = await service.voteForTeamMatchMvp({
+      teamId: '00000000-0000-0000-0000-000000000000',
+      matchId: '11111111-1111-1111-1111-111111111111',
+      votedPlayerId: '22222222-2222-2222-2222-222222222222',
+    });
+
+    expect(result).toEqual({ ok: true, data: undefined });
+    expect(supabase.rpc).toHaveBeenCalledWith('vote_for_team_match_mvp', {
+      p_team_id: '00000000-0000-0000-0000-000000000000',
+      p_match_id: '11111111-1111-1111-1111-111111111111',
+      p_voted_player_id: '22222222-2222-2222-2222-222222222222',
+    });
+  });
+
+  it('resolves mvp by fetching votes, calculating max, and calling set_team_match_mvp', async () => {
+    const { supabase, calls } = createQuerySupabase({
+      handler: (table) => {
+        if (table === 'team_match_mvp_votes') {
+          return {
+            data: [
+              { voted_player_id: '22222222-2222-2222-2222-222222222222' },
+              { voted_player_id: '33333333-3333-3333-3333-333333333333' },
+              { voted_player_id: '22222222-2222-2222-2222-222222222222' },
+            ],
+            error: null,
+          };
+        }
+        return { data: [], error: null };
+      },
+    });
+
+    // Mock rpc so it doesn't fail when setting MVP
+    (supabase as any).rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+
+    const service = new TeamsService(supabase);
+    const result = await service.resolveTeamMatchMvp({
+      teamId: '00000000-0000-0000-0000-000000000000',
+      matchId: '11111111-1111-1111-1111-111111111111',
+    });
+
+    expect(result).toEqual({ ok: true, data: undefined });
+    expect(calls.some((c) => c.table === 'team_match_mvp_votes')).toBe(true);
+    // Player 22...22 got 2 votes, 33...33 got 1 vote
+    expect((supabase as any).rpc).toHaveBeenCalledWith('set_team_match_mvp', {
+      p_team_id: '00000000-0000-0000-0000-000000000000',
+      p_match_id: '11111111-1111-1111-1111-111111111111',
+      p_mvp_user_id: '22222222-2222-2222-2222-222222222222',
+    });
+  });
 });

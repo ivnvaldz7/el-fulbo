@@ -187,6 +187,28 @@ export default function TeamDetailPage() {
     }
   }
 
+  async function handleVoteMvp(matchId: string, votedPlayerId: string) {
+    try {
+      const result = await service.voteForTeamMatchMvp({ teamId, matchId, votedPlayerId });
+      if (!result.ok) throw new Error(result.error.message);
+      toast.success('¡Voto registrado!');
+      void queryClient.invalidateQueries({ queryKey: ['team', teamId] });
+    } catch (err: any) {
+      toast.error(err.message ?? 'No pudimos registrar tu voto');
+    }
+  }
+
+  async function handleResolveMvp(matchId: string) {
+    try {
+      const result = await service.resolveTeamMatchMvp({ teamId, matchId });
+      if (!result.ok) throw new Error(result.error.message);
+      toast.success('MVP resuelto');
+      void queryClient.invalidateQueries({ queryKey: ['team', teamId] });
+    } catch (err: any) {
+      toast.error(err.message ?? 'No pudimos resolver el MVP');
+    }
+  }
+
   async function handleReviewSubmission(
     submissionId: string,
     status: Extract<TeamSubmissionStatus, 'approved' | 'rejected'>,
@@ -247,6 +269,8 @@ export default function TeamDetailPage() {
               onSignup={({ matchId, status }) => handleSignup(matchId, status)}
               onSubmitStat={({ matchId, statKind, value }) => handleSubmitStat(matchId, statKind, value)}
               onSetMvp={canManage ? ({ matchId, mvpUserId }) => handleSetMvp(matchId, mvpUserId) : undefined}
+              onVoteMvp={({ matchId, votedPlayerId }) => handleVoteMvp(matchId, votedPlayerId)}
+              onResolveMvp={canManage ? ({ matchId }) => handleResolveMvp(matchId) : undefined}
             />
           ) : null}
           {activeTab === 'stats' ? <TeamStatsPanel totals={team} /> : null}

@@ -12,6 +12,8 @@ import {
   signUpForTeamMatchSchema,
   submitTeamStatSchema,
   teamMemberSchema,
+  voteForTeamMatchMvpSchema,
+  resolveTeamMatchMvpSchema,
   type CreateTeamData,
   type CreateTeamInvitationData,
   type CreateTeamMatchData,
@@ -22,6 +24,8 @@ import {
   type SignUpForTeamMatchData,
   type SubmitTeamStatData,
   type TeamMemberData,
+  type VoteForTeamMatchMvpData,
+  type ResolveTeamMatchMvpData,
 } from '@/lib/validations/teams';
 import { calculateOverall } from '@/lib/types';
 import { mapSupabaseError, validationError } from './errors';
@@ -297,6 +301,65 @@ export class TeamsService {
     return { ok: true, data: undefined };
   }
 
+  async voteForTeamMatchMvp(input: VoteForTeamMatchMvpData): Promise<Result<void>> {
+    const parsed = voteForTeamMatchMvpSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, error: validationError(parsed.error.flatten()) };
+    }
+
+    const { error } = await this.supabase.rpc('vote_for_team_match_mvp', {
+      p_team_id: parsed.data.teamId,
+      p_match_id: parsed.data.matchId,
+      p_voted_player_id: parsed.data.votedPlayerId,
+    });
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    return { ok: true, data: undefined };
+  }
+
+  async resolveTeamMatchMvp(input: ResolveTeamMatchMvpData): Promise<Result<void>> {
+    const parsed = resolveTeamMatchMvpSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, error: validationError(parsed.error.flatten()) };
+    }
+
+    const { data: votes, error } = await this.supabase
+      .from('team_match_mvp_votes')
+      .select('voted_player_id')
+      .eq('match_id', parsed.data.matchId);
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    if (!votes || votes.length === 0) {
+      return { ok: true, data: undefined };
+    }
+
+    const counts = new Map<string, number>();
+    for (const v of votes) {
+      const id = String(v.voted_player_id);
+      counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+    
+    let mvpId: string | null = null;
+    let max = 0;
+    for (const [id, count] of counts.entries()) {
+      if (count > max) {
+        max = count;
+        mvpId = id;
+      }
+    }
+
+    if (mvpId) {
+      return this.setTeamMatchMvp({ teamId: parsed.data.teamId, matchId: parsed.data.matchId, mvpUserId: mvpId });
+    }
+    return { ok: true, data: undefined };
+  }
+
   async processTeamPlayerProgression(input: ProcessTeamPlayerProgressionData): Promise<Result<TeamProgressionResult>> {
     const parsed = processTeamPlayerProgressionSchema.safeParse(input);
     if (!parsed.success) {
@@ -478,7 +541,7 @@ export class TeamsService {
         .order('joined_at', { ascending: true }),
       this.supabase
         .from('team_matches')
-        .select('id,scheduled_at,opponent_name,field_name,status,team_score,opponent_score,mvp_user_id,team_match_signups(id)')
+        .select('id,scheduled_at,opponent_name,field_name,status,team_score,opponent_score,mvp_user_id,team_match_signups(id),team_match_mvp_votes(voter_id)')
         .eq('team_id', teamId)
         .order('scheduled_at', { ascending: false })
         .limit(20),
@@ -533,6 +596,7 @@ export class TeamsService {
       opponentScore: row.opponent_score ?? null,
       mvpUserId: row.mvp_user_id ?? null,
       mvpUserName: row.mvp_user_id ? (membersByUserId.get(row.mvp_user_id) ?? null) : null,
+      hasVotedForMvp: Array.isArray(row.team_match_mvp_votes) ? row.team_match_mvp_votes.some((v: any) => v.voter_id === user?.id) : false,
     }));
 
     const submissions: TeamSubmissionView[] = (submissionsResult.data ?? []).map((row: any) => ({

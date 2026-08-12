@@ -89,3 +89,17 @@ export const setTeamMatchMvpSchema = z.object({
 
 export type ProcessTeamPlayerProgressionData = z.infer<typeof processTeamPlayerProgressionSchema>;
 export type SetTeamMatchMvpData = z.infer<typeof setTeamMatchMvpSchema>;
+
+export const voteForTeamMatchMvpSchema = z.object({
+  teamId: uuidSchema,
+  matchId: uuidSchema,
+  votedPlayerId: uuidSchema,
+});
+
+export const resolveTeamMatchMvpSchema = z.object({
+  teamId: uuidSchema,
+  matchId: uuidSchema,
+});
+
+export type VoteForTeamMatchMvpData = z.infer<typeof voteForTeamMatchMvpSchema>;
+export type ResolveTeamMatchMvpData = z.infer<typeof resolveTeamMatchMvpSchema>;
