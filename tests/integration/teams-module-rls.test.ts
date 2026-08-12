@@ -883,4 +883,256 @@ describe('teams module persistence and RLS', () => {
       { id: rejected.rows[0]!.id, status: 'rejected', reviewed_by_user_id: otherAdmin.id },
     ]);
   });
+
+  it('allows players to create and edit only their own team card while unlocked', async () => {
+    const cardOwner = await seedUser(client, 'team-card-owner-rls');
+    const otherPlayer = await seedUser(client, 'team-card-other-rls');
+    const outsider = await seedUser(client, 'team-card-outsider-rls');
+
+    const created = await asUser(client, cardOwner.id, () =>
+      client.query<{ user_id: string }>(
+        `
+          insert into public.team_cards (user_id, stats, primary_position, secondary_position)
+          values (
+            $1,
+            '{"pac":60,"sho":65,"pas":62,"dri":70,"def":55,"phy":58}'::jsonb,
+            'DEL',
+            'MED'
+          )
+          returning user_id
+        `,
+        [cardOwner.id],
+      ),
+    );
+
+    const otherEdit = await asUser(client, otherPlayer.id, () =>
+      client.query(
+        `
+          update public.team_cards
+          set stats = '{"pac":61,"sho":65,"pas":62,"dri":70,"def":55,"phy":58}'::jsonb
+          where user_id = $1
+        `,
+        [cardOwner.id],
+      ),
+    );
+
+    const outsiderView = await asUser(client, outsider.id, () =>
+      client.query(`select user_id from public.team_cards where user_id = $1`, [cardOwner.id]),
+    );
+    const ownEdit = await asUser(client, cardOwner.id, () =>
+      client.query<{ stats: Record<string, number> }>(
+        `
+          update public.team_cards
+          set stats = '{"pac":72,"sho":65,"pas":62,"dri":70,"def":55,"phy":58}'::jsonb
+          where user_id = $1
+          returning stats
+        `,
+        [cardOwner.id],
+      ),
+    );
+
+    expect(created.rows[0]).toMatchObject({ user_id: cardOwner.id });
+    expect(otherEdit.rowCount).toBe(0);
+    expect(outsiderView.rowCount).toBe(0);
+    expect(ownEdit.rows[0]).toMatchObject({ stats: { pac: 72, sho: 65, pas: 62, dri: 70, def: 55, phy: 58 } });
+  });
+
+  it('locks card positions once approved in a team while keeping stats mutable for missions', async () => {
+    const cardOwner = await seedUser(client, 'team-card-lock-rls');
+
+    await asUser(client, cardOwner.id, () =>
+      client.query(
+        `
+          insert into public.team_cards (user_id, stats, primary_position, secondary_position)
+          values (
+            $1,
+            '{"pac":60,"sho":65,"pas":62,"dri":70,"def":55,"phy":58}'::jsonb,
+            'DEL',
+            'MED'
+          )
+        `,
+        [cardOwner.id],
+      ),
+    );
+    await asUser(client, cardOwner.id, () =>
+      client.query(`update public.team_cards set positions_locked_at = now() where user_id = $1`, [cardOwner.id]),
+    );
+
+    await expect(
+      asUser(client, cardOwner.id, () =>
+        client.query(
+          `
+            update public.team_cards
+            set primary_position = 'MED'
+            where user_id = $1
+          `,
+          [cardOwner.id],
+        ),
+      ),
+    ).rejects.toThrow(/TEAM_CARD_POSITIONS_LOCKED/);
+
+    const statsEdit = await asUser(client, cardOwner.id, () =>
+      client.query<{ stats: Record<string, number> }>(
+        `
+          update public.team_cards
+          set stats = '{"pac":61,"sho":65,"pas":62,"dri":70,"def":55,"phy":58}'::jsonb
+          where user_id = $1
+          returning stats
+        `,
+        [cardOwner.id],
+      ),
+    );
+
+    expect(statsEdit.rows[0]).toMatchObject({ stats: { pac: 61, sho: 65, pas: 62, dri: 70, def: 55, phy: 58 } });
+  });
+
+  it('restricts snapshot review to each team admin and keeps team approvals isolated', async () => {
+    const adminA = await seedUser(client, 'team-admin-snap-a');
+    const adminB = await seedUser(client, 'team-admin-snap-b');
+    const member = await seedUser(client, 'team-member-snap');
+    const player = await seedUser(client, 'team-player-snap');
+    const outsider = await seedUser(client, 'team-outsider-snap');
+
+    const teamA = await seedTeamAsUser(client, adminA.id, 'Snapshots A FC');
+    const teamB = await seedTeamAsUser(client, adminB.id, 'Snapshots B FC');
+
+    await asUser(client, player.id, () =>
+      client.query(
+        `
+          insert into public.team_cards (user_id, stats, primary_position, secondary_position)
+          values (
+            $1,
+            '{"pac":60,"sho":65,"pas":62,"dri":70,"def":55,"phy":58}'::jsonb,
+            'DEL',
+            'MED'
+          )
+        `,
+        [player.id],
+      ),
+    );
+    await addTeamMember(client, adminA.id, teamA, member.id, 'MED');
+    await addTeamMember(client, adminA.id, teamA, player.id, 'DEL');
+    await addTeamMember(client, adminB.id, teamB, player.id, 'DEL');
+
+    const snapshots = await client.query<{ team_id: string; status: string }>(
+      `
+        select team_id, status
+        from public.team_card_snapshots
+        where user_id = $1
+        order by team_id
+      `,
+      [player.id],
+    );
+    expect(snapshots.rows).toHaveLength(2);
+    expect(snapshots.rows.map((row) => row.status)).toEqual(['pending', 'pending']);
+
+    const memberUpdate = await asUser(client, member.id, () =>
+      client.query(
+        `
+          update public.team_card_snapshots
+          set status = 'approved'
+          where team_id = $1 and user_id = $2
+        `,
+        [teamA, player.id],
+      ),
+    );
+    const wrongAdminUpdate = await asUser(client, adminB.id, () =>
+      client.query(
+        `
+          update public.team_card_snapshots
+          set status = 'rejected', rejection_reason = 'wrong positions'
+          where team_id = $1 and user_id = $2
+        `,
+        [teamA, player.id],
+      ),
+    );
+    expect(memberUpdate.rowCount).toBe(0);
+    expect(wrongAdminUpdate.rowCount).toBe(0);
+
+    await asUser(client, adminA.id, () =>
+      client.query(
+        `
+          update public.team_card_snapshots
+          set status = 'approved'
+          where team_id = $1 and user_id = $2
+        `,
+        [teamA, player.id],
+      ),
+    );
+    await asUser(client, adminB.id, () =>
+      client.query(
+        `
+          update public.team_card_snapshots
+          set status = 'rejected', rejection_reason = 'needs work'
+          where team_id = $1 and user_id = $2
+        `,
+        [teamB, player.id],
+      ),
+    );
+
+    const after = await client.query<{ team_id: string; status: string; reviewed_by_user_id: string }>(
+      `
+        select team_id, status, reviewed_by_user_id
+        from public.team_card_snapshots
+        where user_id = $1
+        order by team_id
+      `,
+      [player.id],
+    );
+    const outsiderView = await asUser(client, outsider.id, () =>
+      client.query(`select team_id from public.team_card_snapshots where user_id = $1`, [player.id]),
+    );
+
+    expect(after.rows).toEqual(
+      snapshots.rows.map((row) =>
+        row.team_id === teamA
+          ? { team_id: teamA, status: 'approved', reviewed_by_user_id: adminA.id }
+          : { team_id: teamB, status: 'rejected', reviewed_by_user_id: adminB.id },
+      ),
+    );
+    expect(outsiderView.rowCount).toBe(0);
+  });
+
+  it('keeps local performance visible only to the team and not writable by members', async () => {
+    const admin = await seedUser(client, 'team-admin-perf-rls');
+    const member = await seedUser(client, 'team-member-perf-rls');
+    const outsider = await seedUser(client, 'team-outsider-perf-rls');
+    const teamId = await seedTeamAsUser(client, admin.id, 'Performance FC');
+
+    await addTeamMember(client, admin.id, teamId, member.id, 'DEL');
+
+    await client.query(
+      `
+        insert into public.team_local_performance (team_id, user_id, matches_played, goals, assists, tackles, mvps)
+        values ($1, $2, 5, 12, 3, 8, 2)
+      `,
+      [teamId, member.id],
+    );
+
+    const memberView = await asUser(client, member.id, () =>
+      client.query(`select goals from public.team_local_performance where team_id = $1 and user_id = $2`, [teamId, member.id]),
+    );
+    const outsiderView = await asUser(client, outsider.id, () =>
+      client.query(`select team_id from public.team_local_performance where team_id = $1`, [teamId]),
+    );
+
+    const memberUpdate = await asUser(client, member.id, () =>
+      client.query(`update public.team_local_performance set goals = 99 where team_id = $1 and user_id = $2`, [teamId, member.id]),
+    );
+    await expect(
+      asUser(client, member.id, () =>
+        client.query(
+          `
+            insert into public.team_local_performance (team_id, user_id, matches_played, goals)
+            values ($1, $2, 1, 1)
+          `,
+          [teamId, member.id],
+        ),
+      ),
+    ).rejects.toThrow(/violates row-level security|permission denied/i);
+
+    expect(memberUpdate.rowCount).toBe(0);
+    expect(memberView.rows[0]).toMatchObject({ goals: 12 });
+    expect(outsiderView.rowCount).toBe(0);
+  });
 });
