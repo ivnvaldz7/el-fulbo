@@ -44,7 +44,7 @@ create or replace function vote_for_team_match_mvp(
   p_voted_player_id uuid
 ) returns void
 language plpgsql
-security definer
+security invoker
 set search_path = public
 as $$
 declare
@@ -52,6 +52,13 @@ declare
 begin
   if v_voter_id is null then
     raise exception 'Not authenticated';
+  end if;
+
+  if not exists (
+    select 1 from team_matches tm
+    where tm.id = p_match_id and tm.team_id = p_team_id
+  ) then
+    raise exception 'Match does not belong to team';
   end if;
 
   insert into team_match_mvp_votes (match_id, voter_id, voted_player_id)
