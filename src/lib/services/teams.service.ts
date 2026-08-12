@@ -1,33 +1,39 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { FieldStats, GoalkeeperStats, PlayerPosition, Result } from '@/lib/types';
-import type { TeamCardTier, TeamProgressionResult, TeamStatKind, ProgressableStatKey, TeamDetailView, TeamHubItem, TeamMatchView, TeamRosterMemberView, TeamSubmissionView } from '@/lib/types/teams.types';
+import type { TeamCardTier, TeamCardSnapshotStatus, TeamCentralCardView, TeamCentralMissionsResult, TeamStatKind, ProgressableStatKey, TeamDetailView, TeamHubItem, TeamMatchView, TeamRosterMemberView, TeamSubmissionView } from '@/lib/types/teams.types';
 import {
   createTeamInvitationSchema,
   createTeamMatchSchema,
   createTeamSchema,
-  processTeamPlayerProgressionSchema,
+  grantTeamMeritSchema,
+  processTeamCentralMissionsSchema,
   removeTeamMemberSchema,
+  reviewTeamAdmissionSchema,
   reviewTeamStatSubmissionSchema,
   setTeamMatchMvpSchema,
   signUpForTeamMatchSchema,
   submitTeamStatSchema,
+  teamCardSchema,
   teamMemberSchema,
   voteForTeamMatchMvpSchema,
   resolveTeamMatchMvpSchema,
+  type CreateTeamCardData,
   type CreateTeamData,
   type CreateTeamInvitationData,
   type CreateTeamMatchData,
-  type ProcessTeamPlayerProgressionData,
+  type GrantTeamMeritData,
+  type ProcessTeamCentralMissionsData,
   type RemoveTeamMemberData,
+  type ReviewTeamAdmissionData,
   type ReviewTeamStatSubmissionData,
   type SetTeamMatchMvpData,
   type SignUpForTeamMatchData,
   type SubmitTeamStatData,
   type TeamMemberData,
+  type UpdateTeamCardData,
   type VoteForTeamMatchMvpData,
   type ResolveTeamMatchMvpData,
 } from '@/lib/validations/teams';
-import { calculateOverall } from '@/lib/types';
 import { mapSupabaseError, validationError } from './errors';
 
 const FIELD_PROGRESS: Record<PlayerPosition, ProgressableStatKey[]> = {
@@ -91,27 +97,9 @@ export function getCardTierByOverall(overall: number): TeamCardTier {
   return 'bronze';
 }
 
-export function applyTeamProgression(input: {
-  position: PlayerPosition;
-  stats: FieldStats | GoalkeeperStats;
-  amount?: number;
-}): TeamProgressionResult {
-  const amount = input.amount ?? 1;
-  const stats = { ...input.stats } as Record<ProgressableStatKey, number>;
-
-  for (const key of getProgressionStatKeys(input.position)) {
-    stats[key] = Math.min(99, (stats[key] ?? 0) + amount);
-  }
-
-  const progressed = stats as FieldStats | GoalkeeperStats;
-  const overall = calculateOverall(progressed, input.position);
-
-  return {
-    appliedRewards: amount,
-    stats: progressed,
-    overall,
-    cardTier: getCardTierByOverall(overall),
-  };
+export function calculateCardOverall(stats: FieldStats | GoalkeeperStats): number {
+  const values = Object.values(stats);
+  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
 }
 
 export class TeamsService {
@@ -329,14 +317,15 @@ export class TeamsService {
     const { data: votes, error } = await this.supabase
       .from('team_match_mvp_votes')
       .select('voted_player_id')
-      .eq('match_id', parsed.data.matchId);
+      .eq('match_id', parsed.data.matchId)
+      .order('created_at', { ascending: true });
 
     if (error) {
       return { ok: false, error: mapSupabaseError(error) };
     }
 
     if (!votes || votes.length === 0) {
-      return { ok: true, data: undefined };
+      return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'No hay votos registrados para este partido' } };
     }
 
     const counts = new Map<string, number>();
@@ -360,13 +349,122 @@ export class TeamsService {
     return { ok: true, data: undefined };
   }
 
-  async processTeamPlayerProgression(input: ProcessTeamPlayerProgressionData): Promise<Result<TeamProgressionResult>> {
-    const parsed = processTeamPlayerProgressionSchema.safeParse(input);
+  async createCard(input: CreateTeamCardData): Promise<Result<{ userId: string }>> {
+    const parsed = teamCardSchema.safeParse(input);
     if (!parsed.success) {
       return { ok: false, error: validationError(parsed.error.flatten()) };
     }
 
-    const { data, error } = await this.supabase.rpc('process_team_player_progression', {
+    const { data, error } = await this.supabase.rpc('create_team_card', {
+      p_stats: parsed.data.stats,
+      p_primary_position: parsed.data.primaryPosition,
+      p_secondary_position: parsed.data.secondaryPosition,
+    });
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    const row = firstRow(data);
+    return typeof row?.user_id === 'string'
+      ? { ok: true, data: { userId: row.user_id } }
+      : { ok: false, error: { code: 'INTERNAL_ERROR', message: 'Algo salio mal.' } };
+  }
+
+  async updateCard(input: UpdateTeamCardData): Promise<Result<{ userId: string }>> {
+    const parsed = teamCardSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, error: validationError(parsed.error.flatten()) };
+    }
+
+    const { data, error } = await this.supabase.rpc('update_team_card', {
+      p_stats: parsed.data.stats,
+      p_primary_position: parsed.data.primaryPosition,
+      p_secondary_position: parsed.data.secondaryPosition,
+    });
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    const row = firstRow(data);
+    return typeof row?.user_id === 'string'
+      ? { ok: true, data: { userId: row.user_id } }
+      : { ok: false, error: { code: 'INTERNAL_ERROR', message: 'Algo salio mal.' } };
+  }
+
+  async reviewAdmission(input: ReviewTeamAdmissionData): Promise<Result<{ teamId: string; userId: string; status: TeamCardSnapshotStatus }>> {
+    const parsed = reviewTeamAdmissionSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, error: validationError(parsed.error.flatten()) };
+    }
+
+    const { data, error } = await this.supabase.rpc('review_team_admission', {
+      p_team_id: parsed.data.teamId,
+      p_user_id: parsed.data.userId,
+      p_decision: parsed.data.decision,
+      p_rejection_reason: normalizeNullable(parsed.data.rejectionReason),
+    });
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    const row = firstRow(data);
+    if (!row?.team_id || !row?.user_id) {
+      return { ok: false, error: { code: 'INTERNAL_ERROR', message: 'Algo salio mal.' } };
+    }
+
+    return {
+      ok: true,
+      data: {
+        teamId: String(row.team_id),
+        userId: String(row.user_id),
+        status: row.status as TeamCardSnapshotStatus,
+      },
+    };
+  }
+
+  async grantMerit(input: GrantTeamMeritData): Promise<Result<{ grantId: string; stats: FieldStats | GoalkeeperStats; overall: number; cardTier: TeamCardTier }>> {
+    const parsed = grantTeamMeritSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, error: validationError(parsed.error.flatten()) };
+    }
+
+    const { data, error } = await this.supabase.rpc('grant_team_merit', {
+      p_team_id: parsed.data.teamId,
+      p_user_id: parsed.data.userId,
+      p_stat_keys: parsed.data.statKeys,
+      p_points_total: parsed.data.pointsTotal,
+    });
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    const row = firstRow(data);
+    if (!row?.grant_id) {
+      return { ok: false, error: { code: 'INTERNAL_ERROR', message: 'Algo salio mal.' } };
+    }
+
+    return {
+      ok: true,
+      data: {
+        grantId: String(row.grant_id),
+        stats: row.stats as FieldStats | GoalkeeperStats,
+        overall: Number(row.overall ?? 0),
+        cardTier: row.card_tier as TeamCardTier,
+      },
+    };
+  }
+
+  async processCentralMissions(input: ProcessTeamCentralMissionsData): Promise<Result<TeamCentralMissionsResult>> {
+    const parsed = processTeamCentralMissionsSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, error: validationError(parsed.error.flatten()) };
+    }
+
+    const { data, error } = await this.supabase.rpc('process_team_central_missions', {
       p_user_id: parsed.data.userId,
     });
 
@@ -382,10 +480,50 @@ export class TeamsService {
     return {
       ok: true,
       data: {
-        appliedRewards: Number(row.applied_rewards ?? 0),
+        appliedPoints: Number(row.applied_points ?? 0),
         stats: row.stats as FieldStats | GoalkeeperStats,
         overall: Number(row.overall ?? 0),
         cardTier: row.card_tier as TeamCardTier,
+      },
+    };
+  }
+
+  async getCentralCardPanel(userId: string): Promise<Result<TeamCentralCardView | null>> {
+    const { data, error } = await this.supabase
+      .from('team_central_card_aggregates')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    if (!data) {
+      return { ok: true, data: null };
+    }
+
+    const row = data as Record<string, unknown>;
+    const stats = row.stats as FieldStats | GoalkeeperStats;
+    const overall = calculateCardOverall(stats);
+
+    return {
+      ok: true,
+      data: {
+        userId: String(row.user_id),
+        stats,
+        primaryPosition: row.primary_position as PlayerPosition,
+        secondaryPosition: row.secondary_position as PlayerPosition,
+        matchesPlayed: Number(row.matches_played ?? 0),
+        goals: Number(row.goals ?? 0),
+        assists: Number(row.assists ?? 0),
+        tackles: Number(row.tackles ?? 0),
+        mvps: Number(row.mvps ?? 0),
+        trophies: Number(row.trophies ?? 0),
+        missions: Number(row.missions ?? 0),
+        missionPoints: Number(row.mission_points ?? 0),
+        overall,
+        cardTier: getCardTierByOverall(overall),
       },
     };
   }

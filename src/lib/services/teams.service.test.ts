@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { ProgressableStatKey } from '@/lib/types/teams.types';
 import {
   TeamsService,
-  applyTeamProgression,
+  calculateCardOverall,
   getCardTierByOverall,
   getProgressionStatKeys,
   getTeamStatKindForPosition,
@@ -131,49 +132,280 @@ describe('teams service validation and orchestration', () => {
     expect(getTeamStatKindForPosition('ARQ')).toBe('tackles');
   });
 
-  it('calls progression RPC with the existing base-card contract', async () => {
+  it('calls the central missions RPC with the central-missions contract', async () => {
     const userId = crypto.randomUUID();
     const supabase = createRpcSupabase({
-      data: [{ applied_rewards: 1, stats: { pas: 71, dri: 71, phy: 71 }, overall: 71, card_tier: 'silver' }],
+      data: [{ applied_points: 3, stats: { pas: 73, dri: 71, phy: 71 }, overall: 72, card_tier: 'silver' }],
     });
     const service = new TeamsService(supabase);
 
-    const result = await service.processTeamPlayerProgression({ userId });
+    const result = await service.processCentralMissions({ userId });
 
-    expect(supabase.rpc).toHaveBeenCalledWith('process_team_player_progression', {
+    expect(supabase.rpc).toHaveBeenCalledWith('process_team_central_missions', {
       p_user_id: userId,
     });
     expect(result).toEqual({
       ok: true,
       data: {
-        appliedRewards: 1,
-        stats: { pas: 71, dri: 71, phy: 71 },
-        overall: 71,
+        appliedPoints: 3,
+        stats: { pas: 73, dri: 71, phy: 71 },
+        overall: 72,
         cardTier: 'silver',
       },
     });
   });
 
-  it('allocates permanent progression by position, caps stats at 99 and derives visual tier', () => {
-    const forward = applyTeamProgression({
-      position: 'DEL',
-      stats: { pac: 98, sho: 99, pas: 80, dri: 80, def: 40, phy: 70 },
-      amount: 2,
-    });
-    const defender = applyTeamProgression({
-      position: 'DEF',
-      stats: { pac: 60, sho: 55, pas: 70, dri: 62, def: 98, phy: 98 },
-      amount: 1,
-    });
+  it('derives the card overall as a rounded simple mean and maps tiers', () => {
+    const overall = calculateCardOverall({ pac: 70, sho: 71, pas: 72, dri: 69, def: 70, phy: 71 });
 
+    expect(overall).toBe(71);
     expect(getProgressionStatKeys('DEL')).toEqual(['pac', 'sho', 'dri']);
-    expect(forward.stats).toMatchObject({ pac: 99, sho: 99, dri: 82 });
-    expect(forward.overall).toBeGreaterThanOrEqual(80);
-    expect(defender.stats).toMatchObject({ def: 99, phy: 99, pas: 71 });
+    expect(getProgressionStatKeys('ARQ')).toEqual(['div', 'ref', 'han']);
     expect(getCardTierByOverall(63)).toBe('bronze');
     expect(getCardTierByOverall(74)).toBe('silver');
     expect(getCardTierByOverall(84)).toBe('gold');
     expect(getCardTierByOverall(90)).toBe('premium_gold');
+  });
+
+  it('validates card input before create and update RPC calls', async () => {
+    const supabase = createRpcSupabase({ data: [{ user_id: 'user-1' }] });
+    const service = new TeamsService(supabase);
+
+    const fiveStats = await service.createCard({
+      stats: { pac: 70, sho: 71, pas: 72, dri: 69, def: 70 },
+      primaryPosition: 'DEL',
+      secondaryPosition: 'MED',
+    });
+    const outOfRange = await service.createCard({
+      stats: { pac: 54, sho: 71, pas: 72, dri: 69, def: 70, phy: 71 },
+      primaryPosition: 'DEL',
+      secondaryPosition: 'MED',
+    });
+    const samePositions = await service.updateCard({
+      stats: { pac: 70, sho: 71, pas: 72, dri: 69, def: 70, phy: 71 },
+      primaryPosition: 'DEL',
+      secondaryPosition: 'DEL',
+    });
+
+    expect(fiveStats).toMatchObject({ ok: false, error: { code: 'VALIDATION_ERROR' } });
+    expect(outOfRange).toMatchObject({ ok: false, error: { code: 'VALIDATION_ERROR' } });
+    expect(samePositions).toMatchObject({ ok: false, error: { code: 'VALIDATION_ERROR' } });
+    expect(supabase.rpc).not.toHaveBeenCalled();
+  });
+
+  it('calls create and update card RPCs with parsed input', async () => {
+    const supabase = createRpcSupabase({ data: [{ user_id: 'user-1' }] });
+    const service = new TeamsService(supabase);
+
+    const stats = { pac: 70, sho: 71, pas: 72, dri: 69, def: 70, phy: 71 };
+    const created = await service.createCard({ stats, primaryPosition: 'DEL', secondaryPosition: 'MED' });
+    const updated = await service.updateCard({ stats, primaryPosition: 'DEL', secondaryPosition: 'MED' });
+
+    expect(created).toEqual({ ok: true, data: { userId: 'user-1' } });
+    expect(updated).toEqual({ ok: true, data: { userId: 'user-1' } });
+    expect(supabase.rpc).toHaveBeenNthCalledWith(1, 'create_team_card', {
+      p_stats: stats,
+      p_primary_position: 'DEL',
+      p_secondary_position: 'MED',
+    });
+    expect(supabase.rpc).toHaveBeenNthCalledWith(2, 'update_team_card', {
+      p_stats: stats,
+      p_primary_position: 'DEL',
+      p_secondary_position: 'MED',
+    });
+  });
+
+  it('runs the full card flow without touching Groups players or legacy progression', async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: [{ user_id: 'user-1' }], error: null });
+    const from = vi.fn();
+    const supabase = { rpc, from } as unknown as SupabaseClient;
+    const service = new TeamsService(supabase);
+
+    const stats = { pac: 70, sho: 71, pas: 72, dri: 69, def: 70, phy: 71 };
+    await service.createCard({ stats, primaryPosition: 'DEL', secondaryPosition: 'MED' });
+    await service.updateCard({ stats, primaryPosition: 'DEL', secondaryPosition: 'MED' });
+    await service.reviewAdmission({
+      teamId: '00000000-0000-0000-0000-000000000000',
+      userId: '11111111-1111-1111-1111-111111111111',
+      decision: 'approved',
+    });
+    await service.grantMerit({
+      teamId: '00000000-0000-0000-0000-000000000000',
+      userId: '11111111-1111-1111-1111-111111111111',
+      statKeys: ['sho'],
+      pointsTotal: 2,
+    });
+    await service.processCentralMissions({ userId: '11111111-1111-1111-1111-111111111111' });
+
+    const rpcNames = rpc.mock.calls.map((call) => call[0]);
+    expect(rpcNames).toEqual([
+      'create_team_card',
+      'update_team_card',
+      'review_team_admission',
+      'grant_team_merit',
+      'process_team_central_missions',
+    ]);
+    expect(rpcNames).not.toContain('process_team_player_progression');
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it('requires a rejection reason when rejecting an admission review', async () => {
+    const supabase = createRpcSupabase({ data: [] });
+    const service = new TeamsService(supabase);
+
+    const result = await service.reviewAdmission({
+      teamId: crypto.randomUUID(),
+      userId: crypto.randomUUID(),
+      decision: 'rejected',
+      rejectionReason: '',
+    });
+
+    expect(result).toMatchObject({ ok: false, error: { code: 'VALIDATION_ERROR' } });
+    expect(supabase.rpc).not.toHaveBeenCalled();
+  });
+
+  it('calls the admission review RPC and maps the sealed status', async () => {
+    const supabase = createRpcSupabase({ data: [{ team_id: 'team-1', user_id: 'user-1', status: 'approved' }] });
+    const service = new TeamsService(supabase);
+
+    const result = await service.reviewAdmission({
+      teamId: '00000000-0000-0000-0000-000000000000',
+      userId: '11111111-1111-1111-1111-111111111111',
+      decision: 'approved',
+    });
+
+    expect(result).toEqual({ ok: true, data: { teamId: 'team-1', userId: 'user-1', status: 'approved' } });
+    expect(supabase.rpc).toHaveBeenCalledWith('review_team_admission', {
+      p_team_id: '00000000-0000-0000-0000-000000000000',
+      p_user_id: '11111111-1111-1111-1111-111111111111',
+      p_decision: 'approved',
+      p_rejection_reason: null,
+    });
+  });
+
+  it('validates merit input limits before calling the RPC', async () => {
+    const supabase = createRpcSupabase({ data: [] });
+    const service = new TeamsService(supabase);
+
+    const tooManyPoints = await service.grantMerit({
+      teamId: crypto.randomUUID(),
+      userId: crypto.randomUUID(),
+      statKeys: ['sho'],
+      pointsTotal: 4,
+    });
+    const tooManyKeys = await service.grantMerit({
+      teamId: crypto.randomUUID(),
+      userId: crypto.randomUUID(),
+      statKeys: ['sho', 'pac', 'pas'],
+      pointsTotal: 2,
+    });
+    const invalidKey = await service.grantMerit({
+      teamId: crypto.randomUUID(),
+      userId: crypto.randomUUID(),
+      statKeys: ['abc' as ProgressableStatKey],
+      pointsTotal: 2,
+    });
+
+    expect(tooManyPoints).toMatchObject({ ok: false, error: { code: 'VALIDATION_ERROR' } });
+    expect(tooManyKeys).toMatchObject({ ok: false, error: { code: 'VALIDATION_ERROR' } });
+    expect(invalidKey).toMatchObject({ ok: false, error: { code: 'VALIDATION_ERROR' } });
+    expect(supabase.rpc).not.toHaveBeenCalled();
+  });
+
+  it('calls the merit RPC and maps the boosted card result', async () => {
+    const supabase = createRpcSupabase({
+      data: [{ grant_id: 'grant-1', stats: { pac: 71, sho: 72, pas: 72, dri: 70, def: 70, phy: 71 }, overall: 71, card_tier: 'silver' }],
+    });
+    const service = new TeamsService(supabase);
+
+    const result = await service.grantMerit({
+      teamId: '00000000-0000-0000-0000-000000000000',
+      userId: '11111111-1111-1111-1111-111111111111',
+      statKeys: ['sho', 'pac'],
+      pointsTotal: 2,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        grantId: 'grant-1',
+        stats: { pac: 71, sho: 72, pas: 72, dri: 70, def: 70, phy: 71 },
+        overall: 71,
+        cardTier: 'silver',
+      },
+    });
+    expect(supabase.rpc).toHaveBeenCalledWith('grant_team_merit', {
+      p_team_id: '00000000-0000-0000-0000-000000000000',
+      p_user_id: '11111111-1111-1111-1111-111111111111',
+      p_stat_keys: ['sho', 'pac'],
+      p_points_total: 2,
+    });
+  });
+
+  it('maps the central card panel from the aggregates view and computes overall and tier', async () => {
+    const { supabase, calls } = createQuerySupabase({
+      handler: (table) => {
+        if (table === 'team_central_card_aggregates') {
+          return {
+            data: {
+              user_id: 'user-1',
+              stats: { pac: 70, sho: 71, pas: 72, dri: 69, def: 70, phy: 71 },
+              primary_position: 'DEL',
+              secondary_position: 'MED',
+              matches_played: 12,
+              goals: 25,
+              assists: 8,
+              tackles: 4,
+              mvps: 5,
+              trophies: 3,
+              missions: 4,
+              mission_points: 9,
+            },
+            error: null,
+          };
+        }
+        return { data: null, error: null };
+      },
+    });
+    const service = new TeamsService(supabase);
+
+    const result = await service.getCentralCardPanel('user-1');
+
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        userId: 'user-1',
+        stats: { pac: 70, sho: 71, pas: 72, dri: 69, def: 70, phy: 71 },
+        primaryPosition: 'DEL',
+        secondaryPosition: 'MED',
+        matchesPlayed: 12,
+        goals: 25,
+        assists: 8,
+        tackles: 4,
+        mvps: 5,
+        trophies: 3,
+        missions: 4,
+        missionPoints: 9,
+        overall: 71,
+        cardTier: 'silver',
+      },
+    });
+    expect(calls).toEqual([
+      { table: 'team_central_card_aggregates', method: 'select', args: ['*'] },
+      { table: 'team_central_card_aggregates', method: 'eq', args: ['user_id', 'user-1'] },
+      { table: 'team_central_card_aggregates', method: 'maybeSingle', args: [] },
+    ]);
+  });
+
+  it('returns null when the user has no central card panel yet', async () => {
+    const { supabase } = createQuerySupabase({
+      handler: () => ({ data: null, error: null }),
+    });
+    const service = new TeamsService(supabase);
+
+    const result = await service.getCentralCardPanel('user-1');
+
+    expect(result).toEqual({ ok: true, data: null });
   });
 
   it('maps teams for the current user from memberships, counts and approved totals', async () => {

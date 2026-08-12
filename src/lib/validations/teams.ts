@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const teamPositionSchema = z.enum(['ARQ', 'DEF', 'MED', 'DEL']);
 export const teamStatKindSchema = z.enum(['goals', 'assists', 'tackles']);
 export const teamSubmissionDecisionSchema = z.enum(['approved', 'rejected']);
+export const progressableStatKeySchema = z.enum(['pac', 'sho', 'pas', 'dri', 'def', 'phy', 'div', 'han', 'kic', 'ref', 'spd', 'pos']);
 
 const uuidSchema = z.string().uuid();
 const optionalTrimmedUrlSchema = z.string().trim().url().optional().nullable();
@@ -69,7 +70,40 @@ export const reviewTeamStatSubmissionSchema = z.object({
   message: 'Rejection reason is required',
 });
 
-export const processTeamPlayerProgressionSchema = z.object({
+export const teamCardStatsSchema = z
+  .record(z.string(), z.number().int().min(55).max(75))
+  .refine((stats) => Object.keys(stats).length === 6, {
+    path: ['stats'],
+    message: 'Card requires exactly 6 stats',
+  });
+
+export const teamCardSchema = z.object({
+  stats: teamCardStatsSchema,
+  primaryPosition: teamPositionSchema,
+  secondaryPosition: teamPositionSchema,
+}).refine((value) => value.secondaryPosition !== value.primaryPosition, {
+  path: ['secondaryPosition'],
+  message: 'Secondary position must be different',
+});
+
+export const reviewTeamAdmissionSchema = z.object({
+  teamId: uuidSchema,
+  userId: uuidSchema,
+  decision: teamSubmissionDecisionSchema,
+  rejectionReason: z.string().trim().min(1).max(240).optional().nullable(),
+}).refine((value) => value.decision === 'approved' || Boolean(value.rejectionReason), {
+  path: ['rejectionReason'],
+  message: 'Rejection reason is required',
+});
+
+export const grantTeamMeritSchema = z.object({
+  teamId: uuidSchema,
+  userId: uuidSchema,
+  statKeys: z.array(progressableStatKeySchema).min(1).max(2),
+  pointsTotal: z.number().int().min(1).max(3),
+});
+
+export const processTeamCentralMissionsSchema = z.object({
   userId: uuidSchema,
 });
 
@@ -81,13 +115,17 @@ export type CreateTeamMatchData = z.infer<typeof createTeamMatchSchema>;
 export type SignUpForTeamMatchData = z.infer<typeof signUpForTeamMatchSchema>;
 export type SubmitTeamStatData = z.infer<typeof submitTeamStatSchema>;
 export type ReviewTeamStatSubmissionData = z.infer<typeof reviewTeamStatSubmissionSchema>;
+export type CreateTeamCardData = z.infer<typeof teamCardSchema>;
+export type UpdateTeamCardData = z.infer<typeof teamCardSchema>;
+export type ReviewTeamAdmissionData = z.infer<typeof reviewTeamAdmissionSchema>;
+export type GrantTeamMeritData = z.infer<typeof grantTeamMeritSchema>;
+export type ProcessTeamCentralMissionsData = z.infer<typeof processTeamCentralMissionsSchema>;
 export const setTeamMatchMvpSchema = z.object({
   teamId: uuidSchema,
   matchId: uuidSchema,
   mvpUserId: uuidSchema.nullable(),
 });
 
-export type ProcessTeamPlayerProgressionData = z.infer<typeof processTeamPlayerProgressionSchema>;
 export type SetTeamMatchMvpData = z.infer<typeof setTeamMatchMvpSchema>;
 
 export const voteForTeamMatchMvpSchema = z.object({
