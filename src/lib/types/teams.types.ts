@@ -12,6 +12,8 @@ export type TeamMatchSignupStatus = 'going' | 'not_going';
 export type TeamStatKind = 'goals' | 'assists' | 'tackles';
 export type TeamSubmissionStatus = 'pending' | 'approved' | 'rejected';
 export type TeamCardTier = 'bronze' | 'silver' | 'gold' | 'premium_gold';
+export type TeamCardSnapshotStatus = 'draft' | 'pending' | 'approved' | 'rejected';
+export type TeamMissionKind = 'trophy' | 'mvp_cycle' | 'milestone';
 export type ProgressableStatKey = keyof FieldStats | keyof GoalkeeperStats;
 
 export interface TeamMember {
@@ -42,8 +44,72 @@ export interface TeamApprovedStatTotals {
   tackles: number;
 }
 
-export interface TeamProgressionResult {
-  appliedRewards: number;
+export interface TeamCard {
+  userId: UserId;
+  stats: FieldStats | GoalkeeperStats;
+  primaryPosition: PlayerPosition;
+  secondaryPosition: PlayerPosition;
+  positionsLockedAt: string | null;
+}
+
+export interface TeamCardSnapshot {
+  teamId: TeamId;
+  userId: UserId;
+  cardStats: FieldStats | GoalkeeperStats;
+  positions: { primary: PlayerPosition; secondary: PlayerPosition } | null;
+  status: TeamCardSnapshotStatus;
+  reviewedByUserId: UserId | null;
+  reviewedAt: string | null;
+  rejectionReason: string | null;
+}
+
+export interface TeamLocalPerformance {
+  teamId: TeamId;
+  userId: UserId;
+  matchesPlayed: number;
+  goals: number;
+  assists: number;
+  tackles: number;
+  mvps: number;
+}
+
+export interface TeamMeritGrant {
+  id: string;
+  teamId: TeamId;
+  userId: UserId;
+  statKeys: ProgressableStatKey[];
+  pointsTotal: number;
+  createdByUserId: UserId;
+}
+
+export interface TeamMissionLedger {
+  id: string;
+  userId: UserId;
+  kind: TeamMissionKind;
+  ref: string;
+  statKey: ProgressableStatKey | null;
+  points: number | null;
+}
+
+export interface TeamCentralCardView {
+  userId: UserId;
+  stats: FieldStats | GoalkeeperStats;
+  primaryPosition: PlayerPosition;
+  secondaryPosition: PlayerPosition;
+  matchesPlayed: number;
+  goals: number;
+  assists: number;
+  tackles: number;
+  mvps: number;
+  trophies: number;
+  missions: number;
+  missionPoints: number;
+  overall: number;
+  cardTier: TeamCardTier;
+}
+
+export interface TeamCentralMissionsResult {
+  appliedPoints: number;
   stats: FieldStats | GoalkeeperStats;
   overall: number;
   cardTier: TeamCardTier;
