@@ -78,3 +78,6 @@ test-results/
 
 # Agent local cache
 .atl/.skill-registry.cache.json
+
+# CodeGraph index
+.codegraph/
