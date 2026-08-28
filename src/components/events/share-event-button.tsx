@@ -10,7 +10,7 @@ interface ShareEventButtonProps {
   eventName: string;
 }
 
-export function ShareEventButton({ groupId, eventId, eventName }: ShareEventButtonProps) {
+export function ShareEventButton({ eventId, eventName }: ShareEventButtonProps) {
   const [showModal, setShowModal] = useState(false);
 
   return (
@@ -26,7 +26,6 @@ export function ShareEventButton({ groupId, eventId, eventName }: ShareEventButt
       <ShareEventModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        groupId={groupId}
         eventId={eventId}
         eventName={eventName}
       />

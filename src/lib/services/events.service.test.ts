@@ -234,6 +234,20 @@ describe('EventsService', () => {
     expect(result.ok).toBe(true);
   });
 
+  it('returns a not found result when the event query has no row', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+    const eq = vi.fn(() => ({ maybeSingle }));
+    const select = vi.fn(() => ({ eq }));
+    const service = new EventsService({ from: vi.fn(() => ({ select })) } as unknown as SupabaseClient);
+
+    const result = await service.getEventById('11111111-1111-1111-1111-111111111111');
+
+    expect(result).toEqual({
+      ok: false,
+      error: { code: 'NOT_FOUND', message: 'No encontramos ese partido.' },
+    });
+  });
+
   it('returns approved active same-group players without attendance rows as pending confirmations', async () => {
     const playersQuery = createQueryMock({
       data: [

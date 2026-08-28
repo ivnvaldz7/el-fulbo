@@ -3,11 +3,11 @@
 import { useEffect } from 'react';
 import { X, Copy, Share2, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { routes } from '@/lib/routes';
 
 interface ShareEventModalProps {
   isOpen: boolean;
   onClose: () => void;
-  groupId: string;
   eventId: string;
   eventName: string;
 }
@@ -23,12 +23,11 @@ const toastDarkStyle = {
 export function ShareEventModal({
   isOpen,
   onClose,
-  groupId,
   eventId,
   eventName,
 }: ShareEventModalProps) {
-  const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/groups/${groupId}/events/${eventId}`;
-  const shareText = `¡Confirmá tu asistencia! ${eventName}`;
+  const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}${routes.sharedAttendance(eventId)}`;
+  const shareText = `¡Mirá y confirmá la convocatoria! ${eventName}`;
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {

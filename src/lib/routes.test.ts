@@ -12,6 +12,10 @@ describe('routes', () => {
     );
   });
 
+  it('builds the shared attendance route', () => {
+    expect(routes.sharedAttendance('event-1')).toBe('/asistencia-compartida?eventId=event-1');
+  });
+
   it('builds player card routes', () => {
     expect(routes.groupPlayer('group-1', 'player-1')).toBe('/groups/group-1/players/player-1');
     expect(routes.groupPlayerEditCard('group-1', 'player-1')).toBe(

@@ -7,6 +7,8 @@ import type { EventAttendee, PendingConfirmationPlayer } from '@/lib/services/ev
 interface EventAttendeesListProps {
   attendees: EventAttendee[];
   pendingConfirmationPlayers?: PendingConfirmationPlayer[];
+  showWaitlist?: boolean;
+  defaultOpen?: boolean;
 }
 
 const SECTIONS: Array<{
@@ -39,13 +41,36 @@ const SECTIONS: Array<{
   },
 ];
 
+const WAITLIST_SECTION = {
+  status: 'waitlist' as const,
+  label: 'Lista de espera',
+  empty: 'No hay jugadores en lista de espera.',
+  tone: 'border-purple-400/40 bg-purple-400/10',
+  titleTone: 'text-purple-300',
+};
+
 const EventAttendeesList = memo(function EventAttendeesList({
   attendees,
   pendingConfirmationPlayers = [],
+  showWaitlist = false,
+  defaultOpen = false,
 }: EventAttendeesListProps) {
+  const sections = showWaitlist
+    ? SECTIONS.reduce<Array<(typeof SECTIONS)[number] | typeof WAITLIST_SECTION>>(
+        (result, section) => {
+          result.push(section);
+          if (section.status === 'going') {
+            result.push(WAITLIST_SECTION);
+          }
+          return result;
+        },
+        [],
+      )
+    : SECTIONS;
+
   return (
     <div className="space-y-3">
-      <details className="overflow-hidden rounded-lg border border-amber-400/40 bg-amber-400/10">
+      <details open={defaultOpen} className="overflow-hidden rounded-lg border border-amber-400/40 bg-amber-400/10">
         <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3">
           <span className="font-headline text-lg font-bold italic uppercase text-amber-300">
             Faltan confirmar: {pendingConfirmationPlayers.length}
@@ -67,12 +92,13 @@ const EventAttendeesList = memo(function EventAttendeesList({
         </div>
       </details>
 
-      {SECTIONS.map((section) => {
+      {sections.map((section) => {
         const items = attendees.filter((attendee) => attendee.status === section.status);
 
         return (
           <details
             key={section.status}
+            open={defaultOpen}
             className={`overflow-hidden rounded-lg border ${section.tone}`}
           >
             <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3">

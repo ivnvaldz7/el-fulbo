@@ -197,6 +197,7 @@ export class EventsService {
       .maybeSingle();
 
     if (error) return { ok: false, error: mapSupabaseError(error) };
+    if (!data) return { ok: false, error: { code: 'NOT_FOUND', message: 'No encontramos ese partido.' } };
 
     return { ok: true, data: this.normalizeEvent(data) };
   }
@@ -471,7 +472,8 @@ export class EventsService {
 
   async loadMatchResult(payload: LoadMatchResultPayload): Promise<Result<void>> {
     const parsed = loadMatchResultSchema.safeParse(payload);
-    if (!parsed.success) return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Datos inválidos' } };
+    if (!parsed.success)
+      return { ok: false, error: { code: 'VALIDATION_ERROR', message: 'Datos inválidos' } };
 
     const { error } = await this.supabase.rpc('load_match_result', {
       p_event_id: payload.eventId,

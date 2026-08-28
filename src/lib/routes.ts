@@ -20,6 +20,7 @@ export const routes = {
   groupPlayerEditCard: (groupId: string, playerId: string) => `/groups/${groupId}/players/${playerId}/edit-card`,
   groupEventNew: (groupId: string) => `/groups/${groupId}/events/new`,
   groupEvent: (groupId: string, eventId: string) => `/groups/${groupId}/events/${eventId}`,
+  sharedAttendance: (eventId: string) => `/asistencia-compartida?eventId=${encodeURIComponent(eventId)}`,
   groupEventMvpVote: (groupId: string, eventId: string) =>
     `/groups/${groupId}/events/${eventId}?votar-mvp=${eventId}`,
   groupEventCheckIn: (groupId: string, eventId: string) => `/groups/${groupId}/events/${eventId}/check-in`,
