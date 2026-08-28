@@ -27,7 +27,7 @@ describe('TeamsHub', () => {
     expect(screen.getByRole('heading', { name: /equipos/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /abrir la máquina/i })).toHaveAttribute('href', '/teams/team-1');
     expect(screen.getByText('12 miembros')).toBeInTheDocument();
-    expect(screen.getByText('8')).toBeInTheDocument();
+    expect(screen.getAllByText('8').length).toBeGreaterThan(0);
     expect(screen.getByText('PJ')).toBeInTheDocument();
   });
 

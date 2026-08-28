@@ -43,7 +43,7 @@ export function TeamMatchesPanel({ teamId, matches, members, onSignup, onSubmitS
     <section aria-labelledby="matches-heading" className="space-y-4">
       <header>
         <h2 id="matches-heading" className="font-headline text-3xl font-black italic uppercase text-white">Matches</h2>
-        <p className="mt-2 text-sm font-semibold text-white/55">La inscripción se habilita desde el contrato de partido. Esta vista no finge mutaciones.</p>
+        <p className="mt-2 text-sm font-semibold text-white/55">La inscripción se habilita desde el contrato de partido. Anotate en los próximos partidos y, después del cierre, cargá tu stat para sumar al historial.</p>
       </header>
       <div className="grid gap-3">
         {matches.length > 0 ? matches.map((match) => (
@@ -121,7 +121,7 @@ export function TeamMatchesPanel({ teamId, matches, members, onSignup, onSubmitS
                           onVoteMvp({ teamId, matchId: match.id, votedPlayerId: e.target.value });
                         }}
                       >
-                        <option value="">— Elegir compañero —</option>
+                        <option value="">Elegir compañero</option>
                         {(members ?? []).map((m) => (
                           <option key={m.userId} value={m.userId}>{m.displayName}</option>
                         ))}
@@ -153,7 +153,7 @@ export function TeamMatchesPanel({ teamId, matches, members, onSignup, onSubmitS
                           setMvpSelectId(null);
                         }}
                       >
-                        <option value="">— Sin MVP —</option>
+                        <option value="">Sin MVP</option>
                         {(members ?? []).map((m) => (
                           <option key={m.userId} value={m.userId}>{m.displayName}</option>
                         ))}

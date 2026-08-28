@@ -12,7 +12,7 @@ Teams has no dedicated card domain: `process_team_player_progression` writes to 
 - Admission: per-team frozen snapshot; admin approves/rejects admission, local stats, merits for that team; edit + resubmit allowed
 - Team-local performance (goals, assists, tackles, MVPs, valid matches) separate from aptitudes
 - Central panel aggregates approved MVPs, goals, assists, tackles, trophies, missions
-- Automatic missions/upgrades, idempotent per cycle, no admin approval: MVP×5 → +2 via aptitude map; trophies MVP 3/5/10/20, goals/assists 10/25/50/100, tackles 20/50/100/200; upgrades 25/50 goals, 25/50 assists, 50/100 tackles; cap 99
+- Automatic missions/upgrades, idempotent per cycle, no admin approval: every 3 official MVPs → +2 via aptitude map and every 3 consecutive valid wins → +1 via aptitude map; trophies MVP 3/5/10/20, goals/assists 10/25/50/100, tackles 20/50/100/200; upgrades 25/50 goals, 25/50 assists, 50/100 tackles; cap 99
 - Team merit: 10 valid matches (played, ≥1 approved stat; not cancelled/rejected/no-participation) → ≤3 points, ≤2 aptitudes
 - Tier thresholds from Grupos visuals only: bronze <70, silver 70–79, gold 80–89, premium ≥90
 

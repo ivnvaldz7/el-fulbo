@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { FloatingPanel } from '@/components/ui/floating-panel';
 import { CreateTeamForm } from '@/components/teams/create-team-form';
+import { routes } from '@/lib/routes';
+import { TeamsService } from '@/lib/services/teams.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export default async function NewTeamPage() {
@@ -14,18 +16,14 @@ export default async function NewTeamPage() {
     redirect('/login');
   }
 
-  // Check if user has a base card
-  const { data: baseCard } = await supabase
-    .from('players')
-    .select('id')
-    .eq('user_id', user.id)
-    .is('archived_at', null)
-    .order('joined_at', { ascending: true })
-    .limit(1)
-    .single();
+  const cardResult = await new TeamsService(supabase).getOwnCard();
 
-  if (!baseCard) {
-    redirect('/onboarding-global');
+  if (!cardResult.ok) {
+    throw new Error(cardResult.error.message);
+  }
+
+  if (!cardResult.data) {
+    redirect(routes.teamCard);
   }
 
   return (

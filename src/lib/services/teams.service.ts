@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { FieldStats, GoalkeeperStats, PlayerPosition, Result } from '@/lib/types';
-import type { TeamCardTier, TeamCardSnapshotStatus, TeamCentralCardView, TeamCentralMissionsResult, TeamStatKind, ProgressableStatKey, TeamDetailView, TeamHubItem, TeamMatchView, TeamRosterMemberView, TeamSubmissionView } from '@/lib/types/teams.types';
+import type { TeamCard, TeamCardTier, TeamCardSnapshotStatus, TeamCentralCardView, TeamCentralMissionsResult, TeamStatKind, ProgressableStatKey, TeamDetailView, TeamHubItem, TeamMatchView, TeamRosterMemberView, TeamSubmissionView } from '@/lib/types/teams.types';
 import {
   createTeamInvitationSchema,
   createTeamMatchSchema,
@@ -10,6 +10,7 @@ import {
   removeTeamMemberSchema,
   reviewTeamAdmissionSchema,
   reviewTeamStatSubmissionSchema,
+  resubmitTeamAdmissionSchema,
   setTeamMatchMvpSchema,
   signUpForTeamMatchSchema,
   submitTeamStatSchema,
@@ -26,6 +27,7 @@ import {
   type RemoveTeamMemberData,
   type ReviewTeamAdmissionData,
   type ReviewTeamStatSubmissionData,
+  type ResubmitTeamAdmissionData,
   type SetTeamMatchMvpData,
   type SignUpForTeamMatchData,
   type SubmitTeamStatData,
@@ -425,6 +427,35 @@ export class TeamsService {
     };
   }
 
+  async resubmitAdmission(input: ResubmitTeamAdmissionData): Promise<Result<{ teamId: string; userId: string; status: TeamCardSnapshotStatus }>> {
+    const parsed = resubmitTeamAdmissionSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, error: validationError(parsed.error.flatten()) };
+    }
+
+    const { data, error } = await this.supabase.rpc('resubmit_team_admission', {
+      p_team_id: parsed.data.teamId,
+    });
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    const row = firstRow(data);
+    if (!row?.team_id || !row?.user_id) {
+      return { ok: false, error: { code: 'INTERNAL_ERROR', message: 'Algo salio mal.' } };
+    }
+
+    return {
+      ok: true,
+      data: {
+        teamId: String(row.team_id),
+        userId: String(row.user_id),
+        status: row.status as TeamCardSnapshotStatus,
+      },
+    };
+  }
+
   async grantMerit(input: GrantTeamMeritData): Promise<Result<{ grantId: string; stats: FieldStats | GoalkeeperStats; overall: number; cardTier: TeamCardTier }>> {
     const parsed = grantTeamMeritSchema.safeParse(input);
     if (!parsed.success) {
@@ -524,6 +555,39 @@ export class TeamsService {
         missionPoints: Number(row.mission_points ?? 0),
         overall,
         cardTier: getCardTierByOverall(overall),
+      },
+    };
+  }
+
+  async getOwnCard(): Promise<Result<TeamCard | null>> {
+    const { data: { user } } = await this.supabase.auth.getUser();
+
+    if (!user) {
+      return { ok: true, data: null };
+    }
+
+    const { data, error } = await this.supabase
+      .from('team_cards')
+      .select('user_id,stats,primary_position,secondary_position,positions_locked_at')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    if (!data) {
+      return { ok: true, data: null };
+    }
+
+    return {
+      ok: true,
+      data: {
+        userId: String(data.user_id),
+        stats: data.stats as FieldStats | GoalkeeperStats,
+        primaryPosition: data.primary_position as PlayerPosition,
+        secondaryPosition: data.secondary_position as PlayerPosition,
+        positionsLockedAt: data.positions_locked_at ?? null,
       },
     };
   }
@@ -711,6 +775,15 @@ export class TeamsService {
       return { ok: false, error: mapSupabaseError(submissionsResult.error) };
     }
 
+    const snapshotsResult = await this.supabase
+      .from('team_card_snapshots')
+      .select('team_id,user_id,card_stats,positions,status,reviewed_by_user_id,reviewed_at,rejection_reason')
+      .eq('team_id', teamId);
+
+    if (snapshotsResult.error) {
+      return { ok: false, error: mapSupabaseError(snapshotsResult.error) };
+    }
+
     const members: TeamRosterMemberView[] = (membersResult.data ?? []).map((row: any) => ({
       id: String(row.id),
       userId: String(row.user_id),
@@ -747,6 +820,22 @@ export class TeamsService {
       status: row.status,
     }));
 
+    const admissions = (snapshotsResult.data ?? [])
+      .filter((row: any) => membersByUserId.has(String(row.user_id)))
+      .map((row: any) => ({
+        teamId: String(row.team_id),
+        userId: String(row.user_id),
+        playerName: membersByUserId.get(String(row.user_id)) ?? 'Jugador',
+        cardStats: row.card_stats && Object.keys(row.card_stats).length > 0
+          ? row.card_stats as FieldStats | GoalkeeperStats
+          : null,
+        positions: row.positions ?? null,
+        status: row.status,
+        reviewedByUserId: row.reviewed_by_user_id ?? null,
+        reviewedAt: row.reviewed_at ?? null,
+        rejectionReason: row.rejection_reason ?? null,
+      }));
+
     const totals = totalsResult.data as any;
 
     return {
@@ -763,9 +852,11 @@ export class TeamsService {
         goals: Number(totals?.goals ?? 0),
         assists: Number(totals?.assists ?? 0),
         tackles: Number(totals?.tackles ?? 0),
+        currentUserId: user?.id ?? null,
         members,
         matches,
         submissions,
+        admissions,
       },
     };
   }

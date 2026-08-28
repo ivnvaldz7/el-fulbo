@@ -9,10 +9,10 @@ import { routes } from '@/lib/routes';
 import type { PlayerPosition } from '@/lib/types';
 
 const positionOptions: Array<{ value: PlayerPosition; label: string }> = [
-  { value: 'ARQ', label: 'ARQ — Arquero' },
-  { value: 'DEF', label: 'DEF — Defensor' },
-  { value: 'MED', label: 'MED — Mediocampista' },
-  { value: 'DEL', label: 'DEL — Delantero' },
+  { value: 'ARQ', label: 'ARQ / Arquero' },
+  { value: 'DEF', label: 'DEF / Defensor' },
+  { value: 'MED', label: 'MED / Mediocampista' },
+  { value: 'DEL', label: 'DEL / Delantero' },
 ];
 
 export function CreateTeamForm() {

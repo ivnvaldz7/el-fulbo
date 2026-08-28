@@ -96,6 +96,10 @@ export const reviewTeamAdmissionSchema = z.object({
   message: 'Rejection reason is required',
 });
 
+export const resubmitTeamAdmissionSchema = z.object({
+  teamId: uuidSchema,
+});
+
 export const grantTeamMeritSchema = z.object({
   teamId: uuidSchema,
   userId: uuidSchema,
@@ -118,6 +122,7 @@ export type ReviewTeamStatSubmissionData = z.infer<typeof reviewTeamStatSubmissi
 export type CreateTeamCardData = z.infer<typeof teamCardSchema>;
 export type UpdateTeamCardData = z.infer<typeof teamCardSchema>;
 export type ReviewTeamAdmissionData = z.infer<typeof reviewTeamAdmissionSchema>;
+export type ResubmitTeamAdmissionData = z.infer<typeof resubmitTeamAdmissionSchema>;
 export type GrantTeamMeritData = z.infer<typeof grantTeamMeritSchema>;
 export type ProcessTeamCentralMissionsData = z.infer<typeof processTeamCentralMissionsSchema>;
 export const setTeamMatchMvpSchema = z.object({

@@ -55,12 +55,16 @@ export interface TeamCard {
 export interface TeamCardSnapshot {
   teamId: TeamId;
   userId: UserId;
-  cardStats: FieldStats | GoalkeeperStats;
+  cardStats: FieldStats | GoalkeeperStats | null;
   positions: { primary: PlayerPosition; secondary: PlayerPosition } | null;
   status: TeamCardSnapshotStatus;
   reviewedByUserId: UserId | null;
   reviewedAt: string | null;
   rejectionReason: string | null;
+}
+
+export interface TeamCardAdmissionView extends TeamCardSnapshot {
+  playerName: string;
 }
 
 export interface TeamLocalPerformance {
@@ -171,9 +175,11 @@ export interface TeamSubmissionView {
 }
 
 export interface TeamDetailView extends TeamHubItem {
+  currentUserId: UserId | null;
   members: TeamRosterMemberView[];
   matches: TeamMatchView[];
   submissions: TeamSubmissionView[];
+  admissions: TeamCardAdmissionView[];
 }
 
 export type TeamDetailTab = 'members' | 'matches' | 'stats' | 'card' | 'moderation';

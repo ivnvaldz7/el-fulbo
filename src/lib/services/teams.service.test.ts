@@ -283,6 +283,20 @@ describe('teams service validation and orchestration', () => {
     });
   });
 
+  it('calls the admission resubmission RPC and maps the pending status', async () => {
+    const supabase = createRpcSupabase({ data: [{ team_id: 'team-1', user_id: 'user-1', status: 'pending' }] });
+    const service = new TeamsService(supabase);
+
+    const result = await service.resubmitAdmission({
+      teamId: '00000000-0000-0000-0000-000000000000',
+    });
+
+    expect(result).toEqual({ ok: true, data: { teamId: 'team-1', userId: 'user-1', status: 'pending' } });
+    expect(supabase.rpc).toHaveBeenCalledWith('resubmit_team_admission', {
+      p_team_id: '00000000-0000-0000-0000-000000000000',
+    });
+  });
+
   it('validates merit input limits before calling the RPC', async () => {
     const supabase = createRpcSupabase({ data: [] });
     const service = new TeamsService(supabase);
@@ -406,6 +420,36 @@ describe('teams service validation and orchestration', () => {
     const result = await service.getCentralCardPanel('user-1');
 
     expect(result).toEqual({ ok: true, data: null });
+  });
+
+  it('maps the current user Teams card without querying Groups players', async () => {
+    const { supabase, calls } = createQuerySupabase({
+      handler: (table) => table === 'team_cards'
+        ? {
+            data: {
+              user_id: 'user-1',
+              stats: { pac: 70, sho: 71, pas: 72, dri: 69, def: 70, phy: 71 },
+              primary_position: 'DEL',
+              secondary_position: 'MED',
+              positions_locked_at: null,
+            },
+            error: null,
+          }
+        : { data: null, error: null },
+    });
+    const service = new TeamsService(supabase);
+
+    await expect(service.getOwnCard()).resolves.toEqual({
+      ok: true,
+      data: {
+        userId: 'user-1',
+        stats: { pac: 70, sho: 71, pas: 72, dri: 69, def: 70, phy: 71 },
+        primaryPosition: 'DEL',
+        secondaryPosition: 'MED',
+        positionsLockedAt: null,
+      },
+    });
+    expect(calls.some((call) => call.table === 'players')).toBe(false);
   });
 
   it('maps teams for the current user from memberships, counts and approved totals', async () => {
@@ -573,6 +617,10 @@ describe('teams service validation and orchestration', () => {
 
         if (table === 'team_approved_stat_totals') {
           return { data: null, error: null };
+        }
+
+        if (table === 'team_card_snapshots') {
+          return { data: [], error: null };
         }
 
         throw new Error(`Unexpected query for ${table}`);

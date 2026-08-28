@@ -50,7 +50,15 @@ async function addMember(client: Client, adminUserId: string, teamId: string, us
   );
 }
 
-async function createPlayedMatch(client: Client, adminUserId: string, teamId: string, index: number, mvpUserId?: string) {
+async function createPlayedMatch(
+  client: Client,
+  adminUserId: string,
+  teamId: string,
+  index: number,
+  mvpUserId?: string,
+  teamScore = 3,
+  opponentScore = 1,
+) {
   const result = await asUser(client, adminUserId, () =>
     client.query<{ match_id: string }>(
       `
@@ -61,14 +69,14 @@ async function createPlayedMatch(client: Client, adminUserId: string, teamId: st
           null,
           null,
           'played'\::public.team_match_status,
-          3::smallint,
-          1::smallint,
+          $5::smallint,
+          $6::smallint,
           $4,
           now() - ($2::int || ' days')::interval,
           null
         )
       `,
-      [teamId, index, `Rival ${index}`, mvpUserId ?? null],
+      [teamId, index, `Rival ${index}`, mvpUserId ?? null, teamScore, opponentScore],
     ),
   );
 
@@ -454,30 +462,10 @@ describe('teams module services and RPCs', () => {
     );
     expect(teamASnapshot.rows[0]).toMatchObject({ status: 'approved' });
 
-    await asUser(client, player.id, () =>
-      client.query(
-        `delete from public.team_card_snapshots where team_id = $1 and user_id = $2 and status = 'rejected'`,
-        [teamB, player.id],
-      ),
-    );
     const resubmitted = await asUser(client, player.id, () =>
       client.query<{ status: string }>(
-        `
-          insert into public.team_card_snapshots (team_id, user_id, card_stats, positions, status)
-          values (
-            $1,
-            $2,
-            (select stats from public.team_cards where user_id = $2),
-            (
-              select jsonb_build_object('primary', primary_position, 'secondary', secondary_position)
-              from public.team_cards
-              where user_id = $2
-            ),
-            'pending'
-          )
-          returning status
-        `,
-        [teamB, player.id],
+        `select status from public.resubmit_team_admission($1)`,
+        [teamB],
       ),
     );
     expect(resubmitted.rows[0]).toMatchObject({ status: 'pending' });
@@ -593,7 +581,7 @@ describe('teams module services and RPCs', () => {
     expect(capped.rows[0]).toMatchObject({ stats: { pac: 60, sho: 99, pas: 62, dri: 70, def: 55, phy: 58 } });
   });
 
-  it('processes central missions: trophies, MVP cycles and milestones via the position aptitude map', async () => {
+  it('processes general progression for MVP cycles, win streaks and stat milestones', async () => {
     const admin = await seedUser(client, 'ts-mission-admin');
     const player = await seedUser(client, 'ts-mission-player');
 
@@ -637,11 +625,14 @@ describe('teams module services and RPCs', () => {
         [player.id],
       ),
     );
-    expect(firstRun.rows[0]).toMatchObject({ applied_points: 0 });
+    expect(firstRun.rows[0]).toMatchObject({
+      applied_points: 9,
+      stats: { pac: 73, sho: 73, dri: 73, pas: 70, def: 70, phy: 70 },
+    });
 
     await playMatchWithGoals(4, 5, true);
     await playMatchWithGoals(5, 5, true);
-    await playMatchWithGoals(6, 5, false);
+    await playMatchWithGoals(6, 5, true);
 
     const secondRun = await asUser(client, admin.id, () =>
       client.query<{ applied_points: number; stats: Record<string, number> }>(
@@ -650,8 +641,8 @@ describe('teams module services and RPCs', () => {
       ),
     );
     expect(secondRun.rows[0]).toMatchObject({
-      applied_points: 7,
-      stats: { pac: 72, sho: 73, dri: 72, pas: 70, def: 70, phy: 70 },
+      applied_points: 10,
+      stats: { pac: 76, sho: 77, dri: 76, pas: 70, def: 70, phy: 70 },
     });
 
     const ledger = await client.query<{ kind: string; ref: string }>(
@@ -659,8 +650,11 @@ describe('teams module services and RPCs', () => {
       [player.id],
     );
     expect(ledger.rows).toEqual([
-      { kind: 'mvp_cycle', ref: '5' },
+      { kind: 'mvp_cycle', ref: '3' },
+      { kind: 'mvp_cycle', ref: '6' },
       { kind: 'milestone', ref: 'goals:25' },
+      { kind: 'milestone', ref: 'win_streak:3' },
+      { kind: 'milestone', ref: 'win_streak:6' },
       { kind: 'trophy', ref: 'goals:10' },
       { kind: 'trophy', ref: 'goals:25' },
       { kind: 'trophy', ref: 'mvp:3' },
@@ -674,6 +668,63 @@ describe('teams module services and RPCs', () => {
       ),
     );
     expect(thirdRun.rows[0]).toMatchObject({ applied_points: 0 });
+  });
+
+  it('resets win streak progression after a valid loss', async () => {
+    const admin = await seedUser(client, 'ts-streak-admin');
+    const player = await seedUser(client, 'ts-streak-player');
+    const teamId = await createTeam(client, admin.id, 'Streak FC', 'DEL');
+    await addMember(client, admin.id, teamId, player.id, 'DEL');
+
+    await asUser(client, player.id, () =>
+      client.query(`select * from public.create_team_card($1, 'DEL', 'MED')`, [
+        JSON.stringify({ pac: 70, sho: 70, pas: 70, dri: 70, def: 70, phy: 70 }),
+      ]),
+    );
+    await asUser(client, admin.id, () =>
+      client.query(`select * from public.review_team_admission($1, $2, 'approved'::public.team_card_snapshot_status)`, [teamId, player.id]),
+    );
+
+    async function approveWin(index: number, teamScore: number, opponentScore: number) {
+      const matchId = await createPlayedMatch(client, admin.id, teamId, index, undefined, teamScore, opponentScore);
+      const submitted = await asUser(client, player.id, () =>
+        client.query<{ submission_id: string }>(
+          `select * from public.submit_team_match_stat($1, $2, 'goals'::public.team_stat_kind, 1::smallint)`,
+          [teamId, matchId],
+        ),
+      );
+      await asUser(client, admin.id, () =>
+        client.query(`select * from public.review_team_stat_submission($1, 'approved'::public.team_stat_submission_status)`, [
+          submitted.rows[0]!.submission_id,
+        ]),
+      );
+    }
+
+    await approveWin(1, 2, 1);
+    await approveWin(2, 2, 1);
+    await approveWin(3, 2, 1);
+    await approveWin(4, 0, 1);
+    await approveWin(5, 2, 1);
+    await approveWin(6, 2, 1);
+    await approveWin(7, 2, 1);
+
+    const result = await asUser(client, admin.id, () =>
+      client.query<{ applied_points: number; stats: Record<string, number> }>(
+        `select * from public.process_team_central_missions($1)`,
+        [player.id],
+      ),
+    );
+
+    expect(result.rows[0]).toMatchObject({
+      applied_points: 6,
+      stats: { pac: 72, sho: 72, dri: 72, pas: 70, def: 70, phy: 70 },
+    });
+
+    const streaks = await client.query<{ ref: string }>(
+      `select ref from public.team_mission_ledger where user_id = $1 and kind = 'milestone' and ref like 'win_streak:%' order by ref`,
+      [player.id],
+    );
+    expect(streaks.rows).toEqual([{ ref: 'win_streak:3' }, { ref: 'win_streak:6' }]);
   });
 
   it('caps mission cycle boosts at 99 and still records the cycle', async () => {
@@ -723,7 +774,7 @@ describe('teams module services and RPCs', () => {
       ),
     );
     expect(run.rows[0]).toMatchObject({
-      applied_points: 6,
+      applied_points: 9,
       stats: { pac: 99, sho: 99, pas: 70, dri: 99, def: 70, phy: 70 },
     });
 
@@ -731,7 +782,7 @@ describe('teams module services and RPCs', () => {
       `select ref from public.team_mission_ledger where user_id = $1 and kind = 'mvp_cycle'`,
       [player.id],
     );
-    expect(cycles.rows).toEqual([{ ref: '5' }]);
+    expect(cycles.rows).toEqual([{ ref: '3' }]);
 
     const rerun = await asUser(client, admin.id, () =>
       client.query<{ applied_points: number }>(`select * from public.process_team_central_missions($1)`, [player.id]),
@@ -759,7 +810,7 @@ describe('teams module services and RPCs', () => {
     );
 
     for (let index = 1; index <= 5; index += 1) {
-      const matchId = await createPlayedMatch(client, admin.id, teamId, index);
+      const matchId = await createPlayedMatch(client, admin.id, teamId, index, undefined, 0, 1);
       const submitted = await asUser(client, keeper.id, () =>
         client.query<{ submission_id: string }>(
           `select * from public.submit_team_match_stat($1, $2, 'tackles'::public.team_stat_kind, 10::smallint)`,
@@ -1165,7 +1216,7 @@ describe('teams module services and RPCs', () => {
         insert into public.team_mission_ledger (user_id, kind, ref, stat_key, points)
         values
           ($1, 'trophy', 'goals:10', null, null),
-          ($1, 'mvp_cycle', 'cycle:5', 'sho', 2),
+          ($1, 'mvp_cycle', '3', 'sho', 2),
           ($1, 'milestone', 'goals:25', 'sho', 1)
       `,
       [player.id],
@@ -1262,7 +1313,7 @@ describe('teams module services and RPCs', () => {
     const missions = await asUser(client, admin.id, () =>
       client.query<{ applied_points: number }>(`select * from public.process_team_central_missions($1)`, [player.id]),
     );
-    expect(missions.rows[0]).toMatchObject({ applied_points: 6 });
+    expect(missions.rows[0]).toMatchObject({ applied_points: 15 });
 
     const playersAfter = await client.query<{ row: object }>(
       `

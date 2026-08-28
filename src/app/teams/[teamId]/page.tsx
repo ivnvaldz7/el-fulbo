@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { notFound, redirect, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { TeamCardPanel } from '@/components/teams/team-card-panel';
+import { TeamCardAdmissionPanel } from '@/components/teams/team-card-admission-panel';
 import { TeamDetailTabs } from '@/components/teams/team-detail-tabs';
 import { TeamMatchesPanel } from '@/components/teams/team-matches-panel';
 import { TeamModerationPanel } from '@/components/teams/team-moderation-panel';
@@ -15,7 +17,7 @@ import { TeamStatsPanel } from '@/components/teams/team-stats-panel';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { TeamsService } from '@/lib/services/teams.service';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
-import type { TeamDetailTab, TeamMatchSignupStatus, TeamStatKind, TeamSubmissionStatus } from '@/lib/types/teams.types';
+import type { TeamCardSnapshotStatus, TeamDetailTab, TeamMatchSignupStatus, TeamStatKind, TeamSubmissionStatus } from '@/lib/types/teams.types';
 import { routes } from '@/lib/routes';
 
 const tabs: TeamDetailTab[] = ['members', 'matches', 'stats', 'card', 'moderation'];
@@ -92,6 +94,18 @@ export default function TeamDetailPage() {
           event: '*',
           schema: 'public',
           table: 'team_stat_submissions',
+          filter: `team_id=eq.${teamId}`,
+        },
+        () => {
+          void queryClient.invalidateQueries({ queryKey: ['team', teamId] });
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'team_card_snapshots',
           filter: `team_id=eq.${teamId}`,
         },
         () => {
@@ -242,20 +256,62 @@ export default function TeamDetailPage() {
     }
   }
 
+  async function handleReviewAdmission(
+    userId: string,
+    status: Extract<TeamCardSnapshotStatus, 'approved' | 'rejected'>,
+    rejectionReason?: string | null,
+  ) {
+    try {
+      const result = await service.reviewAdmission({ teamId, userId, decision: status, rejectionReason });
+      if (!result.ok) throw new Error(result.error.message);
+      toast.success(status === 'approved' ? 'Jugador admitido al equipo' : 'Card rechazada');
+      void queryClient.invalidateQueries({ queryKey: ['team', teamId] });
+    } catch (err: any) {
+      toast.error(err.message ?? 'No pudimos revisar la admisión');
+    }
+  }
+
+  async function handleResubmitAdmission() {
+    try {
+      const result = await service.resubmitAdmission({ teamId });
+      if (!result.ok) throw new Error(result.error.message);
+      toast.success('Card reenviada para revisión');
+      void queryClient.invalidateQueries({ queryKey: ['team', teamId] });
+    } catch (err: any) {
+      toast.error(err.message ?? 'No pudimos reenviar la card');
+    }
+  }
+
   return (
     <ImmersiveScreen contentClassName="w-full">
       <div className="mx-auto w-full max-w-5xl px-4 py-10">
-        <header className="mb-8 rounded-[2rem] bg-white/7 p-6 ring-1 ring-white/10">
-          <Link
-            href="/teams"
-            className="group mb-4 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 transition-colors hover:text-white"
-          >
-            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            Volver a Equipos
-          </Link>
-          <p className="font-mono text-[10px] font-black uppercase tracking-[0.25em] text-pitch-green">Equipo</p>
-          <h1 className="mt-3 font-headline text-5xl font-black italic uppercase leading-none text-white">{team.name}</h1>
-          <p className="mt-3 text-sm font-semibold text-white/55">{team.memberCount} miembros · {team.matchesPlayed} partidos con stats aprobadas</p>
+        <header
+          style={{
+            '--team-primary': team.primaryColor ?? '#22c55e',
+            '--team-secondary': team.secondaryColor ?? '#0a0a0a',
+          } as CSSProperties}
+          className="relative mb-8 overflow-hidden rounded-[2rem] bg-white/5 p-1.5 ring-1 ring-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)]"
+        >
+          <div className="relative overflow-hidden rounded-[1.65rem] bg-[var(--team-secondary)] p-6 sm:p-8">
+            <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[var(--team-primary)]/15 blur-3xl" />
+            <Link
+              href="/teams"
+              className="group mb-4 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 transition-colors hover:text-white"
+            >
+              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+              Volver a Equipos
+            </Link>
+            <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="font-mono text-[10px] font-black uppercase tracking-[0.25em] text-[var(--team-primary)]">Equipo</p>
+                <h1 className="mt-3 font-headline text-5xl font-black italic uppercase leading-[0.95] tracking-[-0.05em] text-white">{team.name}</h1>
+                <p className="mt-4 text-sm font-semibold text-white/55">{team.memberCount} miembros. {team.matchesPlayed} partidos con stats aprobadas.</p>
+              </div>
+              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[var(--team-primary)] font-headline text-2xl font-black italic text-black shadow-[inset_0_1px_1px_rgba(255,255,255,0.28)]">
+                {getInitials(team.name)}
+              </span>
+            </div>
+          </div>
         </header>
 
         <TeamDetailTabs teamId={team.id} activeTab={activeTab} />
@@ -283,7 +339,18 @@ export default function TeamDetailPage() {
             />
           ) : null}
           {activeTab === 'stats' ? <TeamStatsPanel totals={team} /> : null}
-          {activeTab === 'card' ? <TeamCardPanel team={team} /> : null}
+          {activeTab === 'card' ? (
+            <div className="space-y-10">
+              <TeamCardPanel team={team} />
+              <TeamCardAdmissionPanel
+                admissions={team.admissions}
+                currentUserId={team.currentUserId}
+                canManage={canManage}
+                onReviewAdmission={({ userId, status, rejectionReason }) => handleReviewAdmission(userId, status, rejectionReason)}
+                onResubmitAdmission={() => void handleResubmitAdmission()}
+              />
+            </div>
+          ) : null}
           {activeTab === 'moderation' ? (
             <TeamModerationPanel
               submissions={team.submissions}
@@ -295,4 +362,13 @@ export default function TeamDetailPage() {
       </div>
     </ImmersiveScreen>
   );
+}
+
+function getInitials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
 }

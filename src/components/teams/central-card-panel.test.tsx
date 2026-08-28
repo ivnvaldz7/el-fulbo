@@ -30,7 +30,7 @@ const keeperView: TeamCentralCardView = {
 
 describe('CentralCardPanel', () => {
   it('renders the global card with overall, tier, positions and approved aggregates', () => {
-    render(<CentralCardPanel view={fieldView} />);
+    render(<CentralCardPanel view={fieldView} userProfile={{ name: 'Teams', photoUrl: null }} />);
 
     expect(screen.getByRole('heading', { name: 'Tu card global' })).toBeInTheDocument();
     expect(screen.getByLabelText('Card de Teams')).toBeInTheDocument();
@@ -52,7 +52,7 @@ describe('CentralCardPanel', () => {
   });
 
   it('maps goalkeeper aptitude labels for ARQ cards', () => {
-    render(<CentralCardPanel view={keeperView} />);
+    render(<CentralCardPanel view={keeperView} userProfile={{ name: 'Arquero', photoUrl: null }} />);
 
     expect(screen.getByText('ARQ / DEF')).toBeInTheDocument();
     expect(screen.getByText('Estirada')).toBeInTheDocument();
@@ -66,5 +66,6 @@ describe('CentralCardPanel', () => {
 
     expect(screen.getByRole('heading', { name: /Todavía no creaste tu card de Teams/i })).toBeInTheDocument();
     expect(screen.getByText(/las misiones se activan/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /crear mi card/i })).toHaveAttribute('href', '/teams/card');
   });
 });

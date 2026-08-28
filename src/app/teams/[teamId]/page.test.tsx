@@ -201,7 +201,7 @@ describe('TeamDetailPage', () => {
     });
 
     expect(supabaseClient.channel).toHaveBeenCalledWith('team-detail:test-team-id');
-    expect(channelOnMock).toHaveBeenCalledTimes(4);
+    expect(channelOnMock).toHaveBeenCalledTimes(5);
     expect(channelOnMock).toHaveBeenCalledWith(
       'postgres_changes',
       expect.objectContaining({ table: 'team_members' }),

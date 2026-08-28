@@ -4,6 +4,7 @@ export const routes = {
   groups: '/groups',
   teams: '/teams',
   teamNew: '/teams/new',
+  teamCard: '/teams/card',
   teamInvite: (code: string) => `/invite/teams/${code}`,
   join: '/join',
   profile: '/profile',
