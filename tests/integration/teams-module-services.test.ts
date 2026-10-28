@@ -37,8 +37,22 @@ async function seedPlayerProfile(
 }
 
 async function createTeam(client: Client, adminUserId: string, name: string, position: PlayerPosition = 'MED') {
+  const stats = position === 'ARQ'
+    ? { div: 70, han: 70, kic: 70, ref: 70, spd: 70, pos: 70 }
+    : { pac: 70, sho: 70, pas: 70, dri: 70, def: 70, phy: 70 };
+  const secondary = position === 'ARQ' ? 'DEF' : position === 'DEF' ? 'MED' : position === 'MED' ? 'DEL' : 'MED';
+
+  await client.query(
+    `
+      insert into public.team_cards (user_id, stats, primary_position, secondary_position)
+      values ($1, $2::jsonb, $3, $4)
+      on conflict (user_id) do nothing
+    `,
+    [adminUserId, JSON.stringify(stats), position, secondary],
+  );
+
   const result = await asUser(client, adminUserId, () =>
-    client.query<{ team_id: string }>(`select * from public.create_team($1, $2)`, [name, position]),
+    client.query<{ team_id: string }>(`select * from public.create_team($1, 'F5'::public.modality)`, [name]),
   );
 
   return result.rows[0]!.team_id;

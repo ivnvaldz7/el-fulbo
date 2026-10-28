@@ -2,6 +2,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TeamCardPanel } from './team-card-panel';
 import { TeamMatchesPanel } from './team-matches-panel';
+import { TeamMatchCreateForm } from './team-match-create-form';
+import { TeamMatchShareButton } from './team-match-share-button';
 import { TeamModerationPanel } from './team-moderation-panel';
 import { TeamRosterPanel } from './team-roster-panel';
 import { TeamStatsPanel } from './team-stats-panel';
@@ -36,6 +38,7 @@ const team = {
   id: 'team-1',
   name: 'La Máquina',
   slug: 'la-maquina',
+  modality: 'F5' as const,
   primaryColor: '#16a34a',
   secondaryColor: '#020617',
   role: 'admin' as const,
@@ -87,7 +90,7 @@ describe('team detail panels', () => {
     expect(screen.getByText('Los Pibes')).toBeInTheDocument();
     expect(screen.getByText('7 anotados')).toBeInTheDocument();
     expect(screen.getByText('4 - 2')).toBeInTheDocument();
-    expect(screen.getByText(/La inscripción se habilita desde el contrato de partido/i)).toBeInTheDocument();
+    expect(screen.getByText(/Las convocatorias aparecen acá/i)).toBeInTheDocument();
   });
 
   it('calls match signup and stat submission actions with match payloads', () => {
@@ -97,12 +100,49 @@ describe('team detail panels', () => {
     render(<TeamMatchesPanel teamId="team-1" matches={matches} onSignup={onSignup} onSubmitStat={onSubmitStat} />);
 
     fireEvent.click(screen.getByRole('button', { name: /anotarme contra Los Pibes/i }));
-    fireEvent.change(screen.getByLabelText(/stat para Partido cerrado/i), { target: { value: 'assists' } });
-    fireEvent.change(screen.getByLabelText(/valor para Partido cerrado/i), { target: { value: '3' } });
-    fireEvent.click(screen.getByRole('button', { name: /cargar stat de Partido cerrado/i }));
+    fireEvent.change(screen.getByLabelText('Logro'), { target: { value: 'assists' } });
+    fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '3' } });
+    fireEvent.click(screen.getByRole('button', { name: /guardar logro/i }));
 
     expect(onSignup).toHaveBeenCalledWith({ teamId: 'team-1', matchId: 'match-1', status: 'going' });
     expect(onSubmitStat).toHaveBeenCalledWith({ teamId: 'team-1', matchId: 'match-2', statKind: 'assists', value: 3 });
+  });
+
+  it('filters the post-match achievement prompt by the player card positions', () => {
+    render(
+      <TeamMatchesPanel
+        teamId="team-1"
+        matches={[matches[1]!]}
+        currentUserPositions={['DEL']}
+        onSubmitStat={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('option', { name: 'Goles' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Asistencias' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Quites' })).not.toBeInTheDocument();
+  });
+
+  it('lets an admin publish a match with the team-match contract', async () => {
+    const onCreateMatch = vi.fn().mockResolvedValue(undefined);
+
+    render(<TeamMatchCreateForm teamId="11111111-1111-1111-1111-111111111111" onCreateMatch={onCreateMatch} />);
+
+    fireEvent.change(screen.getByPlaceholderText('Ej. Los Pibes'), { target: { value: 'Los Pibes' } });
+    fireEvent.change(screen.getByPlaceholderText('Ej. Palermo'), { target: { value: 'Cancha 5' } });
+    fireEvent.click(screen.getByRole('button', { name: /publicar convocatoria/i }));
+
+    await waitFor(() => expect(onCreateMatch).toHaveBeenCalledWith(expect.objectContaining({
+      teamId: '11111111-1111-1111-1111-111111111111',
+      opponentName: 'Los Pibes',
+      fieldName: 'Cancha 5',
+    })));
+  });
+
+  it('exposes a share action for the team convocatoria', () => {
+    render(<TeamMatchShareButton teamId="team-1" matchId="match-1" matchLabel="Los Pibes" />);
+
+    expect(screen.getByRole('button', { name: /compartir convocatoria Los Pibes/i })).toBeInTheDocument();
   });
 
   it('renders approved-only aggregate stats', () => {

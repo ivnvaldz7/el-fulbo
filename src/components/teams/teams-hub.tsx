@@ -77,7 +77,7 @@ export function TeamsHub({ teams }: { teams: TeamHubItem[] }) {
                       {getInitials(team.name)}
                     </span>
                     <div>
-                      <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{team.role}</p>
+                      <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{team.role} · {team.modality}</p>
                       <h3 className="mt-2 font-headline text-3xl font-black italic uppercase leading-none text-white transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:text-[var(--team-primary)]">{team.name}</h3>
                       <p className="mt-2 font-mono text-[10px] font-black uppercase tracking-[0.16em] text-white/45">{team.memberCount} miembros</p>
                     </div>

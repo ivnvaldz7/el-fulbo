@@ -30,7 +30,7 @@ describe('CreateTeamForm', () => {
     render(<CreateTeamForm />);
 
     expect(screen.getByPlaceholderText('Ej: Los Merengues')).toBeInTheDocument();
-    expect(screen.getByLabelText('Tu posición')).toHaveValue('MED');
+    expect(screen.getByLabelText('Formato del equipo')).toHaveValue('F5');
     expect(screen.getByRole('button', { name: /crear equipo/i })).toBeEnabled();
   });
 
@@ -62,7 +62,7 @@ describe('CreateTeamForm', () => {
     await waitFor(() => {
       expect(createTeamMock).toHaveBeenCalledWith({
         name: 'Los Merengues',
-        primaryPosition: 'MED',
+        modality: 'F5',
       });
     });
     expect(pushMock).toHaveBeenCalledWith('/teams/team-123');

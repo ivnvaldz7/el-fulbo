@@ -9,6 +9,7 @@ const teams = [
     id: 'team-1',
     name: 'La Máquina',
     slug: 'la-maquina',
+    modality: 'F5' as const,
     primaryColor: '#16a34a',
     secondaryColor: '#020617',
     role: 'admin' as const,
@@ -41,7 +42,7 @@ describe('TeamsHub', () => {
 
 describe('TeamDetailTabs', () => {
   it('renders normal navigation links backed by the tab query parameter', () => {
-    render(<TeamDetailTabs teamId="team-1" activeTab="stats" />);
+    render(<TeamDetailTabs teamId="team-1" activeTab="stats" canManage />);
 
     expect(screen.getByRole('navigation', { name: 'Team sections' })).toBeInTheDocument();
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
@@ -52,5 +53,11 @@ describe('TeamDetailTabs', () => {
     expect(screen.getByRole('link', { name: 'Stats' })).not.toHaveAttribute('aria-selected');
     expect(screen.getByRole('link', { name: 'Card' })).toHaveAttribute('href', routes.teamDetail('team-1', 'card'));
     expect(screen.getByRole('link', { name: 'Moderation' })).toHaveAttribute('href', routes.teamDetail('team-1', 'moderation'));
+  });
+
+  it('keeps admin moderation out of the player navigation', () => {
+    render(<TeamDetailTabs teamId="team-1" activeTab="stats" />);
+
+    expect(screen.queryByRole('link', { name: 'Moderation' })).not.toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
-import type { FieldStats, GoalkeeperStats, PlayerPosition, UserId } from '@/lib/types';
+import type { FieldStats, GoalkeeperStats, Modality, PlayerPosition, UserId } from '@/lib/types';
 
 export type TeamId = string;
 export type TeamMatchId = string;
@@ -123,6 +123,7 @@ export interface TeamHubItem {
   id: TeamId;
   name: string;
   slug: string;
+  modality: Modality;
   primaryColor: string | null;
   secondaryColor: string | null;
   role: TeamRole;
@@ -155,6 +156,7 @@ export interface TeamMatchView {
   mvpUserId: string | null;
   mvpUserName: string | null;
   hasVotedForMvp?: boolean;
+  submittedStats?: Array<{ statKind: TeamStatKind; status: TeamSubmissionStatus }>;
 }
 
 export interface TeamMatchMvpVote {

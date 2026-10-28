@@ -1,3 +1,5 @@
+import { Shield } from 'lucide-react';
+
 export type TeamCardData = {
   name: string;
   primaryColor?: string | null;
@@ -43,12 +45,15 @@ export function TeamCardArtwork({ team, size = 'preview' }: { team: TeamCardData
       <div className="flex h-full flex-col rounded-[calc(2rem-0.5rem)] bg-black/82 p-6 shadow-[inset_0_1px_1px_rgba(255,255,255,0.18)]">
         <div className="flex items-center justify-between">
           <span className="font-mono text-[10px] font-black uppercase tracking-[0.24em] text-pitch-green">El Fulbo</span>
-          <span className="rounded-full bg-white px-3 py-1 font-mono text-[10px] font-black uppercase text-black">Team</span>
+          <span title="Equipo" aria-label="Equipo" className="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-black">
+            <Shield className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">Equipo</span>
+          </span>
         </div>
 
         <div className="flex flex-1 flex-col items-center justify-center text-center">
           <div className="mb-8 flex h-28 w-28 items-center justify-center rounded-[2rem] bg-white/10 ring-1 ring-white/15">
-            <span className="font-headline text-5xl font-black italic text-pitch-green">{team.name.slice(0, 2).toUpperCase()}</span>
+            <Shield className="h-14 w-14 text-pitch-green" aria-hidden="true" />
           </div>
           <h2 className={`font-headline font-black italic uppercase leading-none tracking-tight text-white ${scale.name}`}>{team.name}</h2>
           <p className="mt-5 font-mono text-[10px] font-black uppercase tracking-[0.24em] text-white/45">Approved aggregate history</p>

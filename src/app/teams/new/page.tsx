@@ -33,7 +33,7 @@ export default async function NewTeamPage() {
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Roster fijo</p>
           <h1 className="mt-2 font-headline text-3xl font-black italic uppercase leading-none text-white">NUEVO EQUIPO</h1>
           <p className="mt-3 font-headline text-base font-medium leading-tight text-white/60">
-            Elegí nombre y tu posición. Después invitas al resto.
+            Elegí el nombre y el formato. Tu posición sale de tu Card Global.
           </p>
         </header>
 

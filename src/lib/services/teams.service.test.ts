@@ -54,6 +54,10 @@ function createQuerySupabase({
       return this.record('in', args);
     }
 
+    update(...args: unknown[]) {
+      return this.record('update', args);
+    }
+
     order(...args: unknown[]) {
       return this.record('order', args);
     }
@@ -90,15 +94,14 @@ describe('teams service validation and orchestration', () => {
     const supabase = createRpcSupabase({ data: [{ team_id: 'team-1' }] });
     const service = new TeamsService(supabase);
 
-    const invalid = await service.createTeam({ name: '', primaryPosition: 'DEL' });
-    const valid = await service.createTeam({ name: '  Los Pibes  ', primaryPosition: 'MED' });
+    const invalid = await service.createTeam({ name: '', modality: 'F5' });
+    const valid = await service.createTeam({ name: '  Los Pibes  ', modality: 'F7' });
 
     expect(invalid).toMatchObject({ ok: false, error: { code: 'VALIDATION_ERROR' } });
     expect(supabase.rpc).toHaveBeenCalledTimes(1);
     expect(supabase.rpc).toHaveBeenCalledWith('create_team', {
       p_name: 'Los Pibes',
-      p_primary_position: 'MED',
-      p_secondary_position: null,
+      p_modality: 'F7',
       p_badge_url: null,
       p_primary_color: null,
       p_secondary_color: null,
@@ -123,6 +126,19 @@ describe('teams service validation and orchestration', () => {
     ).resolves.toMatchObject({ ok: false });
 
     expect(supabase.rpc).not.toHaveBeenCalled();
+  });
+
+  it('closes a scheduled team match with the final score', async () => {
+    const { supabase, calls } = createQuerySupabase({ handler: (table, localCalls) => table === 'team_matches' && localCalls.some((call) => call.method === 'maybeSingle') ? { data: { id: matchId }, error: null } : { data: [], error: null } });
+    const service = new TeamsService(supabase);
+    const teamId = crypto.randomUUID();
+    const matchId = crypto.randomUUID();
+
+    const result = await service.completeTeamMatch({ teamId, matchId, teamScore: 4, opponentScore: 2 });
+
+    expect(result).toEqual({ ok: true, data: undefined });
+    expect(calls.some((call) => call.table === 'team_matches' && call.method === 'update')).toBe(true);
+    expect(calls.some((call) => call.table === 'team_matches' && call.method === 'eq' && call.args[0] === 'status' && call.args[1] === 'scheduled')).toBe(true);
   });
 
   it('maps player positions to the only allowed submitted stat kind', () => {
@@ -470,7 +486,7 @@ describe('teams service validation and orchestration', () => {
                 id: 'member-1',
                 role: 'admin',
                 team_id: 'team-1',
-                teams: { id: 'team-1', name: 'La Máquina', slug: 'la-maquina', primary_color: '#16a34a', secondary_color: '#020617' },
+                teams: { id: 'team-1', name: 'La Máquina', slug: 'la-maquina', modality: 'F5', primary_color: '#16a34a', secondary_color: '#020617' },
               },
             ],
             error: null,
@@ -495,6 +511,7 @@ describe('teams service validation and orchestration', () => {
           id: 'team-1',
           name: 'La Máquina',
           slug: 'la-maquina',
+          modality: 'F5',
           primaryColor: '#16a34a',
           secondaryColor: '#020617',
           role: 'admin',
@@ -512,7 +529,7 @@ describe('teams service validation and orchestration', () => {
     const { supabase } = createQuerySupabase({
       handler: (table) => {
         if (table === 'teams') {
-          return { data: { id: 'team-1', name: 'La Máquina', slug: 'la-maquina', primary_color: '#16a34a', secondary_color: '#020617' }, error: null };
+          return { data: { id: 'team-1', name: 'La Máquina', slug: 'la-maquina', modality: 'F5', primary_color: '#16a34a', secondary_color: '#020617' }, error: null };
         }
 
         if (table === 'team_members') {
@@ -592,7 +609,7 @@ describe('teams service validation and orchestration', () => {
     const { supabase, calls } = createQuerySupabase({
       handler: (table) => {
         if (table === 'teams') {
-          return { data: { id: 'team-1', name: 'La Máquina', slug: 'la-maquina', primary_color: null, secondary_color: null }, error: null };
+          return { data: { id: 'team-1', name: 'La Máquina', slug: 'la-maquina', modality: 'F5', primary_color: null, secondary_color: null }, error: null };
         }
 
         if (table === 'team_members') {
@@ -623,6 +640,10 @@ describe('teams service validation and orchestration', () => {
           return { data: [], error: null };
         }
 
+        if (table === 'team_stat_submissions') {
+          return { data: [], error: null };
+        }
+
         throw new Error(`Unexpected query for ${table}`);
       },
     });
@@ -631,7 +652,7 @@ describe('teams service validation and orchestration', () => {
     const result = await service.getTeamDetail('team-1');
 
     expect(result).toMatchObject({ ok: true, data: { role: 'member', submissions: [] } });
-    expect(calls.some((call) => call.table === 'team_stat_submissions')).toBe(false);
+    expect(calls.some((call) => call.table === 'team_stat_submissions')).toBe(true);
   });
 
   it('calls the rpc for voteForTeamMatchMvp', async () => {

@@ -6,19 +6,21 @@ import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { TeamsService } from '@/lib/services/teams.service';
 import { createTeamSchema } from '@/lib/validations/teams';
 import { routes } from '@/lib/routes';
-import type { PlayerPosition } from '@/lib/types';
+import type { Modality } from '@/lib/types';
 
-const positionOptions: Array<{ value: PlayerPosition; label: string }> = [
-  { value: 'ARQ', label: 'ARQ / Arquero' },
-  { value: 'DEF', label: 'DEF / Defensor' },
-  { value: 'MED', label: 'MED / Mediocampista' },
-  { value: 'DEL', label: 'DEL / Delantero' },
+const modalityOptions: Array<{ value: Modality; label: string }> = [
+  { value: 'F5', label: 'Fútbol 5' },
+  { value: 'F6', label: 'Fútbol 6' },
+  { value: 'F7', label: 'Fútbol 7' },
+  { value: 'F8', label: 'Fútbol 8' },
+  { value: 'F9', label: 'Fútbol 9' },
+  { value: 'F11', label: 'Fútbol 11' },
 ];
 
 export function CreateTeamForm() {
   const router = useRouter();
   const [name, setName] = useState('');
-  const [primaryPosition, setPrimaryPosition] = useState<PlayerPosition>('MED');
+  const [modality, setModality] = useState<Modality>('F5');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -27,7 +29,7 @@ export function CreateTeamForm() {
 
     if (submitting) return;
 
-    const parsed = createTeamSchema.safeParse({ name, primaryPosition });
+    const parsed = createTeamSchema.safeParse({ name, modality });
 
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? 'Algunos datos no son válidos.');
@@ -85,13 +87,13 @@ export function CreateTeamForm() {
         </label>
 
         <label className="block p-4">
-          <span className="font-mono text-[10px] font-bold uppercase text-white/60">Tu posición</span>
+          <span className="font-mono text-[10px] font-bold uppercase text-white/60">Formato del equipo</span>
           <select
-            value={primaryPosition}
-            onChange={(event) => setPrimaryPosition(event.target.value as PlayerPosition)}
+            value={modality}
+            onChange={(event) => setModality(event.target.value as Modality)}
             className="mt-2 w-full cursor-pointer appearance-none bg-transparent font-headline text-lg font-bold text-white outline-none"
           >
-            {positionOptions.map((option) => (
+            {modalityOptions.map((option) => (
               <option key={option.value} value={option.value} className="bg-concrete-overlay">
                 {option.label}
               </option>

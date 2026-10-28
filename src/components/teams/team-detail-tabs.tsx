@@ -1,26 +1,30 @@
 import Link from 'next/link';
+import { ChartNoAxesCombined, ClipboardList, ShieldCheck, Swords, UsersRound, type LucideIcon } from 'lucide-react';
 import { routes } from '@/lib/routes';
 import type { TeamDetailTab } from '@/lib/types/teams.types';
 
-const tabs: { id: TeamDetailTab; label: string }[] = [
-  { id: 'members', label: 'Members' },
-  { id: 'matches', label: 'Matches' },
-  { id: 'stats', label: 'Stats' },
-  { id: 'card', label: 'Card' },
-  { id: 'moderation', label: 'Moderation' },
+const tabs: { id: TeamDetailTab; label: string; icon: LucideIcon }[] = [
+  { id: 'members', label: 'Members', icon: UsersRound },
+  { id: 'matches', label: 'Matches', icon: Swords },
+  { id: 'stats', label: 'Stats', icon: ChartNoAxesCombined },
+  { id: 'card', label: 'Card', icon: ClipboardList },
+  { id: 'moderation', label: 'Moderation', icon: ShieldCheck },
 ];
 
-export function TeamDetailTabs({ teamId, activeTab }: { teamId: string; activeTab: TeamDetailTab }) {
+export function TeamDetailTabs({ teamId, activeTab, canManage = false }: { teamId: string; activeTab: TeamDetailTab; canManage?: boolean }) {
   return (
     <nav aria-label="Team sections" className="flex gap-2 overflow-x-auto pb-2">
-      {tabs.map((tab) => (
+      {tabs.filter((tab) => canManage || tab.id !== 'moderation').map((tab) => (
         <Link
           key={tab.id}
           href={routes.teamDetail(teamId, tab.id)}
           aria-current={activeTab === tab.id ? 'page' : undefined}
-          className="rounded-full border border-white/10 bg-white/5 px-4 py-2 font-mono text-[10px] font-black uppercase tracking-[0.18em] text-white/70 transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-pitch-green hover:text-pitch-green aria-[current=page]:border-pitch-green aria-[current=page]:bg-pitch-green aria-[current=page]:text-black"
+          aria-label={tab.label}
+          title={tab.label}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/65 transition duration-300 hover:border-pitch-green hover:text-pitch-green aria-[current=page]:border-pitch-green aria-[current=page]:bg-pitch-green aria-[current=page]:text-black"
         >
-          {tab.label}
+          <tab.icon className="h-4 w-4" aria-hidden="true" />
+          <span className="sr-only">{tab.label}</span>
         </Link>
       ))}
     </nav>

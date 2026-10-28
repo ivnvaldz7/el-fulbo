@@ -1,9 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { FieldStats, GoalkeeperStats, PlayerPosition, Result } from '@/lib/types';
-import type { TeamCard, TeamCardTier, TeamCardSnapshotStatus, TeamCentralCardView, TeamCentralMissionsResult, TeamStatKind, ProgressableStatKey, TeamDetailView, TeamHubItem, TeamMatchView, TeamRosterMemberView, TeamSubmissionView } from '@/lib/types/teams.types';
+import type { TeamCard, TeamCardTier, TeamCardSnapshotStatus, TeamCentralCardView, TeamCentralMissionsResult, TeamStatKind, ProgressableStatKey, TeamDetailView, TeamHubItem, TeamMatchView, TeamRosterMemberView, TeamSubmissionView, TeamSubmissionStatus } from '@/lib/types/teams.types';
 import {
   createTeamInvitationSchema,
   createTeamMatchSchema,
+  completeTeamMatchSchema,
   createTeamSchema,
   grantTeamMeritSchema,
   processTeamCentralMissionsSchema,
@@ -22,6 +23,7 @@ import {
   type CreateTeamData,
   type CreateTeamInvitationData,
   type CreateTeamMatchData,
+  type CompleteTeamMatchData,
   type GrantTeamMeritData,
   type ProcessTeamCentralMissionsData,
   type RemoveTeamMemberData,
@@ -115,8 +117,7 @@ export class TeamsService {
 
     const { data, error } = await this.supabase.rpc('create_team', {
       p_name: parsed.data.name,
-      p_primary_position: parsed.data.primaryPosition,
-      p_secondary_position: normalizeNullable(parsed.data.secondaryPosition),
+      p_modality: parsed.data.modality,
       p_badge_url: normalizeNullable(parsed.data.badgeUrl),
       p_primary_color: normalizeNullable(parsed.data.primaryColor),
       p_secondary_color: normalizeNullable(parsed.data.secondaryColor),
@@ -211,6 +212,33 @@ export class TeamsService {
 
     const matchId = rpcId(data, 'match_id');
     return matchId ? { ok: true, data: { matchId } } : { ok: false, error: { code: 'INTERNAL_ERROR', message: 'Algo salio mal.' } };
+  }
+
+  async completeTeamMatch(input: CompleteTeamMatchData): Promise<Result<void>> {
+    const parsed = completeTeamMatchSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, error: validationError(parsed.error.flatten()) };
+    }
+
+    const { data, error } = await this.supabase
+      .from('team_matches')
+      .update({
+        status: 'played',
+        team_score: parsed.data.teamScore,
+        opponent_score: parsed.data.opponentScore,
+        played_at: new Date().toISOString(),
+      })
+      .eq('id', parsed.data.matchId)
+      .eq('team_id', parsed.data.teamId)
+      .eq('status', 'scheduled')
+      .select('id')
+      .maybeSingle();
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    return data ? { ok: true, data: undefined } : { ok: false, error: { code: 'NOT_FOUND', message: 'El partido no está disponible para cerrar.' } };
   }
 
   async signUpForTeamMatch(input: SignUpForTeamMatchData): Promise<Result<{ signupId: string }>> {
@@ -655,6 +683,7 @@ export class TeamsService {
           id,
           name,
           slug,
+          modality,
           primary_color,
           secondary_color
         )
@@ -704,6 +733,7 @@ export class TeamsService {
           id: String(team.id),
           name: String(team.name),
           slug: String(team.slug),
+          modality: team.modality,
           primaryColor: team.primary_color ?? null,
           secondaryColor: team.secondary_color ?? null,
           role: membership.role,
@@ -720,7 +750,7 @@ export class TeamsService {
   async getTeamDetail(teamId: string): Promise<Result<TeamDetailView | null>> {
     const { data: team, error: teamError } = await this.supabase
       .from('teams')
-      .select('id,name,slug,primary_color,secondary_color')
+      .select('id,name,slug,modality,primary_color,secondary_color')
       .eq('id', teamId)
       .maybeSingle();
 
@@ -734,7 +764,7 @@ export class TeamsService {
 
     const { data: { user } } = await this.supabase.auth.getUser();
 
-    const [membersResult, matchesResult, totalsResult] = await Promise.all([
+    const [membersResult, matchesResult, totalsResult, playerSubmissionsResult] = await Promise.all([
       this.supabase
         .from('team_members')
         .select('id,user_id,role,primary_position,secondary_position,users!team_members_user_id_fkey(display_name,photo_url)')
@@ -752,9 +782,16 @@ export class TeamsService {
         .select('matches_played,goals,assists,tackles')
         .eq('team_id', teamId)
         .maybeSingle(),
+      user?.id
+        ? this.supabase
+          .from('team_stat_submissions')
+          .select('team_match_id,stat_kind,status')
+          .eq('team_id', teamId)
+          .eq('user_id', user.id)
+        : Promise.resolve({ data: [], error: null }),
     ]);
 
-    for (const result of [membersResult, matchesResult, totalsResult]) {
+    for (const result of [membersResult, matchesResult, totalsResult, playerSubmissionsResult]) {
       if (result.error) {
         return { ok: false, error: mapSupabaseError(result.error) };
       }
@@ -796,6 +833,13 @@ export class TeamsService {
 
     const membersByUserId = new Map(members.map((m) => [m.userId, m.displayName]));
 
+    const playerSubmissionsByMatch = new Map<string, Array<{ statKind: TeamStatKind; status: TeamSubmissionStatus }>>();
+    for (const row of playerSubmissionsResult.data ?? []) {
+      const matchSubmissions = playerSubmissionsByMatch.get(String(row.team_match_id)) ?? [];
+      matchSubmissions.push({ statKind: row.stat_kind, status: row.status });
+      playerSubmissionsByMatch.set(String(row.team_match_id), matchSubmissions);
+    }
+
     const matches: TeamMatchView[] = (matchesResult.data ?? []).map((row: any) => ({
       id: String(row.id),
       scheduledAt: String(row.scheduled_at),
@@ -808,6 +852,7 @@ export class TeamsService {
       mvpUserId: row.mvp_user_id ?? null,
       mvpUserName: row.mvp_user_id ? (membersByUserId.get(row.mvp_user_id) ?? null) : null,
       hasVotedForMvp: Array.isArray(row.team_match_mvp_votes) ? row.team_match_mvp_votes.some((v: any) => v.voter_id === user?.id) : false,
+      submittedStats: playerSubmissionsByMatch.get(String(row.id)) ?? [],
     }));
 
     const submissions: TeamSubmissionView[] = (submissionsResult.data ?? []).map((row: any) => ({
@@ -844,6 +889,7 @@ export class TeamsService {
         id: String((team as any).id),
         name: String((team as any).name),
         slug: String((team as any).slug),
+        modality: (team as any).modality,
         primaryColor: (team as any).primary_color ?? null,
         secondaryColor: (team as any).secondary_color ?? null,
         role: currentMember?.role === 'admin' ? 'admin' : 'member',

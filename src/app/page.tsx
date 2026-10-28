@@ -43,6 +43,11 @@ export default async function HomePage() {
               Identidad Global
             </p>
           </div>
+          {process.env.NODE_ENV !== 'production' ? (
+            <Link href={routes.dev} className="rounded-full border border-pitch-green/30 px-3 py-2 font-mono text-[9px] font-black uppercase tracking-[0.16em] text-pitch-green transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-pitch-green hover:text-black">
+              Dev
+            </Link>
+          ) : null}
         </header>
 
         {baseCard ? (

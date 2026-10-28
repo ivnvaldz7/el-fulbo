@@ -100,6 +100,7 @@ const teamData = {
   id: 'test-team-id',
   name: 'Los Merengues',
   slug: 'los-merengues',
+  modality: 'F5' as const,
   primaryColor: '#16a34a',
   secondaryColor: '#020617',
   role: 'admin' as const,
@@ -188,7 +189,7 @@ describe('TeamDetailPage', () => {
       expect(screen.getByText('Los Merengues')).toBeInTheDocument();
     });
 
-    expect(screen.getByText(/no scheduled matches/i)).toBeInTheDocument();
+    expect(screen.getByText(/todavía no hay partidos en esta sección/i)).toBeInTheDocument();
   });
 
   it('sets up real-time subscription on mount and cleans up on unmount', async () => {

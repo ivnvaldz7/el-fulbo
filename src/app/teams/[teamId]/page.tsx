@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Shield } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { notFound, redirect, useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -18,6 +18,7 @@ import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { TeamsService } from '@/lib/services/teams.service';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import type { TeamCardSnapshotStatus, TeamDetailTab, TeamMatchSignupStatus, TeamStatKind, TeamSubmissionStatus } from '@/lib/types/teams.types';
+import type { CreateTeamMatchData } from '@/lib/validations/teams';
 import { routes } from '@/lib/routes';
 
 const tabs: TeamDetailTab[] = ['members', 'matches', 'stats', 'card', 'moderation'];
@@ -26,13 +27,13 @@ function parseTab(value: string | string[] | undefined): TeamDetailTab {
   const tab = Array.isArray(value) ? value[0] : value;
   return tabs.includes(tab as TeamDetailTab) ? (tab as TeamDetailTab) : 'members';
 }
-
 export default function TeamDetailPage() {
   const router = useRouter();
   const params = useParams();
   const teamId = params.teamId as string;
   const searchParams = useSearchParams();
   const activeTab = parseTab(searchParams.get('tab') ?? undefined);
+  const highlightedMatchId = searchParams.get('matchId');
 
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const service = useMemo(() => new TeamsService(supabase), [supabase]);
@@ -181,6 +182,21 @@ export default function TeamDetailPage() {
     }
   }
 
+  async function handleCreateMatch(payload: CreateTeamMatchData) {
+    const result = await service.createTeamMatch(payload);
+    if (!result.ok) throw new Error(result.error.message);
+    toast.success('Convocatoria publicada');
+    await queryClient.invalidateQueries({ queryKey: ['team', teamId] });
+    router.replace(`${routes.teamDetail(teamId, 'matches')}&matchId=${encodeURIComponent(result.data.matchId)}`);
+  }
+
+  async function handleCompleteMatch(payload: { teamId: string; matchId: string; teamScore: number; opponentScore: number }) {
+    const result = await service.completeTeamMatch(payload);
+    if (!result.ok) throw new Error(result.error.message);
+    toast.success('Resultado guardado. Ya pueden cargar sus logros.');
+    await queryClient.invalidateQueries({ queryKey: ['team', teamId] });
+  }
+
   async function handleSubmitStat(matchId: string, statKind: TeamStatKind, value: number) {
     try {
       const result = await service.submitTeamStat({ teamId, matchId, statKind, value });
@@ -305,16 +321,16 @@ export default function TeamDetailPage() {
               <div>
                 <p className="font-mono text-[10px] font-black uppercase tracking-[0.25em] text-[var(--team-primary)]">Equipo</p>
                 <h1 className="mt-3 font-headline text-5xl font-black italic uppercase leading-[0.95] tracking-[-0.05em] text-white">{team.name}</h1>
-                <p className="mt-4 text-sm font-semibold text-white/55">{team.memberCount} miembros. {team.matchesPlayed} partidos con stats aprobadas.</p>
+                <p className="mt-4 text-sm font-semibold text-white/55">{team.modality} · {team.memberCount} miembros. {team.matchesPlayed} partidos con stats aprobadas.</p>
               </div>
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[var(--team-primary)] font-headline text-2xl font-black italic text-black shadow-[inset_0_1px_1px_rgba(255,255,255,0.28)]">
-                {getInitials(team.name)}
+              <span title={`Escudo de ${team.name}`} aria-label={`Escudo de ${team.name}`} className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[var(--team-primary)] text-black shadow-[inset_0_1px_1px_rgba(255,255,255,0.28)]">
+                <Shield className="h-8 w-8" aria-hidden="true" />
               </span>
             </div>
           </div>
         </header>
 
-        <TeamDetailTabs teamId={team.id} activeTab={activeTab} />
+        <TeamDetailTabs teamId={team.id} activeTab={activeTab} canManage={canManage} />
 
         <div className="mt-8 rounded-[2rem] bg-black/45 p-5 ring-1 ring-white/10">
           {activeTab === 'members' ? (
@@ -333,6 +349,14 @@ export default function TeamDetailPage() {
               members={team.members.map((m) => ({ userId: m.userId, displayName: m.displayName }))}
               onSignup={({ matchId, status }) => handleSignup(matchId, status)}
               onSubmitStat={({ matchId, statKind, value }) => handleSubmitStat(matchId, statKind, value)}
+              canManage={canManage}
+              onCreateMatch={canManage ? handleCreateMatch : undefined}
+              onCompleteMatch={canManage ? handleCompleteMatch : undefined}
+              highlightedMatchId={highlightedMatchId}
+              currentUserPositions={(() => {
+                const currentMember = team.members.find((member) => member.userId === team.currentUserId);
+                return currentMember ? [currentMember.primaryPosition, ...(currentMember.secondaryPosition ? [currentMember.secondaryPosition] : [])] : undefined;
+              })()}
               onSetMvp={canManage ? ({ matchId, mvpUserId }) => handleSetMvp(matchId, mvpUserId) : undefined}
               onVoteMvp={({ matchId, votedPlayerId }) => handleVoteMvp(matchId, votedPlayerId)}
               onResolveMvp={canManage ? ({ matchId }) => handleResolveMvp(matchId) : undefined}
@@ -362,13 +386,4 @@ export default function TeamDetailPage() {
       </div>
     </ImmersiveScreen>
   );
-}
-
-function getInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('');
 }

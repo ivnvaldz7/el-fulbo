@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const teamPositionSchema = z.enum(['ARQ', 'DEF', 'MED', 'DEL']);
+export const teamModalitySchema = z.enum(['F5', 'F6', 'F7', 'F8', 'F9', 'F11']);
 export const teamStatKindSchema = z.enum(['goals', 'assists', 'tackles']);
 export const teamSubmissionDecisionSchema = z.enum(['approved', 'rejected']);
 export const progressableStatKeySchema = z.enum(['pac', 'sho', 'pas', 'dri', 'def', 'phy', 'div', 'han', 'kic', 'ref', 'spd', 'pos']);
@@ -11,14 +12,10 @@ const optionalTrimmedStringSchema = z.string().trim().min(1).max(120).optional()
 
 export const createTeamSchema = z.object({
   name: z.string().trim().min(1, 'Team name is required').max(60, 'Maximum 60 characters'),
-  primaryPosition: teamPositionSchema,
-  secondaryPosition: teamPositionSchema.optional().nullable(),
+  modality: teamModalitySchema,
   badgeUrl: optionalTrimmedUrlSchema,
   primaryColor: z.string().trim().max(32).optional().nullable(),
   secondaryColor: z.string().trim().max(32).optional().nullable(),
-}).refine((value) => !value.secondaryPosition || value.secondaryPosition !== value.primaryPosition, {
-  path: ['secondaryPosition'],
-  message: 'Secondary position must be different',
 });
 
 export const createTeamInvitationSchema = z.object({
@@ -47,6 +44,13 @@ export const createTeamMatchSchema = z.object({
   opponentName: optionalTrimmedStringSchema,
   fieldName: optionalTrimmedStringSchema,
   fieldMapsUrl: optionalTrimmedUrlSchema,
+});
+
+export const completeTeamMatchSchema = z.object({
+  teamId: uuidSchema,
+  matchId: uuidSchema,
+  teamScore: z.number().int().min(0).max(99),
+  opponentScore: z.number().int().min(0).max(99),
 });
 
 export const signUpForTeamMatchSchema = z.object({
@@ -116,6 +120,7 @@ export type CreateTeamInvitationData = z.infer<typeof createTeamInvitationSchema
 export type TeamMemberData = z.infer<typeof teamMemberSchema>;
 export type RemoveTeamMemberData = z.infer<typeof removeTeamMemberSchema>;
 export type CreateTeamMatchData = z.infer<typeof createTeamMatchSchema>;
+export type CompleteTeamMatchData = z.infer<typeof completeTeamMatchSchema>;
 export type SignUpForTeamMatchData = z.infer<typeof signUpForTeamMatchSchema>;
 export type SubmitTeamStatData = z.infer<typeof submitTeamStatSchema>;
 export type ReviewTeamStatSubmissionData = z.infer<typeof reviewTeamStatSubmissionSchema>;
