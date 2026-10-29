@@ -84,7 +84,7 @@ export default async function GroupsHubPage() {
       <FloatingPanel className="border-2 border-white/10 p-6">
         <header className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="font-headline text-3xl font-black italic uppercase leading-none text-white text-balance">Mis Equipos</h1>
+            <h1 className="font-headline text-3xl font-black italic uppercase leading-none text-white text-balance">Mis Grupos</h1>
             <p className="mt-1 font-mono text-[10px] font-bold uppercase tracking-widest text-pitch-green">Hub Principal</p>
           </div>
         </header>
@@ -129,7 +129,7 @@ export default async function GroupsHubPage() {
               <Search className="h-5 w-5" />
             </div>
             <div>
-              <p className="font-headline text-lg font-bold text-white">Todavía no estás en ningún equipo</p>
+              <p className="font-headline text-lg font-bold text-white">Todavía no estás en ningún grupo</p>
               <p className="mt-1 max-w-[240px] font-mono text-[10px] text-white/40">
                 Podés crear tu propio grupo o pedirle a un amigo que te comparta su link de invitación.
               </p>
@@ -150,7 +150,7 @@ export default async function GroupsHubPage() {
             className="btn-interactive flex h-14 w-full items-center justify-center gap-2 bg-pitch-green px-4 font-headline text-sm font-bold uppercase tracking-widest text-black hover:brightness-110"
           >
             <Plus className="h-5 w-5" />
-            Crear Nuevo Equipo
+            Crear Nuevo Grupo
           </Link>
         </div>
 

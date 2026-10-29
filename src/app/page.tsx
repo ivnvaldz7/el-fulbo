@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Plus, User, Search, Play } from 'lucide-react';
+import { Plus, User, Search, Play, Users } from 'lucide-react';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { FloatingPanel } from '@/components/ui/floating-panel';
@@ -65,13 +65,22 @@ export default async function HomePage() {
               </div>
             </article>
 
-            <Link
-              href={routes.teams}
-              className="btn-interactive mt-4 flex h-14 w-full items-center justify-center gap-2 bg-pitch-green px-4 font-headline text-sm font-bold uppercase tracking-widest text-black hover:brightness-110"
-            >
-              <Play className="h-5 w-5 fill-black" />
-              Ir a mis Equipos
-            </Link>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <Link
+                href={routes.groups}
+                className="btn-interactive flex h-14 w-full items-center justify-center gap-2 border border-white/15 bg-white/5 px-4 font-headline text-sm font-bold uppercase tracking-widest text-white hover:border-pitch-green hover:bg-white/10 hover:text-pitch-green"
+              >
+                <Users className="h-5 w-5" />
+                Ir a mis Grupos
+              </Link>
+              <Link
+                href={routes.teams}
+                className="btn-interactive flex h-14 w-full items-center justify-center gap-2 bg-pitch-green px-4 font-headline text-sm font-bold uppercase tracking-widest text-black hover:brightness-110"
+              >
+                <Play className="h-5 w-5 fill-black" />
+                Ir a mis Equipos
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center space-y-6 rounded-xl border-2 border-dashed border-white/20 bg-white/5 py-10 px-6 text-center">
