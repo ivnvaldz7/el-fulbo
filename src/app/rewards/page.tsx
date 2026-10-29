@@ -6,6 +6,7 @@ import { FloatingPanel } from '@/components/ui/floating-panel';
 import { RewardsHub } from '@/components/rewards/rewards-hub';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { routes } from '@/lib/routes';
+import { TeamsService } from '@/lib/services/teams.service';
 
 export default async function RewardsPage() {
   const supabase = await createServerSupabaseClient();
@@ -29,6 +30,12 @@ export default async function RewardsPage() {
     redirect('/onboarding-global');
   }
 
+  const centralCardResult = await new TeamsService(supabase).getCentralCardPanel(user.id);
+
+  if (!centralCardResult.ok) {
+    throw new Error(centralCardResult.error.message);
+  }
+
   return (
     <ImmersiveScreen align="center" contentClassName="mx-auto w-full max-w-[480px] py-8">
       <FloatingPanel className="border-2 border-white/10 p-6">
@@ -48,7 +55,7 @@ export default async function RewardsPage() {
           </p>
         </header>
 
-        <RewardsHub />
+        <RewardsHub view={centralCardResult.data} />
       </FloatingPanel>
     </ImmersiveScreen>
   );
