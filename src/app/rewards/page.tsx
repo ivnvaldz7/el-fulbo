@@ -16,20 +16,6 @@ export default async function RewardsPage() {
     redirect(routes.login);
   }
 
-  // Ensure they have a base card first
-  const { data: baseCard } = await supabase
-    .from('players')
-    .select('id')
-    .eq('user_id', user.id)
-    .is('archived_at', null)
-    .order('joined_at', { ascending: true })
-    .limit(1)
-    .single();
-
-  if (!baseCard) {
-    redirect('/onboarding-global');
-  }
-
   const centralCardResult = await new TeamsService(supabase).getCentralCardPanel(user.id);
 
   if (!centralCardResult.ok) {
@@ -41,11 +27,11 @@ export default async function RewardsPage() {
       <FloatingPanel className="border-2 border-white/10 p-6">
         <header className="mb-8">
           <Link
-            href="/teams"
+            href={routes.teamProfile}
             className="group mb-4 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 transition-colors hover:text-white"
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            Volver a Equipos
+            Volver a mi perfil
           </Link>
           <h1 className="font-headline text-3xl font-black italic uppercase leading-none text-white text-balance">
             Tus Recompensas

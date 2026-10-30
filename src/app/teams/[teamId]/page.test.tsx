@@ -168,12 +168,12 @@ describe('TeamDetailPage', () => {
     expect(screen.getByText(/1 miembros/)).toBeInTheDocument();
     expect(screen.getByText(/0 partidos/)).toBeInTheDocument();
 
-    expect(screen.getByRole('navigation', { name: 'Team sections' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Members' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Matches' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Stats' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Card' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Moderation' })).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Secciones del equipo' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Plantel' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Partidos' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Estadísticas' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Card del equipo' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Moderación' })).toBeInTheDocument();
 
     expect(screen.getByText('Creador')).toBeInTheDocument();
     expect(screen.getByText('MED')).toBeInTheDocument();

@@ -44,7 +44,7 @@ export function CentralCardPanel({
       <section aria-labelledby="central-card-heading" className="mb-10 rounded-[2rem] bg-white/7 p-6 ring-1 ring-white/10">
         <p className="font-mono text-[10px] font-black uppercase tracking-[0.25em] text-pitch-green">Card central</p>
         <h2 id="central-card-heading" className="mt-3 font-headline text-3xl font-black italic uppercase text-white">
-          Todavía no creaste tu card de Teams
+          Todavía no creaste tu card de Equipos
         </h2>
         <p className="mt-3 max-w-[520px] text-sm font-semibold leading-6 text-white/55">
           Acá vas a ver tu overall, tus logros y las stats aprobadas de todos tus equipos. Las misiones se activan cuando

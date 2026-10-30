@@ -128,6 +128,18 @@ describe('teams service validation and orchestration', () => {
     expect(supabase.rpc).not.toHaveBeenCalled();
   });
 
+  it('accepts only catalog escudos when updating a team', async () => {
+    const { supabase, from, calls } = createQuerySupabase({ handler: () => ({ data: { id: 'team-1' }, error: null }) });
+    const service = new TeamsService(supabase);
+    const teamId = crypto.randomUUID();
+
+    expect(await service.updateTeamBadge({ teamId, badgeUrl: 'https://example.com/other.svg' })).toMatchObject({ ok: false });
+    expect(from).not.toHaveBeenCalled();
+
+    expect(await service.updateTeamBadge({ teamId, badgeUrl: '/team-badges/bolt.svg' })).toEqual({ ok: true, data: undefined });
+    expect(calls.some((call) => call.table === 'teams' && call.method === 'update' && (call.args[0] as { badge_url: string }).badge_url === '/team-badges/bolt.svg')).toBe(true);
+  });
+
   it('closes a scheduled team match with the final score', async () => {
     const { supabase, calls } = createQuerySupabase({ handler: (table, localCalls) => table === 'team_matches' && localCalls.some((call) => call.method === 'maybeSingle') ? { data: { id: matchId }, error: null } : { data: [], error: null } });
     const service = new TeamsService(supabase);
@@ -511,6 +523,7 @@ describe('teams service validation and orchestration', () => {
           id: 'team-1',
           name: 'La Máquina',
           slug: 'la-maquina',
+          badgeUrl: null,
           modality: 'F5',
           primaryColor: '#16a34a',
           secondaryColor: '#020617',
@@ -653,6 +666,31 @@ describe('teams service validation and orchestration', () => {
 
     expect(result).toMatchObject({ ok: true, data: { role: 'member', submissions: [] } });
     expect(calls.some((call) => call.table === 'team_stat_submissions')).toBe(true);
+  });
+
+  it('loads only the data needed by the selected team tab', async () => {
+    const detail = { id: 'team-1', name: 'La Máquina', slug: 'la-maquina', modality: 'F5', primary_color: null, secondary_color: null };
+    const load = async (tab: 'members' | 'matches' | 'card' | 'moderation') => {
+      const { supabase, from } = createQuerySupabase({
+        handler: (table) => {
+          if (table === 'teams') return { data: detail, error: null };
+          if (table === 'team_members') return { data: [{ id: 'member-1', user_id: 'user-1', role: 'admin', primary_position: 'DEL', secondary_position: null, users: { display_name: 'Juan', photo_url: null } }], error: null };
+          if (table === 'team_approved_stat_totals') return { data: null, error: null };
+          return { data: [], error: null };
+        },
+      });
+      const result = await new TeamsService(supabase).getTeamDetail('team-1', tab);
+      expect(result.ok).toBe(true);
+      return from.mock.calls.map(([table]) => table);
+    };
+
+    expect(await load('members')).toEqual(['teams', 'team_members', 'team_approved_stat_totals']);
+    expect(await load('matches')).toContain('team_matches');
+    expect(await load('card')).toContain('team_card_snapshots');
+    const moderationQueries = await load('moderation');
+    expect(moderationQueries).toContain('team_stat_submissions');
+    expect(moderationQueries).not.toContain('team_matches');
+    expect(moderationQueries).not.toContain('team_card_snapshots');
   });
 
   it('calls the rpc for voteForTeamMatchMvp', async () => {

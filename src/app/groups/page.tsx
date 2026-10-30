@@ -6,6 +6,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { FloatingPanel } from '@/components/ui/floating-panel';
 import { DeleteGroupButton } from '@/components/groups/delete-group-button';
 import { AppShareButton } from '@/components/share/app-share-button';
+import { AppSectionNav } from '@/components/home/app-section-nav';
 
 export default async function GroupsHubPage() {
   const supabase = await createServerSupabaseClient();
@@ -81,6 +82,7 @@ export default async function GroupsHubPage() {
 
   return (
     <ImmersiveScreen align="center" contentClassName="mx-auto max-w-[390px] lg:max-w-[480px] w-full py-8">
+      <AppSectionNav active="groups" />
       <FloatingPanel className="border-2 border-white/10 p-6">
         <header className="mb-8 flex items-center justify-between">
           <div>

@@ -52,7 +52,7 @@ export function TeamCardEditor({
   card,
   playerName,
   photoUrl,
-  backHref = routes.teams,
+  backHref = routes.teamProfile,
 }: {
   card: TeamCard | null;
   playerName: string;
@@ -200,7 +200,7 @@ export function TeamCardEditor({
 
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Link href={backHref} className="text-center font-mono text-[10px] font-black uppercase tracking-[0.18em] text-white/45 transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:text-white">
-            Volver a Equipos
+            Volver a mi perfil
           </Link>
           {!locked ? (
             <button

@@ -37,7 +37,7 @@ export default async function TeamCardPage() {
           card={cardResult.data}
           playerName={profileResult.data?.display_name ?? 'Jugador'}
           photoUrl={profileResult.data?.photo_url ?? null}
-          backHref={routes.teams}
+          backHref={routes.teamProfile}
         />
       </FloatingPanel>
     </ImmersiveScreen>

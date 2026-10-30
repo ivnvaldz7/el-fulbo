@@ -64,7 +64,7 @@ describe('CentralCardPanel', () => {
   it('shows an explanatory empty state when the player has no global card yet', () => {
     render(<CentralCardPanel view={null} />);
 
-    expect(screen.getByRole('heading', { name: /Todavía no creaste tu card de Teams/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Todavía no creaste tu card de Equipos/i })).toBeInTheDocument();
     expect(screen.getByText(/las misiones se activan/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /crear mi card/i })).toHaveAttribute('href', '/teams/card');
   });

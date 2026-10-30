@@ -11,7 +11,7 @@ export function TeamStatsPanel({ totals }: { totals: Omit<TeamApprovedStatTotals
   return (
     <section aria-labelledby="stats-heading" className="space-y-4">
       <header>
-        <h2 id="stats-heading" className="font-headline text-3xl font-black italic uppercase text-white">Stats</h2>
+        <h2 id="stats-heading" className="font-headline text-3xl font-black italic uppercase text-white">Estadísticas</h2>
         <p className="mt-2 text-sm font-semibold text-white/55">Aprobadas solamente. Rechazadas o pendientes no agregan, no prueban participación y no progresan.</p>
       </header>
       <dl className="grid gap-3 sm:grid-cols-4">

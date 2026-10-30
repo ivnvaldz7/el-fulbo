@@ -57,7 +57,7 @@ export function TeamRosterPanel({ teamId, members, canManage, onInviteMember, on
   return (
     <section aria-labelledby="roster-heading" className="space-y-4">
       <header>
-        <h2 id="roster-heading" className="font-headline text-3xl font-black italic uppercase text-white">Members</h2>
+        <h2 id="roster-heading" className="font-headline text-3xl font-black italic uppercase text-white">Plantel</h2>
         <p className="mt-2 text-sm font-semibold text-white/55">
           {canManage ? 'Los cambios de roster se gestionan con invitaciones y permisos admin.' : 'Roster fijo del equipo.'}
         </p>

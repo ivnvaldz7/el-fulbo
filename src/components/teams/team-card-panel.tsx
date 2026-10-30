@@ -47,7 +47,7 @@ export function TeamCardPanel({ team }: { team: TeamCardData & { id?: string; sl
   return (
     <section aria-labelledby="card-heading" className="space-y-5">
       <header>
-        <h2 id="card-heading" className="font-headline text-3xl font-black italic uppercase text-white">Card</h2>
+        <h2 id="card-heading" className="font-headline text-3xl font-black italic uppercase text-white">Card del equipo</h2>
         <p className="mt-2 text-sm font-semibold text-white/55">Public-safe. Usa identidad del equipo y agregados aprobados, sin datos internos de moderación.</p>
       </header>
       <div className="grid gap-5 md:grid-cols-[minmax(0,320px)_1fr] md:items-center">

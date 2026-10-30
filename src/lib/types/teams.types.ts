@@ -123,6 +123,7 @@ export interface TeamHubItem {
   id: TeamId;
   name: string;
   slug: string;
+  badgeUrl?: string | null;
   modality: Modality;
   primaryColor: string | null;
   secondaryColor: string | null;

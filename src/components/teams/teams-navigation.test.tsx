@@ -25,8 +25,9 @@ describe('TeamsHub', () => {
   it('lists real teams with aggregate entrypoints', () => {
     render(<TeamsHub teams={teams} />);
 
-    expect(screen.getByRole('heading', { name: /equipos/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Mis equipos' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /abrir la máquina/i })).toHaveAttribute('href', '/teams/team-1');
+    expect(screen.getByRole('link', { name: /mi perfil de jugador/i })).toHaveAttribute('href', routes.teamProfile);
     expect(screen.getByText('12 miembros')).toBeInTheDocument();
     expect(screen.getAllByText('8').length).toBeGreaterThan(0);
     expect(screen.getByText('PJ')).toBeInTheDocument();
@@ -44,20 +45,20 @@ describe('TeamDetailTabs', () => {
   it('renders normal navigation links backed by the tab query parameter', () => {
     render(<TeamDetailTabs teamId="team-1" activeTab="stats" canManage />);
 
-    expect(screen.getByRole('navigation', { name: 'Team sections' })).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Secciones del equipo' })).toBeInTheDocument();
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
     expect(screen.queryByRole('tab')).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Members' })).toHaveAttribute('href', routes.teamDetail('team-1', 'members'));
-    expect(screen.getByRole('link', { name: 'Matches' })).toHaveAttribute('href', routes.teamDetail('team-1', 'matches'));
-    expect(screen.getByRole('link', { name: 'Stats' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: 'Stats' })).not.toHaveAttribute('aria-selected');
-    expect(screen.getByRole('link', { name: 'Card' })).toHaveAttribute('href', routes.teamDetail('team-1', 'card'));
-    expect(screen.getByRole('link', { name: 'Moderation' })).toHaveAttribute('href', routes.teamDetail('team-1', 'moderation'));
+    expect(screen.getByRole('link', { name: 'Plantel' })).toHaveAttribute('href', routes.teamDetail('team-1', 'members'));
+    expect(screen.getByRole('link', { name: 'Partidos' })).toHaveAttribute('href', routes.teamDetail('team-1', 'matches'));
+    expect(screen.getByRole('link', { name: 'Estadísticas' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Estadísticas' })).not.toHaveAttribute('aria-selected');
+    expect(screen.getByRole('link', { name: 'Card del equipo' })).toHaveAttribute('href', routes.teamDetail('team-1', 'card'));
+    expect(screen.getByRole('link', { name: 'Moderación' })).toHaveAttribute('href', routes.teamDetail('team-1', 'moderation'));
   });
 
   it('keeps admin moderation out of the player navigation', () => {
     render(<TeamDetailTabs teamId="team-1" activeTab="stats" />);
 
-    expect(screen.queryByRole('link', { name: 'Moderation' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Moderación' })).not.toBeInTheDocument();
   });
 });

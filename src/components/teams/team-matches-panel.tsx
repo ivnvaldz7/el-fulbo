@@ -55,7 +55,7 @@ export function TeamMatchesPanel({ teamId, matches, members, onSignup, onSubmitS
   return (
     <section aria-labelledby="matches-heading" className="space-y-4">
       <header>
-        <h2 id="matches-heading" className="font-headline text-3xl font-black italic uppercase text-white">Matches</h2>
+        <h2 id="matches-heading" className="font-headline text-3xl font-black italic uppercase text-white">Partidos</h2>
         <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-white/55">Las convocatorias aparecen acá. Confirmá tu asistencia en los próximos partidos y, después del cierre, cargá tu stat para sumar al historial.</p>
       </header>
       {canManage && onCreateMatch ? <TeamMatchCreateForm teamId={teamId} onCreateMatch={onCreateMatch} /> : null}

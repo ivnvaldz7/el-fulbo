@@ -76,6 +76,19 @@ body::selection {
   background: rgba(34, 197, 94, 0.4);
 }
 
+.pitch-ambient {
+  position: fixed;
+  inset: -15vmax;
+  pointer-events: none;
+  background: radial-gradient(circle at 75% 30%, rgba(34, 197, 94, 0.16), transparent 28%), radial-gradient(circle at 18% 76%, rgba(184, 174, 53, 0.1), transparent 32%);
+  animation: pitch-ambient-drift 18s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+
+@keyframes pitch-ambient-drift {
+  from { opacity: 0.55; transform: translate3d(-2%, 1%, 0) scale(1); }
+  to { opacity: 0.95; transform: translate3d(2%, -2%, 0) scale(1.05); }
+}
+
 a {
   color: inherit;
   text-decoration: none;

@@ -1,7 +1,9 @@
 import { Shield } from 'lucide-react';
+import { TeamBadge } from './team-badge';
 
 export type TeamCardData = {
   name: string;
+  badgeUrl?: string | null;
   primaryColor?: string | null;
   secondaryColor?: string | null;
   matchesPlayed: number;
@@ -53,7 +55,7 @@ export function TeamCardArtwork({ team, size = 'preview' }: { team: TeamCardData
 
         <div className="flex flex-1 flex-col items-center justify-center text-center">
           <div className="mb-8 flex h-28 w-28 items-center justify-center rounded-[2rem] bg-white/10 ring-1 ring-white/15">
-            <Shield className="h-14 w-14 text-pitch-green" aria-hidden="true" />
+            <TeamBadge badgeUrl={team.badgeUrl} name={team.name} className="h-20 w-20" />
           </div>
           <h2 className={`font-headline font-black italic uppercase leading-none tracking-tight text-white ${scale.name}`}>{team.name}</h2>
           <p className="mt-5 font-mono text-[10px] font-black uppercase tracking-[0.24em] text-white/45">Approved aggregate history</p>

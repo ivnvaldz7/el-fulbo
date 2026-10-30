@@ -63,6 +63,7 @@ describe('CreateTeamForm', () => {
       expect(createTeamMock).toHaveBeenCalledWith({
         name: 'Los Merengues',
         modality: 'F5',
+        badgeUrl: '/team-badges/pitch.svg',
       });
     });
     expect(pushMock).toHaveBeenCalledWith('/teams/team-123');

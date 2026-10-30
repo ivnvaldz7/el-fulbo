@@ -7,6 +7,8 @@ import { TeamsService } from '@/lib/services/teams.service';
 import { createTeamSchema } from '@/lib/validations/teams';
 import { routes } from '@/lib/routes';
 import type { Modality } from '@/lib/types';
+import { teamBadges, type TeamBadgePath } from '@/lib/team-badges';
+import { TeamBadgePicker } from './team-badge-picker';
 
 const modalityOptions: Array<{ value: Modality; label: string }> = [
   { value: 'F5', label: 'Fútbol 5' },
@@ -21,6 +23,7 @@ export function CreateTeamForm() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [modality, setModality] = useState<Modality>('F5');
+  const [badgeUrl, setBadgeUrl] = useState<TeamBadgePath>(teamBadges[0].path);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -29,7 +32,7 @@ export function CreateTeamForm() {
 
     if (submitting) return;
 
-    const parsed = createTeamSchema.safeParse({ name, modality });
+    const parsed = createTeamSchema.safeParse({ name, modality, badgeUrl });
 
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? 'Algunos datos no son válidos.');
@@ -69,6 +72,7 @@ export function CreateTeamForm() {
           <li className="animate-pulse">[ ] Abriendo la cancha</li>
         </ul>
       </div>
+
     );
   }
 
@@ -101,6 +105,8 @@ export function CreateTeamForm() {
           </select>
         </label>
       </div>
+
+      <TeamBadgePicker value={badgeUrl} onChange={setBadgeUrl} />
 
       {error ? (
         <p id="create-team-error" className="py-2 text-center font-mono text-[10px] font-bold uppercase text-pitch-green">

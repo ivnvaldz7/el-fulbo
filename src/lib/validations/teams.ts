@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { teamBadges } from '@/lib/team-badges';
 
 export const teamPositionSchema = z.enum(['ARQ', 'DEF', 'MED', 'DEL']);
 export const teamModalitySchema = z.enum(['F5', 'F6', 'F7', 'F8', 'F9', 'F11']);
@@ -8,15 +9,18 @@ export const progressableStatKeySchema = z.enum(['pac', 'sho', 'pas', 'dri', 'de
 
 const uuidSchema = z.string().uuid();
 const optionalTrimmedUrlSchema = z.string().trim().url().optional().nullable();
+const teamBadgePathSchema = z.string().refine((value) => teamBadges.some((badge) => badge.path === value), 'Escudo no válido');
 const optionalTrimmedStringSchema = z.string().trim().min(1).max(120).optional().nullable();
 
 export const createTeamSchema = z.object({
   name: z.string().trim().min(1, 'Team name is required').max(60, 'Maximum 60 characters'),
   modality: teamModalitySchema,
-  badgeUrl: optionalTrimmedUrlSchema,
+  badgeUrl: z.union([teamBadgePathSchema, z.string().trim().url()]).optional().nullable(),
   primaryColor: z.string().trim().max(32).optional().nullable(),
   secondaryColor: z.string().trim().max(32).optional().nullable(),
 });
+
+export const updateTeamBadgeSchema = z.object({ teamId: uuidSchema, badgeUrl: teamBadgePathSchema });
 
 export const createTeamInvitationSchema = z.object({
   teamId: uuidSchema,

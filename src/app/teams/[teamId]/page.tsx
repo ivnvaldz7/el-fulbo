@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft, Shield } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { notFound, redirect, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { TeamCardPanel } from '@/components/teams/team-card-panel';
+import { TeamBadgeEditor } from '@/components/teams/team-badge-editor';
 import { TeamCardAdmissionPanel } from '@/components/teams/team-card-admission-panel';
 import { TeamDetailTabs } from '@/components/teams/team-detail-tabs';
 import { TeamMatchesPanel } from '@/components/teams/team-matches-panel';
@@ -40,13 +41,15 @@ export default function TeamDetailPage() {
   const queryClient = useQueryClient();
 
   const { data, isLoading: loading, error } = useQuery({
-    queryKey: ['team', teamId],
+    queryKey: ['team', teamId, activeTab],
     queryFn: async () => {
-      const result = await service.getTeamDetail(teamId);
+      const result = await service.getTeamDetail(teamId, activeTab);
       if (!result.ok) throw new Error(result.error.message);
       if (!result.data) throw new Error('Team not found');
       return result.data;
     },
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
   });
 
   // Real-time subscription for team changes
@@ -299,33 +302,31 @@ export default function TeamDetailPage() {
   }
 
   return (
-    <ImmersiveScreen contentClassName="w-full">
-      <div className="mx-auto w-full max-w-5xl px-4 py-10">
+    <ImmersiveScreen animated contentClassName="w-full">
+      <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
+        <Link
+          href="/teams"
+          className="group mb-5 inline-flex min-h-11 items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/65 transition-colors hover:text-white"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" aria-hidden="true" />
+          Volver a Equipos
+        </Link>
         <header
           style={{
             '--team-primary': team.primaryColor ?? '#22c55e',
             '--team-secondary': team.secondaryColor ?? '#0a0a0a',
           } as CSSProperties}
-          className="relative mb-8 overflow-hidden rounded-[2rem] bg-white/5 p-1.5 ring-1 ring-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)]"
+          className="relative mb-6 rounded-[2rem] bg-white/5 p-1.5 ring-1 ring-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)]"
         >
-          <div className="relative overflow-hidden rounded-[1.65rem] bg-[var(--team-secondary)] p-6 sm:p-8">
+          <div className="relative rounded-[1.65rem] bg-[var(--team-secondary)] p-5 sm:p-8">
             <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[var(--team-primary)]/15 blur-3xl" />
-            <Link
-              href="/teams"
-              className="group mb-4 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 transition-colors hover:text-white"
-            >
-              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-              Volver a Equipos
-            </Link>
-            <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-              <div>
+            <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:gap-8">
+              <div className="min-w-0">
                 <p className="font-mono text-[10px] font-black uppercase tracking-[0.25em] text-[var(--team-primary)]">Equipo</p>
-                <h1 className="mt-3 font-headline text-5xl font-black italic uppercase leading-[0.95] tracking-[-0.05em] text-white">{team.name}</h1>
-                <p className="mt-4 text-sm font-semibold text-white/55">{team.modality} · {team.memberCount} miembros. {team.matchesPlayed} partidos con stats aprobadas.</p>
+                <h1 className="mt-2 break-words font-headline text-4xl font-black italic uppercase leading-[0.9] tracking-[-0.06em] text-white sm:text-5xl lg:text-6xl">{team.name}</h1>
+                <p className="mt-4 text-xs font-semibold leading-5 text-white/55 sm:text-sm">{team.modality} · {team.memberCount} miembros · {team.matchesPlayed} partidos con stats aprobadas</p>
               </div>
-              <span title={`Escudo de ${team.name}`} aria-label={`Escudo de ${team.name}`} className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[var(--team-primary)] text-black shadow-[inset_0_1px_1px_rgba(255,255,255,0.28)]">
-                <Shield className="h-8 w-8" aria-hidden="true" />
-              </span>
+              <TeamBadgeEditor teamId={team.id} teamName={team.name} badgeUrl={team.badgeUrl} canManage={canManage} />
             </div>
           </div>
         </header>
