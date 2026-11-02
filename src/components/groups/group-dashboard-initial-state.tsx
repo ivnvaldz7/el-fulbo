@@ -12,6 +12,7 @@ import type { CurrentBoost, PlayerPosition, PlayerStats } from '@/lib/types';
 import toast from 'react-hot-toast';
 import { PushOptinBanner } from '@/components/notifications/push-optin-banner';
 import { routes } from '@/lib/routes';
+import { GroupAttendanceLinkButton } from '@/components/groups/group-attendance-link-button';
 
 type UpcomingEvent = {
   id: string;
@@ -66,6 +67,7 @@ type GroupDashboardInitialStateProps = {
   recentPlayedEvents?: RecentPlayedEvent[];
   currentMvp?: CurrentMvp;
   inviteCode: string;
+  publicAttendanceToken?: string;
   currentPlayerId: string | null;
   shareablePlayer?: {
     displayName: string;
@@ -88,6 +90,7 @@ export function GroupDashboardInitialState({
   recentPlayedEvents = [],
   currentMvp,
   inviteCode,
+  publicAttendanceToken = '',
   currentPlayerId,
   shareablePlayer = null,
   statsStatus = null,
@@ -100,7 +103,10 @@ export function GroupDashboardInitialState({
     <ImmersiveScreen contentClassName="mx-auto max-w-xl">
       <FloatingPanel className="w-full border-2 border-white/10">
         <div className="mb-6 flex items-center justify-between">
-          <Link href={routes.home} className="link-interactive flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white">
+          <Link
+            href={routes.home}
+            className="link-interactive flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white"
+          >
             <Home className="h-4 w-4" /> Volver al inicio
           </Link>
         </div>
@@ -109,8 +115,12 @@ export function GroupDashboardInitialState({
           <PushOptinBanner />
         </div>
 
-        <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-pitch-green">{modality}</p>
-        <h1 className="mt-2 font-headline text-4xl font-black italic uppercase leading-none text-white text-glow-green text-balance">{groupName}</h1>
+        <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-pitch-green">
+          {modality}
+        </p>
+        <h1 className="mt-2 font-headline text-4xl font-black italic uppercase leading-none text-white text-glow-green text-balance">
+          {groupName}
+        </h1>
 
         {currentMvp?.mvpPlayer ? (
           <div className="mt-8 border border-amber-300/30 bg-gradient-to-br from-amber-300/10 via-black/40 to-amber-300/5 p-5 shadow-[0_0_30px_rgba(251,191,36,0.12)]">
@@ -121,7 +131,10 @@ export function GroupDashboardInitialState({
                   MVP de la fecha
                   <span className="inline-block h-px w-4 bg-amber-300/50" />
                 </p>
-                <Link href={routes.groupPlayer(groupId, currentMvp.mvpPlayer.id)} className="mt-3 block hover:opacity-80 transition-opacity">
+                <Link
+                  href={routes.groupPlayer(groupId, currentMvp.mvpPlayer.id)}
+                  className="mt-3 block hover:opacity-80 transition-opacity"
+                >
                   <h2 className="truncate font-headline text-2xl font-black italic uppercase leading-none text-white">
                     {currentMvp.mvpPlayer.displayName}
                   </h2>
@@ -130,7 +143,8 @@ export function GroupDashboardInitialState({
                   href={routes.groupEvent(groupId, currentMvp.eventId)}
                   className="link-interactive mt-2 inline-flex items-center gap-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white/50 hover:text-amber-300"
                 >
-                  {currentMvp.teamAName} {currentMvp.teamAScore} — {currentMvp.teamBScore} {currentMvp.teamBName}
+                  {currentMvp.teamAName} {currentMvp.teamAScore} — {currentMvp.teamBScore}{' '}
+                  {currentMvp.teamBName}
                   <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
@@ -158,13 +172,15 @@ export function GroupDashboardInitialState({
 
         {showPendingBanner ? (
           <div className="mt-8 border border-amber-400/20 bg-amber-400/5 p-5">
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400">Carta pendiente</p>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400">
+              Carta pendiente
+            </p>
             <h2 className="mt-1 font-headline text-xl font-black italic uppercase text-white">
               Tu carta se copió desde tu otro equipo
             </h2>
             <p className="mt-2 font-mono text-xs leading-relaxed text-white/60">
-              El administrador del grupo la va a revisar. Mientras tanto, no vas a poder
-              confirmar asistencia a los partidos.
+              El administrador del grupo la va a revisar. Mientras tanto, no vas a poder confirmar
+              asistencia a los partidos.
             </p>
             <a
               href={routes.groupPending(groupId)}
@@ -177,8 +193,12 @@ export function GroupDashboardInitialState({
 
         {showAdminPendingBanner ? (
           <div className="mt-8 border border-amber-400/20 bg-amber-400/5 p-5">
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400">Admin</p>
-            <h2 className="mt-1 font-headline text-xl font-black italic uppercase text-white">Tenés {adminPendingTotal} pendientes</h2>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400">
+              Admin
+            </p>
+            <h2 className="mt-1 font-headline text-xl font-black italic uppercase text-white">
+              Tenés {adminPendingTotal} pendientes
+            </h2>
             <a
               href={routes.groupAdminTasks(groupId)}
               className="btn-interactive mt-4 inline-flex min-h-12 items-center justify-center bg-amber-400 px-6 py-2 font-headline text-sm font-bold uppercase text-black hover:bg-amber-300"
@@ -189,7 +209,7 @@ export function GroupDashboardInitialState({
         ) : null}
 
         {isAdminOrOwner ? (
-          <div className="animate-stagger mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="animate-stagger mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
             <Link
               href={routes.groupAdminTasks(groupId)}
               className="btn-interactive flex min-h-12 items-center justify-center border border-white/10 bg-black/30 px-4 font-headline text-sm font-bold uppercase italic text-white hover:border-white/30 hover:bg-white/10"
@@ -214,13 +234,18 @@ export function GroupDashboardInitialState({
             >
               Jugadores
             </Link>
+            {publicAttendanceToken ? (
+              <GroupAttendanceLinkButton shareToken={publicAttendanceToken} />
+            ) : null}
           </div>
         ) : null}
 
         <div className="mt-10">
           {hasUpcomingEvents ? (
             <div>
-              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Próximos partidos</p>
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
+                Próximos partidos
+              </p>
               <ul className="mt-3 space-y-2">
                 {upcomingEvents.map((event, index) => (
                   <li key={event.id}>
@@ -251,7 +276,9 @@ export function GroupDashboardInitialState({
                           })}
                         </p>
                       </div>
-                      <ArrowRight className={`h-5 w-5 shrink-0 ${index === 0 ? 'text-pitch-green' : 'text-white/30'}`} />
+                      <ArrowRight
+                        className={`h-5 w-5 shrink-0 ${index === 0 ? 'text-pitch-green' : 'text-white/30'}`}
+                      />
                     </Link>
                   </li>
                 ))}
@@ -291,12 +318,16 @@ export function GroupDashboardInitialState({
 
         {recentPlayedEvents.length > 0 ? (
           <div className="mt-10">
-            <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Último partido</h2>
+            <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">
+              Último partido
+            </h2>
             <div className="mt-4 border border-white/10 bg-black/30 p-4">
               <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
                 {recentPlayedEvents[0]!.playedAtLabel}
               </p>
-              <p className="mt-2 font-headline text-lg font-black italic uppercase text-white">{recentPlayedEvents[0]!.fieldName}</p>
+              <p className="mt-2 font-headline text-lg font-black italic uppercase text-white">
+                {recentPlayedEvents[0]!.fieldName}
+              </p>
               <p className="mt-1 font-headline text-base font-bold italic uppercase text-white/70">
                 {recentPlayedEvents[0]!.teamAScore > recentPlayedEvents[0]!.teamBScore
                   ? `Ganó ${recentPlayedEvents[0]!.teamAName}`
@@ -305,7 +336,9 @@ export function GroupDashboardInitialState({
                     : 'Empate'}
               </p>
               {recentPlayedEvents[0]!.mvpName ? (
-                <p className="mt-2 text-sm text-amber-300">🏆 {recentPlayedEvents[0]!.mvpName} fue la figura.</p>
+                <p className="mt-2 text-sm text-amber-300">
+                  🏆 {recentPlayedEvents[0]!.mvpName} fue la figura.
+                </p>
               ) : (
                 <p className="mt-2 text-sm text-amber-300">🏆 Votación MVP abierta.</p>
               )}
@@ -316,9 +349,7 @@ export function GroupDashboardInitialState({
                     {recentPlayedEvents[0]!.boostsApplied.map((boost, idx) => (
                       <li key={idx} className="text-xs text-emerald-300/80">
                         {boost.displayName} —{' '}
-                        {boost.modifiers
-                          .map((m) => `${m.stat} +${m.delta}`)
-                          .join(', ')}
+                        {boost.modifiers.map((m) => `${m.stat} +${m.delta}`).join(', ')}
                       </li>
                     ))}
                   </ul>
@@ -338,7 +369,9 @@ export function GroupDashboardInitialState({
           </div>
         ) : (
           <div className="mt-10">
-            <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Últimos partidos</h2>
+            <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">
+              Últimos partidos
+            </h2>
             <div className="mt-4 flex flex-col items-center gap-3 border border-dashed border-white/5 bg-white/[0.01] py-8">
               <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">
                 Todavía no se jugó ningún partido
@@ -363,7 +396,9 @@ export function GroupDashboardInitialState({
 
         {isAdminOrOwner ? (
           <div className="mt-10 border-t border-white/10 pt-8">
-            <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Sumá a tus jugadores</h2>
+            <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">
+              Sumá a tus jugadores
+            </h2>
             <p className="mt-3 font-headline text-base font-medium leading-relaxed text-white/60">
               Compartí el link o el código para que entren al grupo.
             </p>
@@ -403,9 +438,12 @@ export function GroupDashboardInitialState({
         ) : null}
 
         <div className="mt-12 border-t border-white/10 pt-8">
-          <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">Bancá la parada</h2>
+          <h2 className="font-headline text-2xl font-black italic uppercase leading-none text-white">
+            Bancá la parada
+          </h2>
           <p className="mt-3 font-mono text-xs text-white/50 leading-relaxed">
-            Si la app te sirve para organizar los partidos sin el quilombo de WhatsApp, bancá los servidores con lo que puedas.
+            Si la app te sirve para organizar los partidos sin el quilombo de WhatsApp, bancá los
+            servidores con lo que puedas.
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <CopyAliasButton />

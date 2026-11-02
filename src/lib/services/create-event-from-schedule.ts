@@ -77,8 +77,8 @@ export function computeNextOccurrence(
 export async function tryCreateEventFromSchedule(
   supabase: SupabaseClient,
   schedule: ScheduleData,
-  adminUserId: string,
   now: Date = new Date(),
+  ignoreDaysAhead = false,
 ): Promise<TryCreateEventResult> {
   const { date: nextOccurrence, daysUntilEvent } = computeNextOccurrence(
     schedule.day_of_week,
@@ -87,50 +87,25 @@ export async function tryCreateEventFromSchedule(
   );
 
   // Si el evento está más allá de days_ahead, saltear
-  if (daysUntilEvent > schedule.days_ahead) {
+  if (!ignoreDaysAhead && daysUntilEvent > schedule.days_ahead) {
     return { created: false };
   }
 
-  // Verificar duplicados en ventana de ±2 horas
-  const windowStart = new Date(nextOccurrence.getTime() - 2 * 3600_000).toISOString();
-  const windowEnd = new Date(nextOccurrence.getTime() + 2 * 3600_000).toISOString();
+  const { data: openedEvent, error: openError } = await supabase.rpc('open_recurring_event', {
+    p_schedule_id: schedule.id,
+    p_scheduled_at: nextOccurrence.toISOString(),
+  });
 
-  const { count, error: countError } = await supabase
-    .from('events')
-    .select('id', { count: 'exact', head: true })
-    .eq('group_id', schedule.group_id)
-    .gte('scheduled_at', windowStart)
-    .lte('scheduled_at', windowEnd)
-    .neq('status', 'cancelled');
-
-  if (countError) {
-    return { created: false, error: `Count query failed: ${countError.message}` };
+  const eventRow = Array.isArray(openedEvent) ? openedEvent[0] : openedEvent;
+  if (openError || !eventRow) {
+    return {
+      created: false,
+      error: openError?.message ?? 'No se pudo abrir el partido recurrente.',
+    };
   }
 
-  if ((count ?? 0) > 0) {
-    return { created: false };
-  }
-
-  // Crear el evento
-  const { data: eventRow, error: insertError } = await supabase
-    .from('events')
-    .insert({
-      group_id: schedule.group_id,
-      modality: schedule.modality,
-      field_name: schedule.field_name,
-      field_maps_url: schedule.field_maps_url ?? null,
-      scheduled_at: nextOccurrence.toISOString(),
-      notes: schedule.notes ?? null,
-      status: 'scheduled',
-      created_by_user_id: adminUserId,
-      team_a_name: 'Equipo A',
-      team_b_name: 'Equipo B',
-    })
-    .select('id')
-    .single();
-
-  if (insertError || !eventRow) {
-    return { created: false, error: insertError?.message ?? 'Insert failed' };
+  if (!eventRow.created) {
+    return { created: false, eventId: eventRow.event_id };
   }
 
   // Notificar a jugadores aprobados
@@ -155,15 +130,15 @@ export async function tryCreateEventFromSchedule(
           p.user_id!,
           'event_created',
           {
-            event_id: eventRow.id,
+            event_id: eventRow.event_id,
             group_id: schedule.group_id,
             field_name: schedule.field_name,
             scheduled_at: nextOccurrence.toISOString(),
             is_recurring: true,
           },
-          `event_created:${eventRow.id}:${p.user_id}`,
-        )
-      )
+          `event_created:${eventRow.event_id}:${p.user_id}`,
+        ),
+      ),
     );
 
     const firstError = results.find((r) => !r.ok)?.error;
@@ -172,5 +147,5 @@ export async function tryCreateEventFromSchedule(
     }
   }
 
-  return { created: true, eventId: eventRow.id };
+  return { created: true, eventId: eventRow.event_id };
 }

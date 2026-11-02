@@ -39,7 +39,10 @@ function canEditAttendance(status: EventStatus) {
 
 function canOpenCheckIn(status: EventStatus, scheduledAt: string) {
   const hoursToEvent = (new Date(scheduledAt).getTime() - Date.now()) / 36e5;
-  return (status === 'scheduled' || status === 'confirming' || status === 'checked_in') && hoursToEvent <= 4;
+  return (
+    (status === 'scheduled' || status === 'confirming' || status === 'checked_in') &&
+    hoursToEvent <= 4
+  );
 }
 
 function helperCopy(
@@ -104,20 +107,29 @@ export default function EventViewPage() {
   const overlayVotarMvp = searchParams.get('votar-mvp');
   const [overlayClosed, setOverlayClosed] = useState(false);
 
-  const { data, isLoading: loading, error } = useQuery({
+  const {
+    data,
+    isLoading: loading,
+    error,
+  } = useQuery({
     queryKey: ['event', eventId],
     queryFn: async () => {
       const eventResult = await eventsService.getEventById(eventId);
       if (!eventResult.ok) throw new Error(eventResult.error.message);
       const eventData = eventResult.data;
 
-      const [attendeesResult, pendingPlayersResult, playerResult, adminResult, groupResponse] = await Promise.all([
-        eventsService.getEventAttendees(eventId),
-        eventsService.getPendingConfirmationPlayers(eventData.group_id, eventId),
-        eventsService.getCurrentPlayerAttendanceContext(eventData.group_id, eventId),
-        eventsService.isCurrentUserAdminOrOwner(eventData.group_id),
-        supabase.from('groups').select('name').eq('id', eventData.group_id).single(),
-      ]);
+      const [attendeesResult, pendingPlayersResult, playerResult, adminResult, groupResponse] =
+        await Promise.all([
+          eventsService.getEventAttendees(eventId),
+          eventsService.getPendingConfirmationPlayers(eventData.group_id, eventId),
+          eventsService.getCurrentPlayerAttendanceContext(eventData.group_id, eventId),
+          eventsService.isCurrentUserAdminOrOwner(eventData.group_id),
+          supabase
+            .from('groups')
+            .select('name, public_attendance_token')
+            .eq('id', eventData.group_id)
+            .single(),
+        ]);
 
       if (!attendeesResult.ok) throw new Error(attendeesResult.error.message);
       if (!pendingPlayersResult.ok) throw new Error(pendingPlayersResult.error.message);
@@ -146,6 +158,7 @@ export default function EventViewPage() {
       return {
         event: eventData,
         groupName: groupResponse.data?.name ?? 'El Fulbo',
+        publicAttendanceToken: groupResponse.data?.public_attendance_token ?? null,
         attendees: attendeesResult.data,
         pendingConfirmationPlayers: pendingPlayersResult.data,
         currentPlayer: playerResult.data,
@@ -158,6 +171,7 @@ export default function EventViewPage() {
 
   const event = data?.event ?? null;
   const groupName = data?.groupName ?? 'El Fulbo';
+  const publicAttendanceToken = data?.publicAttendanceToken ?? null;
   const attendees = data?.attendees ?? [];
   const pendingConfirmationPlayers = data?.pendingConfirmationPlayers ?? [];
   const currentPlayer = data?.currentPlayer ?? null;
@@ -173,7 +187,8 @@ export default function EventViewPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (event?.played_at || event?.scheduled_at) {
-        const targetTime = new Date(event.played_at ?? event.scheduled_at).getTime() + 24 * 60 * 60 * 1000;
+        const targetTime =
+          new Date(event.played_at ?? event.scheduled_at).getTime() + 24 * 60 * 60 * 1000;
         setIs24hPassed(Date.now() > targetTime);
       }
     }, 0);
@@ -231,23 +246,28 @@ export default function EventViewPage() {
 
     queryClient.setQueryData(['event', eventId], (oldData: any) => {
       if (!oldData) return oldData;
-      
+
       const current = oldData.attendees as EventAttendee[];
       const currentPending = oldData.pendingConfirmationPlayers as PendingConfirmationPlayer[];
-      const existingIndex = current.findIndex((attendee) => attendee.playerId === currentPlayer.playerId);
-      const newAttendees = existingIndex === -1 
-        ? [...current, optimisticAttendee]
-        : current.map((attendee) =>
-            attendee.playerId === currentPlayer.playerId
-              ? { ...attendee, status: nextStatus, checkedIn: false, checkedInAt: null }
-              : attendee
-          );
+      const existingIndex = current.findIndex(
+        (attendee) => attendee.playerId === currentPlayer.playerId,
+      );
+      const newAttendees =
+        existingIndex === -1
+          ? [...current, optimisticAttendee]
+          : current.map((attendee) =>
+              attendee.playerId === currentPlayer.playerId
+                ? { ...attendee, status: nextStatus, checkedIn: false, checkedInAt: null }
+                : attendee,
+            );
 
       return {
         ...oldData,
         currentPlayer: { ...oldData.currentPlayer, attendanceStatus: nextStatus },
         attendees: newAttendees,
-        pendingConfirmationPlayers: currentPending.filter((player) => player.playerId !== currentPlayer.playerId),
+        pendingConfirmationPlayers: currentPending.filter(
+          (player) => player.playerId !== currentPlayer.playerId,
+        ),
       };
     });
 
@@ -332,10 +352,7 @@ export default function EventViewPage() {
       <PageContent className="max-w-md">
         <PageHeader title="PARTIDO" backHref={routes.groupDashboard(groupId)} />
         {overlayConfirmar === eventId && !overlayClosed ? (
-          <AttendanceConfirmationOverlay
-            eventId={eventId}
-            onClose={() => setOverlayClosed(true)}
-          />
+          <AttendanceConfirmationOverlay eventId={eventId} onClose={() => setOverlayClosed(true)} />
         ) : null}
 
         {overlayVotarMvp === eventId && !overlayClosed && event.status === 'played' ? (
@@ -366,332 +383,399 @@ export default function EventViewPage() {
         ) : null}
 
         <div className="space-y-4">
-        <header className="border border-white/10 bg-concrete-overlay p-5">
-          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
-            Partido
-          </p>
-          <h1 className="mt-2 font-headline text-3xl font-black italic uppercase tracking-tight text-white">
-            {event.field_name}
-          </h1>
-          <div className="mt-4 space-y-2 text-sm text-white/80">
-            <p>
-              <span className="font-mono text-[10px] font-bold uppercase text-white/50">Fecha:</span>{' '}
-              {formatEventDate(event.scheduled_at)}
-            </p>
-            <p>
-              <span className="font-mono text-[10px] font-bold uppercase text-white/50">Hora:</span>{' '}
-              {formatEventTime(event.scheduled_at)}
-            </p>
-            <p>
-              <span className="font-mono text-[10px] font-bold uppercase text-white/50">Modalidad:</span>{' '}
-              {event.modality}
-            </p>
-            <p>
-              <span className="font-mono text-[10px] font-bold uppercase text-white/50">Estado:</span>{' '}
-              {({ scheduled: 'Agendado', confirming: 'Confirmando', checked_in: 'Check-in abierto', drawn: 'Equipos sorteados', played: 'Jugado', cancelled: 'Cancelado' } as Record<string, string>)[event.status] ?? event.status}
-            </p>
-            {event.field_maps_url ? (
-              <p>
-                <span className="font-mono text-[10px] font-bold uppercase text-white/50">Maps:</span>{' '}
-                <a
-                  href={event.field_maps_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-pitch-green underline"
-                >
-                  Ver ubicación
-                </a>
-              </p>
-            ) : null}
-            {event.notes ? (
-              <p>
-                <span className="font-mono text-[10px] font-bold uppercase text-white/50">Notas:</span>{' '}
-                {event.notes}
-              </p>
-            ) : null}
-          </div>
-        </header>
-
-        {showAttendanceSummary ? (
-        <section className="border border-white/10 bg-concrete-overlay p-5">
-          <div className="mb-4">
+          <header className="border border-white/10 bg-concrete-overlay p-5">
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
-              Confirmación
+              Partido
             </p>
-            <h2 className="mt-1 font-headline text-2xl font-black italic uppercase tracking-tight text-white">
-              ¿Vas?
-            </h2>
-            <p className="mt-2 text-sm text-white/70">
-              {helperCopy(event.status, currentPlayer, selectedStatus)}
-            </p>
-          </div>
-
-          {(selectedStatus === 'going' || selectedStatus === 'maybe' || selectedStatus === 'waitlist') && (
-            <div className="mb-4">
-              <PushOptinBanner />
+            <h1 className="mt-2 font-headline text-3xl font-black italic uppercase tracking-tight text-white">
+              {event.field_name}
+            </h1>
+            <div className="mt-4 space-y-2 text-sm text-white/80">
+              <p>
+                <span className="font-mono text-[10px] font-bold uppercase text-white/50">
+                  Fecha:
+                </span>{' '}
+                {formatEventDate(event.scheduled_at)}
+              </p>
+              <p>
+                <span className="font-mono text-[10px] font-bold uppercase text-white/50">
+                  Hora:
+                </span>{' '}
+                {formatEventTime(event.scheduled_at)}
+              </p>
+              <p>
+                <span className="font-mono text-[10px] font-bold uppercase text-white/50">
+                  Modalidad:
+                </span>{' '}
+                {event.modality}
+              </p>
+              <p>
+                <span className="font-mono text-[10px] font-bold uppercase text-white/50">
+                  Estado:
+                </span>{' '}
+                {(
+                  {
+                    scheduled: 'Agendado',
+                    confirming: 'Confirmando',
+                    checked_in: 'Check-in abierto',
+                    drawn: 'Equipos sorteados',
+                    played: 'Jugado',
+                    cancelled: 'Cancelado',
+                  } as Record<string, string>
+                )[event.status] ?? event.status}
+              </p>
+              {event.field_maps_url ? (
+                <p>
+                  <span className="font-mono text-[10px] font-bold uppercase text-white/50">
+                    Maps:
+                  </span>{' '}
+                  <a
+                    href={event.field_maps_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-pitch-green underline"
+                  >
+                    Ver ubicación
+                  </a>
+                </p>
+              ) : null}
+              {event.notes ? (
+                <p>
+                  <span className="font-mono text-[10px] font-bold uppercase text-white/50">
+                    Notas:
+                  </span>{' '}
+                  {event.notes}
+                </p>
+              ) : null}
             </div>
-          )}
+          </header>
 
-          <div className="grid grid-cols-3 gap-2">
-            {ATTENDANCE_OPTIONS.map((option) => {
-              const isGoingButton = option.value === 'going';
-              const selected = selectedStatus === option.value || (isGoingButton && selectedStatus === 'waitlist');
-              const accentClass = selectedStatus === 'waitlist' && isGoingButton ? 'bg-purple-500 text-white' : option.accent;
-              const label = selectedStatus === 'waitlist' && isGoingButton ? 'En Espera' : option.label;
-
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => void handleAttendanceChange(option.value)}
-                  disabled={attendanceDisabled || (selectedStatus === 'waitlist' && isGoingButton)}
-                  className={`rounded-lg border px-3 py-4 font-headline text-lg font-bold italic uppercase tracking-tight transition ${
-                    selected
-                      ? `${accentClass} border-transparent`
-                      : 'border-white/10 bg-white/[0.04] text-white hover:border-white/20'
-                  } disabled:cursor-not-allowed disabled:opacity-50`}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-
-          <ShareEventButton
-            groupId={groupId}
-            eventId={eventId}
-            eventName={event.field_name}
-          />
-        </section>
-        ) : null}
-
-        {showAttendanceSummary ? (
-        <section className="border border-white/10 bg-concrete-overlay p-5">
-          <div className="mb-4">
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
-              Lista en vivo
-            </p>
-            <h2 className="mt-1 font-headline text-2xl font-black italic uppercase tracking-tight text-white">
-              Asistencia
-            </h2>
-          </div>
-
-          <EventAttendeesList
-            attendees={attendees}
-            pendingConfirmationPlayers={pendingConfirmationPlayers}
-          />
-        </section>
-        ) : null}
-
-        {event.status === 'drawn' ? (
-          <div className="grid gap-3 md:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => router.push(routes.groupEventTeams(groupId, eventId))}
-              className="w-full rounded-lg bg-pitch-green px-4 py-4 font-headline text-xl font-black italic uppercase text-black"
-            >
-              Ver equipos
-            </button>
-            {isAdminOrOwner ? (
-              <button
-                type="button"
-                onClick={() => router.push(routes.groupEventResult(groupId, eventId))}
-                className="w-full rounded-lg bg-amber-400 px-4 py-4 font-headline text-xl font-black italic uppercase text-black"
-              >
-                Cargar resultado
-              </button>
-            ) : null}
-          </div>
-        ) : null}
-
-        {event.status === 'played' ? (
-          <section className="animate-fade-slide-up space-y-4 border border-white/10 bg-concrete-overlay p-5">
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Resultado final</p>
-            <div className="mt-3 flex items-center justify-between gap-4">
-              <div className="flex flex-col items-start gap-2">
-                <p className="font-headline text-xl font-black italic uppercase">{event.team_a_name ?? 'Equipo A'}</p>
-                <p className="animate-fade-slide-up text-3xl font-black" style={{ animationDelay: '100ms' }}>
-                  {event.team_a_score ?? 0}
-                </p>
-                {event.team_a_score != null && event.team_b_score != null && event.team_a_score > event.team_b_score ? (
-                  <span className="animate-winner-glow rounded-full bg-emerald-500/20 px-3 py-0.5 font-mono text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">
-                    GANADOR
-                  </span>
-                ) : null}
-              </div>
-              <span className="text-2xl font-black text-white/50">-</span>
-              <div className="flex flex-col items-end gap-2">
-                <p className="font-headline text-xl font-black italic uppercase">{event.team_b_name ?? 'Equipo B'}</p>
-                <p className="animate-fade-slide-up text-3xl font-black" style={{ animationDelay: '150ms' }}>
-                  {event.team_b_score ?? 0}
-                </p>
-                {event.team_a_score != null && event.team_b_score != null && event.team_b_score > event.team_a_score ? (
-                  <span className="animate-winner-glow rounded-full bg-emerald-500/20 px-3 py-0.5 font-mono text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">
-                    GANADOR
-                  </span>
-                ) : null}
-              </div>
-            </div>
-            {event.team_a_score != null && event.team_b_score != null && event.team_a_score === event.team_b_score ? (
-              <div className="animate-draw-badge rounded-lg border border-amber-400/30 bg-amber-400/5 p-3 text-center">
-                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">
-                  EMPATE
-                </span>
-              </div>
-            ) : null}
-            {event.notes ? <p className="mt-4 text-sm text-white/70">{event.notes}</p> : null}
-            {mvp ? (
-              <div className="rounded-lg border border-amber-400/40 bg-amber-400/10 p-4">
-                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">MVP</p>
-                <h3 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">{mvp.displayName}</h3>
-                <p className="mt-1 text-sm text-white/65">
-                  {mvp.team === 'A' ? event.team_a_name ?? 'Equipo A' : event.team_b_name ?? 'Equipo B'} ·{' '}
-                  {mvp.assignedPosition ?? 'SIN POS'}
-                </p>
-              </div>
-            ) : event.status === 'played' && !event.mvp_player_id ? (
-              <>
-                {isAdminOrOwner ? (
-                  <>
-                    <MvpAdminPanel eventId={event.id} playedSummary={playedSummary} />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        void navigator.clipboard.writeText(
-                          `${window.location.origin}${routes.groupEventMvpVote(groupId, eventId)}`,
-                        );
-                        toast.success('Link de votación MVP copiado.');
-                      }}
-                      className="w-full rounded-lg border border-amber-400/40 bg-amber-400/10 px-4 py-3 font-headline text-base font-bold italic uppercase tracking-tight text-amber-300 transition hover:bg-amber-400/20 active:scale-[0.98]"
-                    >
-                      Compartir votación MVP
-                    </button>
-                  </>
-                ) : null}
-
-{is24hPassed ? (
-                  <div className="rounded-lg border border-red-500/40 bg-red-500/5 p-4 text-center mt-4">
-                    <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-red-400">Votación cerrada</p>
-                    <p className="mt-2 text-sm text-white/60">Pasaron las 24 horas y se cerró la votación.</p>
-                  </div>
-                ) : (
-                  <div className="mt-4">
-                    <MvpVotingPanel
-                      eventId={event.id}
-                      currentPlayerId={currentPlayer?.playerId ?? null}
-                      playedSummary={playedSummary}
-                      hasVoted={hasVotedForMvp}
-                      isVotingClosed={!!event.mvp_player_id}
-                      onVoteSubmitted={() => {
-                        void queryClient.invalidateQueries({ queryKey: ['event', eventId] });
-                      }}
-                    />
-                  </div>
-                )}
-              </>
-            ) : null}
-
-            {boostsApplied.length > 0 ? (
-              <div className="border border-white/10 bg-white/[0.03] p-4">
+          {showAttendanceSummary ? (
+            <section className="border border-white/10 bg-concrete-overlay p-5">
+              <div className="mb-4">
                 <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
-                  Boosts aplicados
+                  Confirmación
                 </p>
-                <ul className="mt-3 space-y-3">
-                  {boostsApplied.map((item) => (
-                    <li key={item.playerId} className="border border-white/10 px-3 py-3">
-                      <p className="font-semibold text-white">{item.displayName}</p>
-                      <p className="mt-1 text-sm text-white/70">
-                        {Object.entries(item.boostApplied ?? {})
-                          .map(([stat, delta]) => `${stat.toUpperCase()} +${delta}`)
-                          .join(' · ')}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
+                <h2 className="mt-1 font-headline text-2xl font-black italic uppercase tracking-tight text-white">
+                  ¿Vas?
+                </h2>
+                <p className="mt-2 text-sm text-white/70">
+                  {helperCopy(event.status, currentPlayer, selectedStatus)}
+                </p>
               </div>
-            ) : null}
 
-            {playedSummary.length > 0 ? (
-              <div className="grid gap-3 md:grid-cols-2">
-                {(['A', 'B'] as const).map((teamKey) => {
-                  const teamName = teamKey === 'A' ? event.team_a_name ?? 'Equipo A' : event.team_b_name ?? 'Equipo B';
-                  const players = playedSummary.filter((item) => item.team === teamKey);
+              {(selectedStatus === 'going' ||
+                selectedStatus === 'maybe' ||
+                selectedStatus === 'waitlist') && (
+                <div className="mb-4">
+                  <PushOptinBanner />
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-2">
+                {ATTENDANCE_OPTIONS.map((option) => {
+                  const isGoingButton = option.value === 'going';
+                  const selected =
+                    selectedStatus === option.value ||
+                    (isGoingButton && selectedStatus === 'waitlist');
+                  const accentClass =
+                    selectedStatus === 'waitlist' && isGoingButton
+                      ? 'bg-purple-500 text-white'
+                      : option.accent;
+                  const label =
+                    selectedStatus === 'waitlist' && isGoingButton ? 'En Espera' : option.label;
+
                   return (
-                    <div key={teamKey} className="border border-white/10 bg-white/[0.03] p-4">
-                      <p className="font-headline text-xl font-black italic uppercase text-white">{teamName}</p>
-                      <ul className="mt-3 space-y-2 text-sm text-white/75">
-                        {players.map((item) => (
-                          <li key={item.playerId}>
-                            {item.displayName} · {item.assignedPosition ?? 'SIN POS'}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => void handleAttendanceChange(option.value)}
+                      disabled={
+                        attendanceDisabled || (selectedStatus === 'waitlist' && isGoingButton)
+                      }
+                      className={`rounded-lg border px-3 py-4 font-headline text-lg font-bold italic uppercase tracking-tight transition ${
+                        selected
+                          ? `${accentClass} border-transparent`
+                          : 'border-white/10 bg-white/[0.04] text-white hover:border-white/20'
+                      } disabled:cursor-not-allowed disabled:opacity-50`}
+                    >
+                      {label}
+                    </button>
                   );
                 })}
               </div>
-            ) : null}
 
-            <ShareMatchSummaryButton
-              groupName={groupName}
-              fieldName={event.field_name}
-              playedAtLabel={formatEventDate(event.played_at ?? event.scheduled_at)}
-              teamAName={event.team_a_name ?? 'Equipo A'}
-              teamBName={event.team_b_name ?? 'Equipo B'}
-              teamAScore={event.team_a_score ?? 0}
-              teamBScore={event.team_b_score ?? 0}
-              mvpName={mvp?.displayName ?? null}
-              boostsApplied={boostsApplied}
-            />
-          </section>
-        ) : null}
+              <ShareEventButton
+                eventName={event.field_name}
+                shareToken={publicAttendanceToken ?? ''}
+              />
+            </section>
+          ) : null}
 
-        {isAdminOrOwner && event.status !== 'cancelled' && event.status !== 'played' ? (
-          <>
-            {event.status === 'confirming' ? (
+          {showAttendanceSummary ? (
+            <section className="border border-white/10 bg-concrete-overlay p-5">
+              <div className="mb-4">
+                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
+                  Lista en vivo
+                </p>
+                <h2 className="mt-1 font-headline text-2xl font-black italic uppercase tracking-tight text-white">
+                  Asistencia
+                </h2>
+              </div>
+
+              <EventAttendeesList
+                attendees={attendees}
+                pendingConfirmationPlayers={pendingConfirmationPlayers}
+              />
+            </section>
+          ) : null}
+
+          {event.status === 'drawn' ? (
+            <div className="grid gap-3 md:grid-cols-2">
               <button
                 type="button"
-                onClick={() => {
-                  void navigator.clipboard.writeText(
-                    `${window.location.origin}/groups/${groupId}/events/${eventId}?confirmar=${eventId}`,
-                  );
-                  toast.success('Link de confirmación copiado.');
-                }}
-                className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-4 py-4 font-headline text-lg font-bold italic uppercase tracking-tight text-white transition hover:border-white/20 active:scale-[0.98]"
+                onClick={() => router.push(routes.groupEventTeams(groupId, eventId))}
+                className="w-full rounded-lg bg-pitch-green px-4 py-4 font-headline text-xl font-black italic uppercase text-black"
               >
-                Copiar link de confirmación
+                Ver equipos
               </button>
-            ) : null}
-            <div className={`grid gap-3 pt-2 ${canOpenCheckIn(event.status, event.scheduled_at) ? 'grid-cols-3' : 'grid-cols-2'}`}>
-              {canOpenCheckIn(event.status, event.scheduled_at) ? (
+              {isAdminOrOwner ? (
                 <button
                   type="button"
-                  onClick={() => router.push(routes.groupEventCheckIn(groupId, eventId))}
-                  className="h-12 rounded-lg bg-pitch-green font-headline text-lg font-bold italic uppercase tracking-tight text-black transition-transform active:scale-95"
+                  onClick={() => router.push(routes.groupEventResult(groupId, eventId))}
+                  className="w-full rounded-lg bg-amber-400 px-4 py-4 font-headline text-xl font-black italic uppercase text-black"
                 >
-                  Check-in
+                  Cargar resultado
                 </button>
               ) : null}
-              <button
-                type="button"
-                onClick={() => router.push(routes.groupEventEdit(groupId, eventId))}
-                className="h-12 rounded-lg border border-white/10 bg-white/[0.04] font-headline text-lg font-bold italic uppercase tracking-tight text-white transition-transform hover:border-white/30 active:scale-95"
-              >
-                Editar
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowCancelModal(true)}
-                className="h-12 rounded-lg border border-red-500/40 bg-red-500/10 font-headline text-lg font-bold italic uppercase tracking-tight text-red-300 transition-transform hover:bg-red-500/20 active:scale-95"
-              >
-                Cancelar
-              </button>
             </div>
-          </>
-        ) : null}
+          ) : null}
+
+          {event.status === 'played' ? (
+            <section className="animate-fade-slide-up space-y-4 border border-white/10 bg-concrete-overlay p-5">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
+                Resultado final
+              </p>
+              <div className="mt-3 flex items-center justify-between gap-4">
+                <div className="flex flex-col items-start gap-2">
+                  <p className="font-headline text-xl font-black italic uppercase">
+                    {event.team_a_name ?? 'Equipo A'}
+                  </p>
+                  <p
+                    className="animate-fade-slide-up text-3xl font-black"
+                    style={{ animationDelay: '100ms' }}
+                  >
+                    {event.team_a_score ?? 0}
+                  </p>
+                  {event.team_a_score != null &&
+                  event.team_b_score != null &&
+                  event.team_a_score > event.team_b_score ? (
+                    <span className="animate-winner-glow rounded-full bg-emerald-500/20 px-3 py-0.5 font-mono text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">
+                      GANADOR
+                    </span>
+                  ) : null}
+                </div>
+                <span className="text-2xl font-black text-white/50">-</span>
+                <div className="flex flex-col items-end gap-2">
+                  <p className="font-headline text-xl font-black italic uppercase">
+                    {event.team_b_name ?? 'Equipo B'}
+                  </p>
+                  <p
+                    className="animate-fade-slide-up text-3xl font-black"
+                    style={{ animationDelay: '150ms' }}
+                  >
+                    {event.team_b_score ?? 0}
+                  </p>
+                  {event.team_a_score != null &&
+                  event.team_b_score != null &&
+                  event.team_b_score > event.team_a_score ? (
+                    <span className="animate-winner-glow rounded-full bg-emerald-500/20 px-3 py-0.5 font-mono text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">
+                      GANADOR
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+              {event.team_a_score != null &&
+              event.team_b_score != null &&
+              event.team_a_score === event.team_b_score ? (
+                <div className="animate-draw-badge rounded-lg border border-amber-400/30 bg-amber-400/5 p-3 text-center">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">
+                    EMPATE
+                  </span>
+                </div>
+              ) : null}
+              {event.notes ? <p className="mt-4 text-sm text-white/70">{event.notes}</p> : null}
+              {mvp ? (
+                <div className="rounded-lg border border-amber-400/40 bg-amber-400/10 p-4">
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">
+                    MVP
+                  </p>
+                  <h3 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">
+                    {mvp.displayName}
+                  </h3>
+                  <p className="mt-1 text-sm text-white/65">
+                    {mvp.team === 'A'
+                      ? (event.team_a_name ?? 'Equipo A')
+                      : (event.team_b_name ?? 'Equipo B')}{' '}
+                    · {mvp.assignedPosition ?? 'SIN POS'}
+                  </p>
+                </div>
+              ) : event.status === 'played' && !event.mvp_player_id ? (
+                <>
+                  {isAdminOrOwner ? (
+                    <>
+                      <MvpAdminPanel eventId={event.id} playedSummary={playedSummary} />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const votePath = publicAttendanceToken
+                            ? routes.sharedMvpVote(publicAttendanceToken, eventId)
+                            : routes.groupEventMvpVote(groupId, eventId);
+                          void navigator.clipboard.writeText(
+                            `${window.location.origin}${votePath}`,
+                          );
+                          toast.success('Link de votación MVP copiado.');
+                        }}
+                        className="w-full rounded-lg border border-amber-400/40 bg-amber-400/10 px-4 py-3 font-headline text-base font-bold italic uppercase tracking-tight text-amber-300 transition hover:bg-amber-400/20 active:scale-[0.98]"
+                      >
+                        Compartir votación MVP
+                      </button>
+                    </>
+                  ) : null}
+
+                  {is24hPassed ? (
+                    <div className="rounded-lg border border-red-500/40 bg-red-500/5 p-4 text-center mt-4">
+                      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-red-400">
+                        Votación cerrada
+                      </p>
+                      <p className="mt-2 text-sm text-white/60">
+                        Pasaron las 24 horas y se cerró la votación.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-4">
+                      <MvpVotingPanel
+                        eventId={event.id}
+                        currentPlayerId={currentPlayer?.playerId ?? null}
+                        playedSummary={playedSummary}
+                        hasVoted={hasVotedForMvp}
+                        isVotingClosed={!!event.mvp_player_id}
+                        onVoteSubmitted={() => {
+                          void queryClient.invalidateQueries({ queryKey: ['event', eventId] });
+                        }}
+                      />
+                    </div>
+                  )}
+                </>
+              ) : null}
+
+              {boostsApplied.length > 0 ? (
+                <div className="border border-white/10 bg-white/[0.03] p-4">
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
+                    Boosts aplicados
+                  </p>
+                  <ul className="mt-3 space-y-3">
+                    {boostsApplied.map((item) => (
+                      <li key={item.playerId} className="border border-white/10 px-3 py-3">
+                        <p className="font-semibold text-white">{item.displayName}</p>
+                        <p className="mt-1 text-sm text-white/70">
+                          {Object.entries(item.boostApplied ?? {})
+                            .map(([stat, delta]) => `${stat.toUpperCase()} +${delta}`)
+                            .join(' · ')}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {playedSummary.length > 0 ? (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {(['A', 'B'] as const).map((teamKey) => {
+                    const teamName =
+                      teamKey === 'A'
+                        ? (event.team_a_name ?? 'Equipo A')
+                        : (event.team_b_name ?? 'Equipo B');
+                    const players = playedSummary.filter((item) => item.team === teamKey);
+                    return (
+                      <div key={teamKey} className="border border-white/10 bg-white/[0.03] p-4">
+                        <p className="font-headline text-xl font-black italic uppercase text-white">
+                          {teamName}
+                        </p>
+                        <ul className="mt-3 space-y-2 text-sm text-white/75">
+                          {players.map((item) => (
+                            <li key={item.playerId}>
+                              {item.displayName} · {item.assignedPosition ?? 'SIN POS'}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
+
+              <ShareMatchSummaryButton
+                groupName={groupName}
+                fieldName={event.field_name}
+                playedAtLabel={formatEventDate(event.played_at ?? event.scheduled_at)}
+                teamAName={event.team_a_name ?? 'Equipo A'}
+                teamBName={event.team_b_name ?? 'Equipo B'}
+                teamAScore={event.team_a_score ?? 0}
+                teamBScore={event.team_b_score ?? 0}
+                mvpName={mvp?.displayName ?? null}
+                boostsApplied={boostsApplied}
+              />
+            </section>
+          ) : null}
+
+          {isAdminOrOwner && event.status !== 'cancelled' && event.status !== 'played' ? (
+            <>
+              {event.status === 'confirming' ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(
+                      `${window.location.origin}/groups/${groupId}/events/${eventId}?confirmar=${eventId}`,
+                    );
+                    toast.success('Link de confirmación copiado.');
+                  }}
+                  className="w-full rounded-lg border border-white/10 bg-white/[0.04] px-4 py-4 font-headline text-lg font-bold italic uppercase tracking-tight text-white transition hover:border-white/20 active:scale-[0.98]"
+                >
+                  Copiar link de confirmación
+                </button>
+              ) : null}
+              <div
+                className={`grid gap-3 pt-2 ${canOpenCheckIn(event.status, event.scheduled_at) ? 'grid-cols-3' : 'grid-cols-2'}`}
+              >
+                {canOpenCheckIn(event.status, event.scheduled_at) ? (
+                  <button
+                    type="button"
+                    onClick={() => router.push(routes.groupEventCheckIn(groupId, eventId))}
+                    className="h-12 rounded-lg bg-pitch-green font-headline text-lg font-bold italic uppercase tracking-tight text-black transition-transform active:scale-95"
+                  >
+                    Check-in
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => router.push(routes.groupEventEdit(groupId, eventId))}
+                  className="h-12 rounded-lg border border-white/10 bg-white/[0.04] font-headline text-lg font-bold italic uppercase tracking-tight text-white transition-transform hover:border-white/30 active:scale-95"
+                >
+                  Editar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCancelModal(true)}
+                  className="h-12 rounded-lg border border-red-500/40 bg-red-500/10 font-headline text-lg font-bold italic uppercase tracking-tight text-red-300 transition-transform hover:bg-red-500/20 active:scale-95"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </>
+          ) : null}
         </div>
       </PageContent>
     </ImmersiveScreen>
   );
 }
-

@@ -19,16 +19,25 @@ export const routes = {
   groupRecurring: (groupId: string) => `/groups/${groupId}/settings/recurring`,
   groupPlayers: (groupId: string) => `/groups/${groupId}/players`,
   groupPlayer: (groupId: string, playerId: string) => `/groups/${groupId}/players/${playerId}`,
-  groupPlayerStats: (groupId: string, playerId: string) => `/groups/${groupId}/players/${playerId}/stats`,
-  groupPlayerEditCard: (groupId: string, playerId: string) => `/groups/${groupId}/players/${playerId}/edit-card`,
+  groupPlayerStats: (groupId: string, playerId: string) =>
+    `/groups/${groupId}/players/${playerId}/stats`,
+  groupPlayerEditCard: (groupId: string, playerId: string) =>
+    `/groups/${groupId}/players/${playerId}/edit-card`,
   groupEventNew: (groupId: string) => `/groups/${groupId}/events/new`,
   groupEvent: (groupId: string, eventId: string) => `/groups/${groupId}/events/${eventId}`,
-  sharedAttendance: (eventId: string) => `/asistencia-compartida?eventId=${encodeURIComponent(eventId)}`,
+  sharedAttendance: (eventId: string) =>
+    `/asistencia-compartida?eventId=${encodeURIComponent(eventId)}`,
+  groupSharedAttendance: (shareToken: string) => `/convocatoria/${encodeURIComponent(shareToken)}`,
+  sharedMvpVote: (shareToken: string, eventId: string) =>
+    `/convocatoria/${encodeURIComponent(shareToken)}/mvp?eventId=${encodeURIComponent(eventId)}`,
   groupEventMvpVote: (groupId: string, eventId: string) =>
     `/groups/${groupId}/events/${eventId}?votar-mvp=${eventId}`,
-  groupEventCheckIn: (groupId: string, eventId: string) => `/groups/${groupId}/events/${eventId}/check-in`,
+  groupEventCheckIn: (groupId: string, eventId: string) =>
+    `/groups/${groupId}/events/${eventId}/check-in`,
   groupEventDraw: (groupId: string, eventId: string) => `/groups/${groupId}/events/${eventId}/draw`,
-  groupEventTeams: (groupId: string, eventId: string) => `/groups/${groupId}/events/${eventId}/teams`,
-  groupEventResult: (groupId: string, eventId: string) => `/groups/${groupId}/events/${eventId}/result`,
+  groupEventTeams: (groupId: string, eventId: string) =>
+    `/groups/${groupId}/events/${eventId}/teams`,
+  groupEventResult: (groupId: string, eventId: string) =>
+    `/groups/${groupId}/events/${eventId}/result`,
   groupEventEdit: (groupId: string, eventId: string) => `/groups/${groupId}/events/${eventId}/edit`,
 } as const;

@@ -5,12 +5,11 @@ import { Share2 } from 'lucide-react';
 import { ShareEventModal } from './share-event-modal';
 
 interface ShareEventButtonProps {
-  groupId: string;
-  eventId: string;
   eventName: string;
+  shareToken: string;
 }
 
-export function ShareEventButton({ eventId, eventName }: ShareEventButtonProps) {
+export function ShareEventButton({ eventName, shareToken }: ShareEventButtonProps) {
   const [showModal, setShowModal] = useState(false);
 
   return (
@@ -26,8 +25,8 @@ export function ShareEventButton({ eventId, eventName }: ShareEventButtonProps) 
       <ShareEventModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        eventId={eventId}
         eventName={eventName}
+        shareToken={shareToken}
       />
     </>
   );

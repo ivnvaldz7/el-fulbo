@@ -19,7 +19,7 @@ export default async function GroupDashboardPage({ params }: { params: Promise<{
   // 1. Group query must go first — redirect if not found
   const { data: group } = await supabase
     .from('groups')
-    .select('name, default_modality, invite_code')
+    .select('name, default_modality, invite_code, public_attendance_token')
     .eq('id', id)
     .single();
 
@@ -60,7 +60,9 @@ export default async function GroupDashboardPage({ params }: { params: Promise<{
       .order('scheduled_at', { ascending: true }),
     supabase
       .from('events')
-      .select('id, field_name, scheduled_at, played_at, team_a_name, team_b_name, team_a_score, team_b_score, mvp_player_id')
+      .select(
+        'id, field_name, scheduled_at, played_at, team_a_name, team_b_name, team_a_score, team_b_score, mvp_player_id',
+      )
       .eq('group_id', id)
       .eq('status', 'played')
       .order('played_at', { ascending: false, nullsFirst: false })
@@ -83,9 +85,13 @@ export default async function GroupDashboardPage({ params }: { params: Promise<{
   }));
 
   // 3. Current MVP — last played event (may or may not have MVP)
+  const mvpRetentionCutoff = new Date();
+  mvpRetentionCutoff.setDate(mvpRetentionCutoff.getDate() - 7);
+
   const { data: currentMvpRaw } = await supabase
     .from('events')
-    .select(`
+    .select(
+      `
       id,
       field_name,
       played_at,
@@ -101,9 +107,11 @@ export default async function GroupDashboardPage({ params }: { params: Promise<{
         current_boost,
         photo_url
       )
-    `)
+    `,
+    )
     .eq('group_id', id)
     .eq('status', 'played')
+    .gte('played_at', mvpRetentionCutoff.toISOString())
     .order('played_at', { ascending: false, nullsFirst: false })
     .order('scheduled_at', { ascending: false })
     .limit(1)
@@ -150,6 +158,7 @@ export default async function GroupDashboardPage({ params }: { params: Promise<{
       recentPlayedEvents={recentPlayedEvents}
       currentMvp={currentMvp}
       inviteCode={group.invite_code as string}
+      publicAttendanceToken={group.public_attendance_token as string}
       currentPlayerId={currentPlayerResult.ok ? currentPlayerResult.data.id : null}
       statsStatus={currentPlayerResult.ok ? currentPlayerResult.data.statsStatus : null}
       shareablePlayer={
@@ -187,17 +196,22 @@ async function getBatchRecentEvents(
     team_b_score: string | number | null;
     mvp_player_id: string | number | null;
   }[],
-): Promise<{
-  id: string;
-  fieldName: string;
-  teamAName: string;
-  teamBName: string;
-  teamAScore: number;
-  teamBScore: number;
-  mvpName: string | null;
-  boostsApplied: Array<{ displayName: string; modifiers: Array<{ stat: string; delta: number }> }>;
-  playedAtLabel: string;
-}[]> {
+): Promise<
+  {
+    id: string;
+    fieldName: string;
+    teamAName: string;
+    teamBName: string;
+    teamAScore: number;
+    teamBScore: number;
+    mvpName: string | null;
+    boostsApplied: Array<{
+      displayName: string;
+      modifiers: Array<{ stat: string; delta: number }>;
+    }>;
+    playedAtLabel: string;
+  }[]
+> {
   const eventIds = playedEvents.map((e) => String(e.id));
 
   // Build a map of eventId → mvp_player_id from already-fetched data
@@ -242,7 +256,8 @@ async function getBatchRecentEvents(
     const mvpPlayerId = mvpMap.get(eid) ?? null;
     const rows = participationsByEvent.get(eid) ?? [];
 
-    const boostsApplied: { displayName: string; boostApplied: Record<string, number> | null }[] = [];
+    const boostsApplied: { displayName: string; boostApplied: Record<string, number> | null }[] =
+      [];
     let mvpName: string | null = null;
 
     for (const row of rows) {
