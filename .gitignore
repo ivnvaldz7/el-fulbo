@@ -81,3 +81,4 @@ test-results/
 
 # CodeGraph index
 .codegraph/
+.env*
