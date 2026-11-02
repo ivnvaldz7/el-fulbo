@@ -38,7 +38,11 @@ export function AddPhantomModal({ groupId, eventId, onClose, onCreated }: Props)
         body: JSON.stringify({ eventId, name: name.trim(), primaryPosition: position }),
       });
 
-      const json = await res.json() as { ok: boolean; data?: string; error?: { message: string } };
+      const json = (await res.json()) as {
+        ok: boolean;
+        data?: string;
+        error?: { message: string };
+      };
 
       if (!json.ok) {
         setError(json.error?.message ?? 'No pudimos agregar el fantasma.');
@@ -57,15 +61,14 @@ export function AddPhantomModal({ groupId, eventId, onClose, onCreated }: Props)
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center">
       <div className="w-full max-w-sm rounded-t-2xl bg-[#0e1a2e] p-6 sm:rounded-2xl">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white">Agregar jugador fantasma</h2>
+          <h2 className="text-lg font-bold text-white">Agregar invitado</h2>
           <button onClick={onClose} className="text-white/40 hover:text-white">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <p className="mt-2 text-xs text-white/50">
-          Creamos una ficha temporal para completar el equipo. Después del partido decidís qué
-          hacer con ella.
+          Se suma a esta convocatoria y puede entrar al sorteo cuando marques su presencia.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">

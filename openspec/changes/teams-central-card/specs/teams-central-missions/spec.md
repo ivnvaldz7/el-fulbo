@@ -4,6 +4,8 @@
 
 Defines automatic central missions aggregated across all Teams teams: trophy thresholds, the MVP point mission, stat upgrade milestones, idempotent cycles and the 99 cap. Rewards use approved quantities only and require no team admin approval.
 
+The general progression contract also grants permanent upgrades for every 3 official MVPs and every 3 consecutive valid wins with approved participation.
+
 ## Requirements
 
 ### Requirement: Trophy thresholds
@@ -25,7 +27,9 @@ The system MUST award trophies automatically when approved quantities reach MVP 
 
 ### Requirement: MVP point mission
 
-The system MUST grant +2 global points for every 5 official MVPs on cycles 5, 10, 15 and so on. A cycle MUST be recorded when granted and MUST NOT be granted twice.
+The system MUST grant +2 to each of the three position aptitudes for every 3 official MVPs on cycles 3, 6, 9 and so on. A cycle MUST be recorded when granted and MUST NOT be granted twice.
+
+The system MUST grant +1 to each of the three position aptitudes for every 3 consecutive valid wins. A win counts only when the player has approved post-match participation, and each streak reward MUST be recorded and MUST NOT be granted twice.
 
 #### Scenario: Cycle grants points
 

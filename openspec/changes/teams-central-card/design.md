@@ -30,7 +30,8 @@ stat submission → admin review (approved)
      └─→ process_team_central_missions(user)   [advisory lock]
            Σ local ledgers (approved only) →
            trophies (MVP 3/5/10/20; g/a 10/25/50/100; t 20/50/100/200) → ledger unique(user,kind,ref)
-           MVP cycles ÷5 → +2 to each aptitude-map key (cap 99) → ledger(user,kind,cycle)
+           MVP cycles ÷3 → +2 to each aptitude-map key (cap 99) → ledger(user,kind,cycle)
+           valid win streaks ÷3 → +1 to each aptitude-map key (cap 99) → milestone ledger(user,kind,ref)
            milestones (g 25/50, a 25/50, t 50/100) → +1 to mapped key → ledger
            update team_cards.stats
                 ↓

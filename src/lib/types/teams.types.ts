@@ -1,4 +1,4 @@
-import type { FieldStats, GoalkeeperStats, PlayerPosition, UserId } from '@/lib/types';
+import type { FieldStats, GoalkeeperStats, Modality, PlayerPosition, UserId } from '@/lib/types';
 
 export type TeamId = string;
 export type TeamMatchId = string;
@@ -55,12 +55,16 @@ export interface TeamCard {
 export interface TeamCardSnapshot {
   teamId: TeamId;
   userId: UserId;
-  cardStats: FieldStats | GoalkeeperStats;
+  cardStats: FieldStats | GoalkeeperStats | null;
   positions: { primary: PlayerPosition; secondary: PlayerPosition } | null;
   status: TeamCardSnapshotStatus;
   reviewedByUserId: UserId | null;
   reviewedAt: string | null;
   rejectionReason: string | null;
+}
+
+export interface TeamCardAdmissionView extends TeamCardSnapshot {
+  playerName: string;
 }
 
 export interface TeamLocalPerformance {
@@ -119,6 +123,8 @@ export interface TeamHubItem {
   id: TeamId;
   name: string;
   slug: string;
+  badgeUrl?: string | null;
+  modality: Modality;
   primaryColor: string | null;
   secondaryColor: string | null;
   role: TeamRole;
@@ -151,6 +157,7 @@ export interface TeamMatchView {
   mvpUserId: string | null;
   mvpUserName: string | null;
   hasVotedForMvp?: boolean;
+  submittedStats?: Array<{ statKind: TeamStatKind; status: TeamSubmissionStatus }>;
 }
 
 export interface TeamMatchMvpVote {
@@ -171,9 +178,11 @@ export interface TeamSubmissionView {
 }
 
 export interface TeamDetailView extends TeamHubItem {
+  currentUserId: UserId | null;
   members: TeamRosterMemberView[];
   matches: TeamMatchView[];
   submissions: TeamSubmissionView[];
+  admissions: TeamCardAdmissionView[];
 }
 
 export type TeamDetailTab = 'members' | 'matches' | 'stats' | 'card' | 'moderation';

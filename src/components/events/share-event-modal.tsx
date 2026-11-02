@@ -8,8 +8,8 @@ import { routes } from '@/lib/routes';
 interface ShareEventModalProps {
   isOpen: boolean;
   onClose: () => void;
-  eventId: string;
   eventName: string;
+  shareToken: string;
 }
 
 const toastDarkStyle = {
@@ -20,14 +20,9 @@ const toastDarkStyle = {
   fontSize: '14px',
 };
 
-export function ShareEventModal({
-  isOpen,
-  onClose,
-  eventId,
-  eventName,
-}: ShareEventModalProps) {
-  const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}${routes.sharedAttendance(eventId)}`;
-  const shareText = `¡Mirá y confirmá la convocatoria! ${eventName}`;
+export function ShareEventModal({ isOpen, onClose, eventName, shareToken }: ShareEventModalProps) {
+  const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}${routes.groupSharedAttendance(shareToken)}`;
+  const shareText = `⚽ Próximo fulbo · Mirá quién va y anotate. ${eventName}`;
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -98,7 +93,7 @@ export function ShareEventModal({
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <h2 className="font-headline text-2xl font-black italic uppercase tracking-tight text-white">
-            Compartir partido
+            Compartir enlace fijo
           </h2>
           <button
             onClick={onClose}
@@ -112,6 +107,9 @@ export function ShareEventModal({
         {/* Link display */}
         <div className="mb-6 rounded-lg border border-white/10 bg-black/30 p-3">
           <p className="font-mono text-xs text-white/60 break-all">{shareUrl}</p>
+          <p className="mt-2 text-xs text-white/40">
+            Este enlace siempre abre la convocatoria más cercana.
+          </p>
         </div>
 
         {/* Action buttons */}

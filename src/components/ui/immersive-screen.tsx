@@ -9,12 +9,14 @@ export function ImmersiveScreen({
   contentClassName = '',
   backgroundImage = soccerNightBackground,
   align = 'bottom',
+  animated = false,
 }: {
   children: ReactNode;
   className?: string;
   contentClassName?: string;
   backgroundImage?: string;
   align?: 'bottom' | 'center';
+  animated?: boolean;
 }) {
   const style = {
     backgroundImage,
@@ -27,10 +29,11 @@ export function ImmersiveScreen({
 
   return (
     <main
-      className={`relative flex min-h-screen overflow-x-hidden bg-absolute-dark bg-cover bg-center px-4 ${alignmentClass} ${className}`}
+      className={`relative flex min-h-dvh overflow-x-hidden bg-absolute-dark bg-cover bg-center px-4 ${alignmentClass} ${className}`}
       style={style}
     >
       <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
+      {animated ? <div className="pitch-ambient" aria-hidden="true" /> : null}
       <div className={`relative z-10 w-full overflow-x-hidden ${contentClassName}`}>{children}</div>
     </main>
   );

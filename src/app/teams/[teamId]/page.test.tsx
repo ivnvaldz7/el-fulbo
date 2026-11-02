@@ -100,6 +100,7 @@ const teamData = {
   id: 'test-team-id',
   name: 'Los Merengues',
   slug: 'los-merengues',
+  modality: 'F5' as const,
   primaryColor: '#16a34a',
   secondaryColor: '#020617',
   role: 'admin' as const,
@@ -167,12 +168,12 @@ describe('TeamDetailPage', () => {
     expect(screen.getByText(/1 miembros/)).toBeInTheDocument();
     expect(screen.getByText(/0 partidos/)).toBeInTheDocument();
 
-    expect(screen.getByRole('navigation', { name: 'Team sections' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Members' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Matches' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Stats' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Card' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Moderation' })).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Secciones del equipo' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Plantel' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Partidos' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Estadísticas' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Card del equipo' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Moderación' })).toBeInTheDocument();
 
     expect(screen.getByText('Creador')).toBeInTheDocument();
     expect(screen.getByText('MED')).toBeInTheDocument();
@@ -188,7 +189,7 @@ describe('TeamDetailPage', () => {
       expect(screen.getByText('Los Merengues')).toBeInTheDocument();
     });
 
-    expect(screen.getByText(/no scheduled matches/i)).toBeInTheDocument();
+    expect(screen.getByText(/todavía no hay partidos en esta sección/i)).toBeInTheDocument();
   });
 
   it('sets up real-time subscription on mount and cleans up on unmount', async () => {
@@ -201,7 +202,7 @@ describe('TeamDetailPage', () => {
     });
 
     expect(supabaseClient.channel).toHaveBeenCalledWith('team-detail:test-team-id');
-    expect(channelOnMock).toHaveBeenCalledTimes(4);
+    expect(channelOnMock).toHaveBeenCalledTimes(5);
     expect(channelOnMock).toHaveBeenCalledWith(
       'postgres_changes',
       expect.objectContaining({ table: 'team_members' }),

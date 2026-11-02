@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ShieldCheck, UserRound } from 'lucide-react';
 import type { TeamId, TeamMemberId, TeamRosterMemberView } from '@/lib/types/teams.types';
 import { TeamsService } from '@/lib/services/teams.service';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
@@ -56,7 +57,7 @@ export function TeamRosterPanel({ teamId, members, canManage, onInviteMember, on
   return (
     <section aria-labelledby="roster-heading" className="space-y-4">
       <header>
-        <h2 id="roster-heading" className="font-headline text-3xl font-black italic uppercase text-white">Members</h2>
+        <h2 id="roster-heading" className="font-headline text-3xl font-black italic uppercase text-white">Plantel</h2>
         <p className="mt-2 text-sm font-semibold text-white/55">
           {canManage ? 'Los cambios de roster se gestionan con invitaciones y permisos admin.' : 'Roster fijo del equipo.'}
         </p>
@@ -114,7 +115,10 @@ export function TeamRosterPanel({ teamId, members, canManage, onInviteMember, on
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="rounded-full bg-black/40 px-3 py-1 font-mono text-[10px] font-black uppercase text-white/60">{member.role}</span>
+                <span title={member.role === 'admin' ? 'Admin' : 'Jugador'} aria-label={member.role === 'admin' ? 'Admin' : 'Jugador'} className="flex h-9 w-9 items-center justify-center rounded-xl bg-black/40 text-white/65">
+                  {member.role === 'admin' ? <ShieldCheck className="h-4 w-4" aria-hidden="true" /> : <UserRound className="h-4 w-4" aria-hidden="true" />}
+                  <span className="sr-only">{member.role}</span>
+                </span>
                 {canManage && member.role !== 'admin' && onRemoveMember ? (
                   <button
                     type="button"

@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { ImmersiveScreen } from '@/components/ui/immersive-screen';
 import { FloatingPanel } from '@/components/ui/floating-panel';
 import { CreateTeamForm } from '@/components/teams/create-team-form';
+import { routes } from '@/lib/routes';
+import { TeamsService } from '@/lib/services/teams.service';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export default async function NewTeamPage() {
@@ -14,18 +16,14 @@ export default async function NewTeamPage() {
     redirect('/login');
   }
 
-  // Check if user has a base card
-  const { data: baseCard } = await supabase
-    .from('players')
-    .select('id')
-    .eq('user_id', user.id)
-    .is('archived_at', null)
-    .order('joined_at', { ascending: true })
-    .limit(1)
-    .single();
+  const cardResult = await new TeamsService(supabase).getOwnCard();
 
-  if (!baseCard) {
-    redirect('/onboarding-global');
+  if (!cardResult.ok) {
+    throw new Error(cardResult.error.message);
+  }
+
+  if (!cardResult.data) {
+    redirect(routes.teamCard);
   }
 
   return (
@@ -35,7 +33,7 @@ export default async function NewTeamPage() {
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Roster fijo</p>
           <h1 className="mt-2 font-headline text-3xl font-black italic uppercase leading-none text-white">NUEVO EQUIPO</h1>
           <p className="mt-3 font-headline text-base font-medium leading-tight text-white/60">
-            Elegí nombre y tu posición. Después invitas al resto.
+            Elegí el nombre y el formato. Tu posición sale de tu Card Global.
           </p>
         </header>
 

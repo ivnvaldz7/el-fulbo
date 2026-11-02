@@ -1,25 +1,26 @@
 import { z } from 'zod';
+import { teamBadges } from '@/lib/team-badges';
 
 export const teamPositionSchema = z.enum(['ARQ', 'DEF', 'MED', 'DEL']);
+export const teamModalitySchema = z.enum(['F5', 'F6', 'F7', 'F8', 'F9', 'F11']);
 export const teamStatKindSchema = z.enum(['goals', 'assists', 'tackles']);
 export const teamSubmissionDecisionSchema = z.enum(['approved', 'rejected']);
 export const progressableStatKeySchema = z.enum(['pac', 'sho', 'pas', 'dri', 'def', 'phy', 'div', 'han', 'kic', 'ref', 'spd', 'pos']);
 
 const uuidSchema = z.string().uuid();
 const optionalTrimmedUrlSchema = z.string().trim().url().optional().nullable();
+const teamBadgePathSchema = z.string().refine((value) => teamBadges.some((badge) => badge.path === value), 'Escudo no válido');
 const optionalTrimmedStringSchema = z.string().trim().min(1).max(120).optional().nullable();
 
 export const createTeamSchema = z.object({
   name: z.string().trim().min(1, 'Team name is required').max(60, 'Maximum 60 characters'),
-  primaryPosition: teamPositionSchema,
-  secondaryPosition: teamPositionSchema.optional().nullable(),
-  badgeUrl: optionalTrimmedUrlSchema,
+  modality: teamModalitySchema,
+  badgeUrl: z.union([teamBadgePathSchema, z.string().trim().url()]).optional().nullable(),
   primaryColor: z.string().trim().max(32).optional().nullable(),
   secondaryColor: z.string().trim().max(32).optional().nullable(),
-}).refine((value) => !value.secondaryPosition || value.secondaryPosition !== value.primaryPosition, {
-  path: ['secondaryPosition'],
-  message: 'Secondary position must be different',
 });
+
+export const updateTeamBadgeSchema = z.object({ teamId: uuidSchema, badgeUrl: teamBadgePathSchema });
 
 export const createTeamInvitationSchema = z.object({
   teamId: uuidSchema,
@@ -47,6 +48,13 @@ export const createTeamMatchSchema = z.object({
   opponentName: optionalTrimmedStringSchema,
   fieldName: optionalTrimmedStringSchema,
   fieldMapsUrl: optionalTrimmedUrlSchema,
+});
+
+export const completeTeamMatchSchema = z.object({
+  teamId: uuidSchema,
+  matchId: uuidSchema,
+  teamScore: z.number().int().min(0).max(99),
+  opponentScore: z.number().int().min(0).max(99),
 });
 
 export const signUpForTeamMatchSchema = z.object({
@@ -96,6 +104,10 @@ export const reviewTeamAdmissionSchema = z.object({
   message: 'Rejection reason is required',
 });
 
+export const resubmitTeamAdmissionSchema = z.object({
+  teamId: uuidSchema,
+});
+
 export const grantTeamMeritSchema = z.object({
   teamId: uuidSchema,
   userId: uuidSchema,
@@ -112,12 +124,14 @@ export type CreateTeamInvitationData = z.infer<typeof createTeamInvitationSchema
 export type TeamMemberData = z.infer<typeof teamMemberSchema>;
 export type RemoveTeamMemberData = z.infer<typeof removeTeamMemberSchema>;
 export type CreateTeamMatchData = z.infer<typeof createTeamMatchSchema>;
+export type CompleteTeamMatchData = z.infer<typeof completeTeamMatchSchema>;
 export type SignUpForTeamMatchData = z.infer<typeof signUpForTeamMatchSchema>;
 export type SubmitTeamStatData = z.infer<typeof submitTeamStatSchema>;
 export type ReviewTeamStatSubmissionData = z.infer<typeof reviewTeamStatSubmissionSchema>;
 export type CreateTeamCardData = z.infer<typeof teamCardSchema>;
 export type UpdateTeamCardData = z.infer<typeof teamCardSchema>;
 export type ReviewTeamAdmissionData = z.infer<typeof reviewTeamAdmissionSchema>;
+export type ResubmitTeamAdmissionData = z.infer<typeof resubmitTeamAdmissionSchema>;
 export type GrantTeamMeritData = z.infer<typeof grantTeamMeritSchema>;
 export type ProcessTeamCentralMissionsData = z.infer<typeof processTeamCentralMissionsSchema>;
 export const setTeamMatchMvpSchema = z.object({

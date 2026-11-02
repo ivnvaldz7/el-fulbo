@@ -14,7 +14,9 @@ import { PageHeader } from '@/components/ui/page-header';
 
 function canOpenCheckIn(event: Event) {
   const hoursToEvent = (new Date(event.scheduled_at).getTime() - Date.now()) / 36e5;
-  return ['scheduled', 'confirming', 'checked_in', 'drawn'].includes(event.status) && hoursToEvent <= 4;
+  return (
+    ['scheduled', 'confirming', 'checked_in', 'drawn'].includes(event.status) && hoursToEvent <= 4
+  );
 }
 
 export default function EventCheckInPage() {
@@ -62,7 +64,12 @@ export default function EventCheckInPage() {
       .channel(`event-checkin:${eventId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'event_attendances', filter: `event_id=eq.${eventId}` },
+        {
+          event: '*',
+          schema: 'public',
+          table: 'event_attendances',
+          filter: `event_id=eq.${eventId}`,
+        },
         () => void queryClient.invalidateQueries({ queryKey: ['event-checkin', eventId] }),
       )
       .subscribe();
@@ -130,8 +137,12 @@ export default function EventCheckInPage() {
     return (
       <ImmersiveScreen align="center" contentClassName="mx-auto text-center">
         <div className="mx-auto h-12 w-12 animate-spin border-4 border-pitch-green border-t-transparent" />
-        <p className="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">Check-in</p>
-        <h2 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">Cargando jugadores...</h2>
+        <p className="mt-8 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-pitch-green">
+          Check-in
+        </p>
+        <h2 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">
+          Cargando jugadores...
+        </h2>
       </ImmersiveScreen>
     );
   }
@@ -139,8 +150,12 @@ export default function EventCheckInPage() {
   if (!event || !isAdminOrOwner || !canOpenCheckIn(event)) {
     return (
       <ImmersiveScreen align="center" contentClassName="max-w-md mx-auto text-center">
-        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Check-in no disponible</p>
-        <h2 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">No tenés acceso o todavía no está habilitado.</h2>
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
+          Check-in no disponible
+        </p>
+        <h2 className="mt-2 font-headline text-2xl font-black italic uppercase text-white">
+          No tenés acceso o todavía no está habilitado.
+        </h2>
       </ImmersiveScreen>
     );
   }
@@ -153,109 +168,129 @@ export default function EventCheckInPage() {
       <PageContent className="max-w-2xl">
         <PageHeader title="CHECK-IN" backHref={`/groups/${groupId}/events/${eventId}`} />
         <div className="space-y-4">
-        <header className="border border-white/10 bg-concrete-overlay p-5">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-pitch-green">Check-in</p>
-          <h1 className="mt-2 font-headline text-3xl font-black italic uppercase">{event.field_name}</h1>
-          <p className="mt-3 text-sm text-white/70">
-            {checkedCount} checkeados / {minimumPlayers} necesarios
-          </p>
-        </header>
+          <header className="border border-white/10 bg-concrete-overlay p-5">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-pitch-green">
+              Check-in
+            </p>
+            <h1 className="mt-2 font-headline text-3xl font-black italic uppercase">
+              {event.field_name}
+            </h1>
+            <p className="mt-3 text-sm text-white/70">
+              {checkedCount} checkeados / {minimumPlayers} necesarios
+            </p>
+          </header>
 
-        <section className="border border-white/10 bg-concrete-overlay p-5 space-y-3">
-          <button
-            type="button"
-            onClick={() => void handleMarkAll()}
-            disabled={saving}
-            className="w-full rounded-lg bg-pitch-green px-4 py-3 font-headline text-lg font-bold italic uppercase text-black disabled:opacity-60"
-          >
-            Marcar todos los &quot;voy&quot;
-          </button>
-          {isAdminOrOwner && (
+          <section className="border border-white/10 bg-concrete-overlay p-5 space-y-3">
             <button
               type="button"
-              onClick={() => setShowPhantomModal(true)}
-              className="w-full rounded-lg border border-dashed border-white/20 px-4 py-2.5 text-sm font-semibold text-white/60 hover:border-white/40 hover:text-white"
+              onClick={() => void handleMarkAll()}
+              disabled={saving}
+              className="w-full rounded-lg bg-pitch-green px-4 py-3 font-headline text-lg font-bold italic uppercase text-black disabled:opacity-60"
             >
-              + Agregar jugador fantasma
+              Marcar todos los &quot;voy&quot;
             </button>
-          )}
-        </section>
-
-        {showPhantomModal && event && (
-          <AddPhantomModal
-            groupId={groupId}
-            eventId={eventId}
-            onClose={() => setShowPhantomModal(false)}
-            onCreated={() => { setShowPhantomModal(false); void queryClient.invalidateQueries({ queryKey: ['event-checkin', eventId] }); }}
-          />
-        )}
-
-        {[{ title: 'Van', items: going }, { title: 'Tal vez', items: maybe }].map((section) => (
-          <section key={section.title} className="border border-white/10 bg-concrete-overlay p-5">
-            <h2 className="font-headline text-2xl font-black italic uppercase">{section.title}</h2>
-            <div className="mt-4 space-y-3">
-              {section.items.length === 0 ? (
-                <p className="text-sm text-white/60">No hay jugadores en esta lista.</p>
-              ) : (
-                section.items.map((attendee) => (
-                  <div
-                    key={attendee.playerId}
-                    className="flex items-center justify-between border border-white/10 bg-white/[0.04] px-4 py-3"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-white">{attendee.displayName}</p>
-                        {attendee.isPhantom && (
-                          <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-400">
-                            FANTASMA
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-white/45">
-                        {attendee.primaryPosition ?? 'SIN POS'}
-                      </p>
-                    </div>
-
-                    <label className="flex items-center gap-3">
-                      <span className="text-sm text-white/60">{attendee.checkedIn ? 'Presente' : 'Pendiente'}</span>
-                      <input
-                        type="checkbox"
-                        checked={attendee.checkedIn}
-                        disabled={saving}
-                        onChange={(eventChange) => void handleToggle(attendee, eventChange.target.checked)}
-                        className="h-5 w-5 rounded border-white/20 bg-transparent"
-                      />
-                    </label>
-                  </div>
-                ))
-              )}
-            </div>
+            {isAdminOrOwner && (
+              <button
+                type="button"
+                onClick={() => setShowPhantomModal(true)}
+                className="w-full rounded-lg border border-dashed border-white/20 px-4 py-2.5 text-sm font-semibold text-white/60 hover:border-white/40 hover:text-white"
+              >
+                + Agregar invitado
+              </button>
+            )}
           </section>
-        ))}
 
-        <button
-          type="button"
-          onClick={() => void handleGoToDraw()}
-          disabled={!canProceed || saving}
-          className="w-full rounded-lg bg-emerald-500 px-4 py-4 font-headline text-xl font-black italic uppercase text-black disabled:opacity-50"
-        >
-          {canProceed ? 'Ir al sorteo' : `Faltan ${Math.max(minimumPlayers - checkedCount, 0)} jugadores`}
-        </button>
+          {showPhantomModal && event && (
+            <AddPhantomModal
+              groupId={groupId}
+              eventId={eventId}
+              onClose={() => setShowPhantomModal(false)}
+              onCreated={() => {
+                setShowPhantomModal(false);
+                void queryClient.invalidateQueries({ queryKey: ['event-checkin', eventId] });
+              }}
+            />
+          )}
 
-        {!canProceed && isAdminOrOwner && (
+          {[
+            { title: 'Van', items: going },
+            { title: 'Tal vez', items: maybe },
+          ].map((section) => (
+            <section key={section.title} className="border border-white/10 bg-concrete-overlay p-5">
+              <h2 className="font-headline text-2xl font-black italic uppercase">
+                {section.title}
+              </h2>
+              <div className="mt-4 space-y-3">
+                {section.items.length === 0 ? (
+                  <p className="text-sm text-white/60">No hay jugadores en esta lista.</p>
+                ) : (
+                  section.items.map((attendee) => (
+                    <div
+                      key={attendee.playerId}
+                      className="flex items-center justify-between border border-white/10 bg-white/[0.04] px-4 py-3"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-white">{attendee.displayName}</p>
+                          {attendee.isPhantom && (
+                            <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                              INVITADO
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs uppercase tracking-[0.18em] text-white/45">
+                          {attendee.primaryPosition ?? 'SIN POS'}
+                        </p>
+                      </div>
+
+                      <label className="flex items-center gap-3">
+                        <span className="text-sm text-white/60">
+                          {attendee.checkedIn ? 'Presente' : 'Pendiente'}
+                        </span>
+                        <input
+                          type="checkbox"
+                          checked={attendee.checkedIn}
+                          disabled={saving}
+                          onChange={(eventChange) =>
+                            void handleToggle(attendee, eventChange.target.checked)
+                          }
+                          className="h-5 w-5 rounded border-white/20 bg-transparent"
+                        />
+                      </label>
+                    </div>
+                  ))
+                )}
+              </div>
+            </section>
+          ))}
+
           <button
             type="button"
-            onClick={() => {
-              if (window.confirm('Faltan jugadores para llenar dos equipos. ¿Forzar sorteo igual?')) {
-                void handleGoToDraw();
-              }
-            }}
-            disabled={saving}
-            className="w-full rounded-lg border-2 border-dashed border-amber-500/50 px-4 py-3 font-headline text-base font-bold italic uppercase text-amber-400 hover:border-amber-400 hover:text-amber-300 disabled:opacity-50"
+            onClick={() => void handleGoToDraw()}
+            disabled={!canProceed || saving}
+            className="w-full rounded-lg bg-emerald-500 px-4 py-4 font-headline text-xl font-black italic uppercase text-black disabled:opacity-50"
           >
-            ⚠ Forzar sorteo
+            {canProceed
+              ? 'Ir al sorteo'
+              : `Faltan ${Math.max(minimumPlayers - checkedCount, 0)} jugadores`}
           </button>
-        )}
+
+          {!canProceed && isAdminOrOwner && (
+            <button
+              type="button"
+              onClick={() => {
+                if (
+                  window.confirm('Faltan jugadores para llenar dos equipos. ¿Forzar sorteo igual?')
+                ) {
+                  void handleGoToDraw();
+                }
+              }}
+              disabled={saving}
+              className="w-full rounded-lg border-2 border-dashed border-amber-500/50 px-4 py-3 font-headline text-base font-bold italic uppercase text-amber-400 hover:border-amber-400 hover:text-amber-300 disabled:opacity-50"
+            >
+              ⚠ Forzar sorteo
+            </button>
+          )}
         </div>
       </PageContent>
     </ImmersiveScreen>

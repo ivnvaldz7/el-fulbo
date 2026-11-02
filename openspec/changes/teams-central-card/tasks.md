@@ -7,6 +7,7 @@
 - [x] Tackle eligibility: tackle milestones apply only to DEF/ARQ; DEL/MED are skipped.
 - [x] MVP source: count only official `team_matches.mvp_user_id` after manual selection or voting resolution.
 - [x] Repeat reward overlap: trophy and progression rewards both grant at the same threshold as distinct idempotent ledger entries.
+- [x] General progression: every 3 official MVPs grants +2 to the position aptitude map and every 3 consecutive valid wins grants +1 to the same map.
 
 ## Review Workload Forecast
 
@@ -34,7 +35,7 @@ Suggested split: PR 1 → PR 2 → PR 3; bases if feature-branch-chain: PR1→tr
 ## Phase 2: GREEN migrations
 
 - [x] 2.1 Create `supabase/migrations/20260811000000_teams_card_domain.sql`: `team_cards` (unique user_id, 55–75), `team_card_snapshots` (pk team_id+user_id, sealed on review), `team_local_performance`, `team_merit_grants` (1–3 pts, ≤2 keys), `team_mission_ledger` (unique user_id,kind,ref), snapshot-on-membership trigger, `team_central_card_aggregates` view (approved only), RLS + grants
-- [x] 2.2 Create `supabase/migrations/20260811010000_teams_card_rpcs.sql`: `create_team_card`, `update_team_card` (self, unlocked), `review_team_admission` (admin), `grant_team_merit` (admin, ≥10 valid matches, upgrades only, cap 99), `process_team_central_missions` (advisory lock; deterministic aptitude map D6; trophies MVP 3/5/10/20, g/a 10/25/50/100, t 20/50/100/200; cycles ÷5 → +2; milestones 25/50 g/a, 50/100 t → +1; cap 99), plus RED/GREEN RPC tests for merit limits and mission idempotency
+- [x] 2.2 Create `supabase/migrations/20260811010000_teams_card_rpcs.sql`: `create_team_card`, `update_team_card` (self, unlocked), `review_team_admission` (admin), `grant_team_merit` (admin, ≥10 valid matches, upgrades only, cap 99), `process_team_central_missions` (advisory lock; deterministic aptitude map D6; trophies MVP 3/5/10/20, g/a 10/25/50/100, t 20/50/100/200; cycles ÷3 → +2; valid win streaks ÷3 → +1; milestones 25/50 g/a, 50/100 t → +1; cap 99), plus RED/GREEN RPC tests for merit limits and mission idempotency
 
 - [x] 2.3 Drop legacy `process_team_player_progression` + `team_player_progression_state`; revoke grants; `npm run supabase db reset`; Phase-1 tests GREEN
 ## Phase 3: Services, lifecycle gate, legacy replacement

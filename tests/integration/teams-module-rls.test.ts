@@ -996,6 +996,39 @@ describe('teams module persistence and RLS', () => {
     const teamA = await seedTeamAsUser(client, adminA.id, 'Snapshots A FC');
     const teamB = await seedTeamAsUser(client, adminB.id, 'Snapshots B FC');
 
+    await asUser(client, outsider.id, () =>
+      client.query(
+        `
+          insert into public.team_cards (user_id, stats, primary_position, secondary_position)
+          values (
+            $1,
+            '{"pac":60,"sho":65,"pas":62,"dri":70,"def":55,"phy":58}'::jsonb,
+            'DEL',
+            'MED'
+          )
+        `,
+        [outsider.id],
+      ),
+    );
+
+    await expect(
+      asUser(client, outsider.id, () =>
+        client.query(
+          `
+            insert into public.team_card_snapshots (team_id, user_id, card_stats, positions, status)
+            values (
+              $1,
+              $2,
+              '{"pac":60,"sho":65,"pas":62,"dri":70,"def":55,"phy":58}'::jsonb,
+              '{"primary":"DEL","secondary":"MED"}'::jsonb,
+              'pending'
+            )
+          `,
+          [teamA, outsider.id],
+        ),
+      ),
+    ).rejects.toThrow(/row-level security|permission denied/i);
+
     await asUser(client, player.id, () =>
       client.query(
         `

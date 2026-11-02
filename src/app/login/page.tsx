@@ -58,6 +58,15 @@ function LoginContent() {
         {loading ? 'Redirigiendo...' : 'Entrar con Google'}
       </button>
 
+      {process.env.NODE_ENV !== 'production' ? (
+        <a
+          href="/dev-login"
+          className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-pitch-green/70 underline-offset-4 transition hover:text-pitch-green hover:underline"
+        >
+          Acceso local de desarrollo
+        </a>
+      ) : null}
+
       <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.2em] text-white/20">
         EL FULBO — STREET SOCCER CULTURE
       </p>

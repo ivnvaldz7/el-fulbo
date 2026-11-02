@@ -35,7 +35,7 @@ export function TeamModerationPanel({ submissions, canModerate, onReviewSubmissi
     return (
       <section aria-labelledby="moderation-heading" className="space-y-4">
         <header>
-          <h2 id="moderation-heading" className="font-headline text-3xl font-black italic uppercase text-white">Moderation</h2>
+          <h2 id="moderation-heading" className="font-headline text-3xl font-black italic uppercase text-white">Moderación</h2>
           <p className="mt-2 text-sm font-semibold text-white/55">Solo admins pueden revisar stats pendientes.</p>
         </header>
         <p className="rounded-[1.35rem] border border-dashed border-white/15 p-6 text-sm font-semibold text-white/55">
@@ -48,7 +48,7 @@ export function TeamModerationPanel({ submissions, canModerate, onReviewSubmissi
   return (
     <section aria-labelledby="moderation-heading" className="space-y-4">
       <header>
-        <h2 id="moderation-heading" className="font-headline text-3xl font-black italic uppercase text-white">Moderation</h2>
+        <h2 id="moderation-heading" className="font-headline text-3xl font-black italic uppercase text-white">Moderación</h2>
         <p className="mt-2 text-sm font-semibold text-white/55">
           La aprobación y rechazo usan RPCs del servicio.
         </p>

@@ -1,15 +1,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { FieldStats, GoalkeeperStats, PlayerPosition, Result } from '@/lib/types';
-import type { TeamCardTier, TeamCardSnapshotStatus, TeamCentralCardView, TeamCentralMissionsResult, TeamStatKind, ProgressableStatKey, TeamDetailView, TeamHubItem, TeamMatchView, TeamRosterMemberView, TeamSubmissionView } from '@/lib/types/teams.types';
+import type { TeamCard, TeamCardTier, TeamCardSnapshotStatus, TeamCentralCardView, TeamCentralMissionsResult, TeamStatKind, ProgressableStatKey, TeamDetailTab, TeamDetailView, TeamHubItem, TeamMatchView, TeamRosterMemberView, TeamSubmissionView, TeamSubmissionStatus } from '@/lib/types/teams.types';
 import {
   createTeamInvitationSchema,
   createTeamMatchSchema,
+  completeTeamMatchSchema,
   createTeamSchema,
   grantTeamMeritSchema,
   processTeamCentralMissionsSchema,
   removeTeamMemberSchema,
   reviewTeamAdmissionSchema,
   reviewTeamStatSubmissionSchema,
+  resubmitTeamAdmissionSchema,
   setTeamMatchMvpSchema,
   signUpForTeamMatchSchema,
   submitTeamStatSchema,
@@ -17,15 +19,18 @@ import {
   teamMemberSchema,
   voteForTeamMatchMvpSchema,
   resolveTeamMatchMvpSchema,
+  updateTeamBadgeSchema,
   type CreateTeamCardData,
   type CreateTeamData,
   type CreateTeamInvitationData,
   type CreateTeamMatchData,
+  type CompleteTeamMatchData,
   type GrantTeamMeritData,
   type ProcessTeamCentralMissionsData,
   type RemoveTeamMemberData,
   type ReviewTeamAdmissionData,
   type ReviewTeamStatSubmissionData,
+  type ResubmitTeamAdmissionData,
   type SetTeamMatchMvpData,
   type SignUpForTeamMatchData,
   type SubmitTeamStatData,
@@ -113,8 +118,7 @@ export class TeamsService {
 
     const { data, error } = await this.supabase.rpc('create_team', {
       p_name: parsed.data.name,
-      p_primary_position: parsed.data.primaryPosition,
-      p_secondary_position: normalizeNullable(parsed.data.secondaryPosition),
+      p_modality: parsed.data.modality,
       p_badge_url: normalizeNullable(parsed.data.badgeUrl),
       p_primary_color: normalizeNullable(parsed.data.primaryColor),
       p_secondary_color: normalizeNullable(parsed.data.secondaryColor),
@@ -126,6 +130,21 @@ export class TeamsService {
 
     const teamId = rpcId(data, 'team_id');
     return teamId ? { ok: true, data: { teamId } } : { ok: false, error: { code: 'INTERNAL_ERROR', message: 'Algo salio mal.' } };
+  }
+
+  async updateTeamBadge(input: { teamId: string; badgeUrl: string }): Promise<Result<void>> {
+    const parsed = updateTeamBadgeSchema.safeParse(input);
+    if (!parsed.success) return { ok: false, error: validationError(parsed.error.flatten()) };
+
+    const { data, error } = await this.supabase.from('teams')
+      .update({ badge_url: parsed.data.badgeUrl })
+      .eq('id', parsed.data.teamId)
+      .select('id')
+      .maybeSingle();
+
+    if (error) return { ok: false, error: mapSupabaseError(error) };
+    if (!data) return { ok: false, error: { code: 'FORBIDDEN', message: 'No pudimos actualizar el escudo.' } };
+    return { ok: true, data: undefined };
   }
 
   async createTeamInvitation(input: CreateTeamInvitationData): Promise<Result<{ code: string }>> {
@@ -209,6 +228,33 @@ export class TeamsService {
 
     const matchId = rpcId(data, 'match_id');
     return matchId ? { ok: true, data: { matchId } } : { ok: false, error: { code: 'INTERNAL_ERROR', message: 'Algo salio mal.' } };
+  }
+
+  async completeTeamMatch(input: CompleteTeamMatchData): Promise<Result<void>> {
+    const parsed = completeTeamMatchSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, error: validationError(parsed.error.flatten()) };
+    }
+
+    const { data, error } = await this.supabase
+      .from('team_matches')
+      .update({
+        status: 'played',
+        team_score: parsed.data.teamScore,
+        opponent_score: parsed.data.opponentScore,
+        played_at: new Date().toISOString(),
+      })
+      .eq('id', parsed.data.matchId)
+      .eq('team_id', parsed.data.teamId)
+      .eq('status', 'scheduled')
+      .select('id')
+      .maybeSingle();
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    return data ? { ok: true, data: undefined } : { ok: false, error: { code: 'NOT_FOUND', message: 'El partido no está disponible para cerrar.' } };
   }
 
   async signUpForTeamMatch(input: SignUpForTeamMatchData): Promise<Result<{ signupId: string }>> {
@@ -425,6 +471,35 @@ export class TeamsService {
     };
   }
 
+  async resubmitAdmission(input: ResubmitTeamAdmissionData): Promise<Result<{ teamId: string; userId: string; status: TeamCardSnapshotStatus }>> {
+    const parsed = resubmitTeamAdmissionSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, error: validationError(parsed.error.flatten()) };
+    }
+
+    const { data, error } = await this.supabase.rpc('resubmit_team_admission', {
+      p_team_id: parsed.data.teamId,
+    });
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    const row = firstRow(data);
+    if (!row?.team_id || !row?.user_id) {
+      return { ok: false, error: { code: 'INTERNAL_ERROR', message: 'Algo salio mal.' } };
+    }
+
+    return {
+      ok: true,
+      data: {
+        teamId: String(row.team_id),
+        userId: String(row.user_id),
+        status: row.status as TeamCardSnapshotStatus,
+      },
+    };
+  }
+
   async grantMerit(input: GrantTeamMeritData): Promise<Result<{ grantId: string; stats: FieldStats | GoalkeeperStats; overall: number; cardTier: TeamCardTier }>> {
     const parsed = grantTeamMeritSchema.safeParse(input);
     if (!parsed.success) {
@@ -527,6 +602,39 @@ export class TeamsService {
       },
     };
   }
+
+  async getOwnCard(): Promise<Result<TeamCard | null>> {
+    const { data: { user } } = await this.supabase.auth.getUser();
+
+    if (!user) {
+      return { ok: true, data: null };
+    }
+
+    const { data, error } = await this.supabase
+      .from('team_cards')
+      .select('user_id,stats,primary_position,secondary_position,positions_locked_at')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      return { ok: false, error: mapSupabaseError(error) };
+    }
+
+    if (!data) {
+      return { ok: true, data: null };
+    }
+
+    return {
+      ok: true,
+      data: {
+        userId: String(data.user_id),
+        stats: data.stats as FieldStats | GoalkeeperStats,
+        primaryPosition: data.primary_position as PlayerPosition,
+        secondaryPosition: data.secondary_position as PlayerPosition,
+        positionsLockedAt: data.positions_locked_at ?? null,
+      },
+    };
+  }
   async validateTeamInvite(code: string): Promise<Result<{
     valid: boolean;
     teamId: string | null;
@@ -574,10 +682,10 @@ export class TeamsService {
     return { ok: true, data: { teamId: String(row.team_id) } };
   }
 
-  async getTeamsForCurrentUser(): Promise<Result<TeamHubItem[]>> {
-    const { data: { user } } = await this.supabase.auth.getUser();
+  async getTeamsForCurrentUser(userId?: string): Promise<Result<TeamHubItem[]>> {
+    const currentUserId = userId ?? (await this.supabase.auth.getUser()).data.user?.id;
 
-    if (!user) {
+    if (!currentUserId) {
       return { ok: true, data: [] };
     }
 
@@ -591,11 +699,13 @@ export class TeamsService {
           id,
           name,
           slug,
+          badge_url,
+          modality,
           primary_color,
           secondary_color
         )
       `)
-      .eq('user_id', user.id)
+      .eq('user_id', currentUserId)
       .is('archived_at', null);
 
     if (membershipError) {
@@ -640,6 +750,8 @@ export class TeamsService {
           id: String(team.id),
           name: String(team.name),
           slug: String(team.slug),
+          badgeUrl: team.badge_url ?? null,
+          modality: team.modality,
           primaryColor: team.primary_color ?? null,
           secondaryColor: team.secondary_color ?? null,
           role: membership.role,
@@ -653,12 +765,16 @@ export class TeamsService {
     };
   }
 
-  async getTeamDetail(teamId: string): Promise<Result<TeamDetailView | null>> {
-    const { data: team, error: teamError } = await this.supabase
-      .from('teams')
-      .select('id,name,slug,primary_color,secondary_color')
-      .eq('id', teamId)
-      .maybeSingle();
+  async getTeamDetail(teamId: string, tab?: TeamDetailTab): Promise<Result<TeamDetailView | null>> {
+    const [teamResult, authResult] = await Promise.all([
+      this.supabase
+        .from('teams')
+        .select('id,name,slug,modality,badge_url,primary_color,secondary_color')
+        .eq('id', teamId)
+        .maybeSingle(),
+      this.supabase.auth.getUser(),
+    ]);
+    const { data: team, error: teamError } = teamResult;
 
     if (teamError) {
       return { ok: false, error: mapSupabaseError(teamError) };
@@ -668,29 +784,43 @@ export class TeamsService {
       return { ok: true, data: null };
     }
 
-    const { data: { user } } = await this.supabase.auth.getUser();
+    const { data: { user } } = authResult;
+    const loadMatches = !tab || tab === 'matches';
+    const loadCard = !tab || tab === 'card';
+    const loadModeration = !tab || tab === 'moderation';
 
-    const [membersResult, matchesResult, totalsResult] = await Promise.all([
+    const [membersResult, matchesResult, totalsResult, playerSubmissionsResult, snapshotsResult] = await Promise.all([
       this.supabase
         .from('team_members')
         .select('id,user_id,role,primary_position,secondary_position,users!team_members_user_id_fkey(display_name,photo_url)')
         .eq('team_id', teamId)
         .is('archived_at', null)
         .order('joined_at', { ascending: true }),
-      this.supabase
+      loadMatches ? this.supabase
         .from('team_matches')
         .select('id,scheduled_at,opponent_name,field_name,status,team_score,opponent_score,mvp_user_id,team_match_signups(id),team_match_mvp_votes(voter_id)')
         .eq('team_id', teamId)
         .order('scheduled_at', { ascending: false })
-        .limit(20),
+        .limit(20) : Promise.resolve({ data: [], error: null }),
       this.supabase
         .from('team_approved_stat_totals')
         .select('matches_played,goals,assists,tackles')
         .eq('team_id', teamId)
         .maybeSingle(),
+      loadMatches && user?.id
+        ? this.supabase
+          .from('team_stat_submissions')
+          .select('team_match_id,stat_kind,status')
+          .eq('team_id', teamId)
+          .eq('user_id', user.id)
+        : Promise.resolve({ data: [], error: null }),
+      loadCard ? this.supabase
+        .from('team_card_snapshots')
+        .select('team_id,user_id,card_stats,positions,status,reviewed_by_user_id,reviewed_at,rejection_reason')
+        .eq('team_id', teamId) : Promise.resolve({ data: [], error: null }),
     ]);
 
-    for (const result of [membersResult, matchesResult, totalsResult]) {
+    for (const result of [membersResult, matchesResult, totalsResult, playerSubmissionsResult, snapshotsResult]) {
       if (result.error) {
         return { ok: false, error: mapSupabaseError(result.error) };
       }
@@ -698,7 +828,7 @@ export class TeamsService {
 
     const currentMember = (membersResult.data ?? []).find((row: any) => row.user_id === user?.id) as any;
     const canModerate = currentMember?.role === 'admin';
-    const submissionsResult = canModerate
+    const submissionsResult = loadModeration && canModerate
       ? await this.supabase
         .from('team_stat_submissions')
         .select('id,user_id,stat_kind,value,status,team_matches!team_stat_submissions_match_team_fk(opponent_name,scheduled_at),users!team_stat_submissions_user_id_fkey(display_name)')
@@ -723,6 +853,13 @@ export class TeamsService {
 
     const membersByUserId = new Map(members.map((m) => [m.userId, m.displayName]));
 
+    const playerSubmissionsByMatch = new Map<string, Array<{ statKind: TeamStatKind; status: TeamSubmissionStatus }>>();
+    for (const row of playerSubmissionsResult.data ?? []) {
+      const matchSubmissions = playerSubmissionsByMatch.get(String(row.team_match_id)) ?? [];
+      matchSubmissions.push({ statKind: row.stat_kind, status: row.status });
+      playerSubmissionsByMatch.set(String(row.team_match_id), matchSubmissions);
+    }
+
     const matches: TeamMatchView[] = (matchesResult.data ?? []).map((row: any) => ({
       id: String(row.id),
       scheduledAt: String(row.scheduled_at),
@@ -735,6 +872,7 @@ export class TeamsService {
       mvpUserId: row.mvp_user_id ?? null,
       mvpUserName: row.mvp_user_id ? (membersByUserId.get(row.mvp_user_id) ?? null) : null,
       hasVotedForMvp: Array.isArray(row.team_match_mvp_votes) ? row.team_match_mvp_votes.some((v: any) => v.voter_id === user?.id) : false,
+      submittedStats: playerSubmissionsByMatch.get(String(row.id)) ?? [],
     }));
 
     const submissions: TeamSubmissionView[] = (submissionsResult.data ?? []).map((row: any) => ({
@@ -747,6 +885,22 @@ export class TeamsService {
       status: row.status,
     }));
 
+    const admissions = (snapshotsResult.data ?? [])
+      .filter((row: any) => membersByUserId.has(String(row.user_id)))
+      .map((row: any) => ({
+        teamId: String(row.team_id),
+        userId: String(row.user_id),
+        playerName: membersByUserId.get(String(row.user_id)) ?? 'Jugador',
+        cardStats: row.card_stats && Object.keys(row.card_stats).length > 0
+          ? row.card_stats as FieldStats | GoalkeeperStats
+          : null,
+        positions: row.positions ?? null,
+        status: row.status,
+        reviewedByUserId: row.reviewed_by_user_id ?? null,
+        reviewedAt: row.reviewed_at ?? null,
+        rejectionReason: row.rejection_reason ?? null,
+      }));
+
     const totals = totalsResult.data as any;
 
     return {
@@ -755,6 +909,8 @@ export class TeamsService {
         id: String((team as any).id),
         name: String((team as any).name),
         slug: String((team as any).slug),
+        badgeUrl: (team as any).badge_url ?? null,
+        modality: (team as any).modality,
         primaryColor: (team as any).primary_color ?? null,
         secondaryColor: (team as any).secondary_color ?? null,
         role: currentMember?.role === 'admin' ? 'admin' : 'member',
@@ -763,9 +919,11 @@ export class TeamsService {
         goals: Number(totals?.goals ?? 0),
         assists: Number(totals?.assists ?? 0),
         tackles: Number(totals?.tackles ?? 0),
+        currentUserId: user?.id ?? null,
         members,
         matches,
         submissions,
+        admissions,
       },
     };
   }

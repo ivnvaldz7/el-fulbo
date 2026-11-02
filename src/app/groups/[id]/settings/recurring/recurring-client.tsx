@@ -47,8 +47,12 @@ export function RecurringClient({ groupId, schedules: initial }: Props) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [openingScheduleId, setOpeningScheduleId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<{ tone: 'success' | 'pending' | 'error'; message: string } | null>(null);
+  const [notice, setNotice] = useState<{
+    tone: 'success' | 'pending' | 'error';
+    message: string;
+  } | null>(null);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -61,7 +65,7 @@ export function RecurringClient({ groupId, schedules: initial }: Props) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...form, days_ahead: Number(form.days_ahead) }),
     });
-    const json = await res.json() as RecurringSaveResponse;
+    const json = (await res.json()) as RecurringSaveResponse;
     setSaving(false);
 
     if (!json.ok) {
@@ -94,7 +98,8 @@ export function RecurringClient({ groupId, schedules: initial }: Props) {
     } else {
       setNotice({
         tone: 'pending',
-        message: 'Partido fijo guardado. El próximo evento se creará automáticamente cuando entre en ventana y corra el mantenimiento diario.',
+        message:
+          'Partido fijo guardado. El próximo evento se creará automáticamente cuando entre en ventana y corra el mantenimiento diario.',
       });
     }
 
@@ -102,11 +107,10 @@ export function RecurringClient({ groupId, schedules: initial }: Props) {
   }
 
   async function handleDelete(schedule: RecurringSchedule) {
-    const res = await fetch(
-      `/api/groups/${groupId}/settings/recurring?scheduleId=${schedule.id}`,
-      { method: 'DELETE' },
-    );
-    const json = await res.json() as { ok: boolean };
+    const res = await fetch(`/api/groups/${groupId}/settings/recurring?scheduleId=${schedule.id}`, {
+      method: 'DELETE',
+    });
+    const json = (await res.json()) as { ok: boolean };
     if (json.ok) {
       setSchedules((prev) => prev.filter((s) => s.id !== schedule.id));
       router.refresh();
@@ -124,6 +128,34 @@ export function RecurringClient({ groupId, schedules: initial }: Props) {
       days_ahead: schedule.days_ahead,
     });
     setShowForm(true);
+  }
+
+  async function handleOpenNow(schedule: RecurringSchedule) {
+    setOpeningScheduleId(schedule.id);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `/api/groups/${groupId}/settings/recurring/${schedule.id}/open`,
+        { method: 'POST' },
+      );
+      const payload = (await response.json()) as {
+        ok: boolean;
+        data?: { eventId: string; created: boolean };
+        error?: { message: string };
+      };
+      if (!payload.ok || !payload.data) {
+        setError(payload.error?.message ?? 'No pudimos abrir la convocatoria.');
+        return;
+      }
+
+      router.push(`/groups/${groupId}/events/${payload.data.eventId}`);
+      router.refresh();
+    } catch {
+      setError('No pudimos abrir la convocatoria. Intentá de nuevo.');
+    } finally {
+      setOpeningScheduleId(null);
+    }
   }
 
   return (
@@ -157,7 +189,14 @@ export function RecurringClient({ groupId, schedules: initial }: Props) {
                   Se crea {s.days_ahead} días antes
                 </p>
               </div>
-              <div className="flex shrink-0 gap-2">
+              <div className="flex shrink-0 gap-3">
+                <button
+                  onClick={() => void handleOpenNow(s)}
+                  disabled={openingScheduleId === s.id}
+                  className="font-mono text-[10px] font-bold uppercase text-pitch-green hover:text-white disabled:opacity-50"
+                >
+                  {openingScheduleId === s.id ? 'Abriendo...' : 'Abrir ahora'}
+                </button>
                 <button
                   onClick={() => handleEdit(s)}
                   className="font-mono text-[10px] font-bold uppercase text-white/40 hover:text-white"
@@ -181,7 +220,10 @@ export function RecurringClient({ groupId, schedules: initial }: Props) {
       )}
 
       {showForm ? (
-        <form onSubmit={(e) => void handleSave(e)} className="border border-white/10 divide-y divide-white/5">
+        <form
+          onSubmit={(e) => void handleSave(e)}
+          className="border border-white/10 divide-y divide-white/5"
+        >
           <div className="grid grid-cols-2 divide-x divide-white/5">
             <label className="block p-4">
               <span className="font-mono text-[10px] font-bold uppercase text-white/50">Día</span>
@@ -191,7 +233,9 @@ export function RecurringClient({ groupId, schedules: initial }: Props) {
                 className="mt-2 w-full bg-transparent font-headline text-base font-bold text-white outline-none appearance-none"
               >
                 {DAYS.map((d, i) => (
-                  <option key={i} value={i} className="bg-zinc-900">{d}</option>
+                  <option key={i} value={i} className="bg-zinc-900">
+                    {d}
+                  </option>
                 ))}
               </select>
             </label>
@@ -219,7 +263,9 @@ export function RecurringClient({ groupId, schedules: initial }: Props) {
           </label>
 
           <label className="block p-4">
-            <span className="font-mono text-[10px] font-bold uppercase text-white/50">Google Maps (opcional)</span>
+            <span className="font-mono text-[10px] font-bold uppercase text-white/50">
+              Google Maps (opcional)
+            </span>
             <input
               type="url"
               value={form.field_maps_url}
@@ -231,19 +277,25 @@ export function RecurringClient({ groupId, schedules: initial }: Props) {
 
           <div className="grid grid-cols-2 divide-x divide-white/5">
             <label className="block p-4">
-              <span className="font-mono text-[10px] font-bold uppercase text-white/50">Modalidad</span>
+              <span className="font-mono text-[10px] font-bold uppercase text-white/50">
+                Modalidad
+              </span>
               <select
                 value={form.modality}
                 onChange={(e) => setForm((f) => ({ ...f, modality: e.target.value }))}
                 className="mt-2 w-full bg-transparent font-headline text-base font-bold text-white outline-none appearance-none"
               >
                 {MODALITIES.map((m) => (
-                  <option key={m} value={m} className="bg-zinc-900">{m}</option>
+                  <option key={m} value={m} className="bg-zinc-900">
+                    {m}
+                  </option>
                 ))}
               </select>
             </label>
             <label className="block p-4">
-              <span className="font-mono text-[10px] font-bold uppercase text-white/50">Días antes</span>
+              <span className="font-mono text-[10px] font-bold uppercase text-white/50">
+                Días antes
+              </span>
               <input
                 type="number"
                 min={1}
@@ -256,7 +308,9 @@ export function RecurringClient({ groupId, schedules: initial }: Props) {
           </div>
 
           <label className="block p-4">
-            <span className="font-mono text-[10px] font-bold uppercase text-white/50">Notas (opcional)</span>
+            <span className="font-mono text-[10px] font-bold uppercase text-white/50">
+              Notas (opcional)
+            </span>
             <input
               type="text"
               value={form.notes}
@@ -267,7 +321,9 @@ export function RecurringClient({ groupId, schedules: initial }: Props) {
           </label>
 
           {error ? (
-            <p className="px-4 py-2 font-mono text-[10px] font-bold uppercase text-red-500">{error}</p>
+            <p className="px-4 py-2 font-mono text-[10px] font-bold uppercase text-red-500">
+              {error}
+            </p>
           ) : null}
 
           <div className="flex gap-3 p-4">
@@ -280,7 +336,10 @@ export function RecurringClient({ groupId, schedules: initial }: Props) {
             </button>
             <button
               type="button"
-              onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }}
+              onClick={() => {
+                setShowForm(false);
+                setForm(EMPTY_FORM);
+              }}
               className="px-4 font-mono text-[10px] font-bold uppercase text-white/40 hover:text-white"
             >
               Cancelar

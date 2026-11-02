@@ -1,5 +1,10 @@
-import { describe, it, expect } from 'vitest';
-import { computeNextOccurrence } from './create-event-from-schedule';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { describe, it, expect, vi } from 'vitest';
+import {
+  computeNextOccurrence,
+  tryCreateEventFromSchedule,
+  type ScheduleData,
+} from './create-event-from-schedule';
 
 describe('computeNextOccurrence', () => {
   // Helper: crear un Date en UTC desde string ISO
@@ -90,5 +95,54 @@ describe('computeNextOccurrence', () => {
     const result = computeNextOccurrence(6, '01:00', now);
     // Ya pasó (01:00 < 12:00) → próximo sábado 27 Jun 01:00 Arg = 04:00 UTC
     expect(result.date.toISOString()).toBe('2026-06-27T04:00:00.000Z');
+  });
+});
+
+describe('tryCreateEventFromSchedule', () => {
+  const schedule: ScheduleData = {
+    id: '11111111-1111-1111-1111-111111111111',
+    group_id: '22222222-2222-2222-2222-222222222222',
+    day_of_week: 4,
+    scheduled_time: '22:00',
+    field_name: 'Cancha fija',
+    field_maps_url: null,
+    modality: 'F5',
+    notes: null,
+    days_ahead: 2,
+  };
+
+  it('does not call the opening RPC before the automatic window', async () => {
+    const rpc = vi.fn();
+    const supabase = { rpc } as unknown as SupabaseClient;
+
+    const result = await tryCreateEventFromSchedule(
+      supabase,
+      schedule,
+      new Date('2026-06-19T13:00:00.000Z'),
+    );
+
+    expect(result).toEqual({ created: false });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('opens the same upcoming occurrence when an admin bypasses the automatic window', async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: [{ event_id: '33333333-3333-3333-3333-333333333333', created: false }],
+      error: null,
+    });
+    const supabase = { rpc } as unknown as SupabaseClient;
+
+    const result = await tryCreateEventFromSchedule(
+      supabase,
+      schedule,
+      new Date('2026-06-19T13:00:00.000Z'),
+      true,
+    );
+
+    expect(result).toEqual({ created: false, eventId: '33333333-3333-3333-3333-333333333333' });
+    expect(rpc).toHaveBeenCalledWith('open_recurring_event', {
+      p_schedule_id: schedule.id,
+      p_scheduled_at: '2026-06-26T01:00:00.000Z',
+    });
   });
 });

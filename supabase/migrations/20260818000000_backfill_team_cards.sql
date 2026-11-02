@@ -8,5 +8,5 @@ SELECT
   primary_position, 
   (CASE WHEN primary_position = 'MED' THEN 'DEL' ELSE 'MED' END)::player_position 
 FROM players 
-WHERE user_id NOT IN (SELECT user_id FROM team_cards) AND archived_at IS NULL 
+WHERE user_id IS NOT NULL AND user_id NOT IN (SELECT user_id FROM team_cards) AND archived_at IS NULL
 ON CONFLICT (user_id) DO NOTHING;

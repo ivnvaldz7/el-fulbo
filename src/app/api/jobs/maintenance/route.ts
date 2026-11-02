@@ -3,7 +3,10 @@ import { createServiceSupabaseClient } from '@/lib/supabase/service';
 import { successResponse, cronAuthError } from '@/lib/api-helpers';
 import { tryCreateEventFromSchedule } from '@/lib/services/create-event-from-schedule';
 import { sendPushToUser } from '@/lib/services/push-sender.service';
-import { dispatchAttendanceChangedPushes, dispatchEventCreatedPushes } from '@/lib/services/push-dispatcher.service';
+import {
+  dispatchAttendanceChangedPushes,
+  dispatchEventCreatedPushes,
+} from '@/lib/services/push-dispatcher.service';
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
@@ -24,7 +27,10 @@ export async function GET(request: Request) {
   // Phase 3: Send push reminders to unconfirmed players (0-24h window)
   const reminderResult = await sendReminders(supabase, now, errors);
   const pushDispatchResult = await dispatchEventCreatedPushesSafely(supabase, errors);
-  const attendanceChangedPushDispatchResult = await dispatchAttendanceChangedPushesSafely(supabase, errors);
+  const attendanceChangedPushDispatchResult = await dispatchAttendanceChangedPushesSafely(
+    supabase,
+    errors,
+  );
 
   return successResponse({
     eventsCreated: createdResult,
@@ -43,7 +49,8 @@ async function dispatchEventCreatedPushesSafely(
   try {
     return await dispatchEventCreatedPushes(supabase);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Error inesperado en dispatcher event_created';
+    const message =
+      error instanceof Error ? error.message : 'Error inesperado en dispatcher event_created';
     console.error('[maintenance] event_created push dispatcher failed:', error);
     errors.push(`event_created dispatcher failed: ${message}`);
 
@@ -65,7 +72,8 @@ async function dispatchAttendanceChangedPushesSafely(
   try {
     return await dispatchAttendanceChangedPushes(supabase);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Error inesperado en dispatcher attendance_changed';
+    const message =
+      error instanceof Error ? error.message : 'Error inesperado en dispatcher attendance_changed';
     console.error('[maintenance] attendance_changed push dispatcher failed:', error);
     errors.push(`attendance_changed dispatcher failed: ${message}`);
 
@@ -107,7 +115,7 @@ async function createFromSchedules(
       continue;
     }
 
-    const result = await tryCreateEventFromSchedule(supabase, schedule, adminUserId, now);
+    const result = await tryCreateEventFromSchedule(supabase, schedule, now);
     if (result.error) {
       errors.push(`Schedule ${schedule.id}: ${result.error}`);
       continue;
